@@ -80,14 +80,27 @@ const deleteCustomer = async (req, res) => {
   try {
     const { id } = req.params;
     
+    // Begin a transaction
+    await pool.query('BEGIN');
+    
+    // First delete all appointments for this customer
+    await pool.query('DELETE FROM appointments WHERE customer_id = $1', [id]);
+    
+    // Then delete the customer
     const result = await pool.query('DELETE FROM customers WHERE id = $1 RETURNING *', [id]);
     
     if (result.rows.length === 0) {
+      await pool.query('ROLLBACK');
       return res.status(404).json({ error: 'Customer not found' });
     }
     
-    res.json({ message: 'Customer deleted successfully', customer: result.rows[0] });
+    // Commit the transaction
+    await pool.query('COMMIT');
+    
+    res.json({ message: 'Customer and all related appointments deleted successfully', customer: result.rows[0] });
   } catch (error) {
+    // Rollback in case of error
+    await pool.query('ROLLBACK');
     console.error('Error deleting customer:', error);
     res.status(500).json({ error: error.message });
   }
