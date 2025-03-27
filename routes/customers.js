@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { authenticateToken } = require('../middleware/auth');
 const {
   getAllCustomers,
   getCustomerById,
@@ -8,6 +9,9 @@ const {
   deleteCustomer,
   getCustomerAppointments
 } = require('../controllers/customersController');
+
+// Apply authentication middleware to all routes
+router.use(authenticateToken);
 
 // GET all customers
 router.get('/', getAllCustomers);
