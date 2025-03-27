@@ -3,12 +3,24 @@ const pool = require('../db');
 // Get all appointments with customer data
 const getAllAppointments = async (req, res) => {
   try {
-    const result = await pool.query(`
+    const { date } = req.query;
+    
+    let queryText = `
       SELECT a.*, c.name as customer_name, c.phone as customer_phone, c.service_type
       FROM appointments a
       JOIN customers c ON a.customer_id = c.id
-      ORDER BY a.scheduled_at DESC
-    `);
+    `;
+    
+    const queryParams = [];
+    
+    if (date) {
+      queryParams.push(date);
+      queryText += ` WHERE DATE(scheduled_at) = $1`;
+    }
+    
+    queryText += ` ORDER BY a.scheduled_at DESC`;
+    
+    const result = await pool.query(queryText, queryParams);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching appointments:', error);
