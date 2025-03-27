@@ -10,9 +10,16 @@ const authenticateToken = (req, res, next) => {
     return res.status(401).json({ error: 'Access denied. No token provided.' });
   }
   
+  // Check if JWT_SECRET is available
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    console.error('JWT_SECRET is not defined in environment variables');
+    return res.status(500).json({ error: 'Server configuration error' });
+  }
+  
   try {
     // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, jwtSecret);
     
     // Add the user info to the request
     req.user = decoded;
