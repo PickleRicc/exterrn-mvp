@@ -4,7 +4,7 @@ const pool = require('../db');
 const getAllAppointments = async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT a.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone
+      SELECT a.*, c.name as customer_name, c.phone as customer_phone, c.service_type
       FROM appointments a
       JOIN customers c ON a.customer_id = c.id
       ORDER BY a.scheduled_at DESC
@@ -21,7 +21,7 @@ const getAppointmentById = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(`
-      SELECT a.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone
+      SELECT a.*, c.name as customer_name, c.phone as customer_phone, c.service_type
       FROM appointments a
       JOIN customers c ON a.customer_id = c.id
       WHERE a.id = $1
@@ -41,13 +41,13 @@ const getAppointmentById = async (req, res) => {
 // Create new appointment
 const createAppointment = async (req, res) => {
   try {
-    const { customer_id, scheduled_at, service_type, notes } = req.body;
+    const { customer_id, scheduled_at, notes } = req.body;
     
     const result = await pool.query(`
-      INSERT INTO appointments (customer_id, scheduled_at, service_type, notes)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO appointments (customer_id, scheduled_at, notes)
+      VALUES ($1, $2, $3)
       RETURNING *
-    `, [customer_id, scheduled_at, service_type, notes]);
+    `, [customer_id, scheduled_at, notes]);
     
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -64,7 +64,7 @@ const updateAppointment = async (req, res) => {
     
     const result = await pool.query(`
       UPDATE appointments
-      SET scheduled_at = $1, notes = $2, updated_at = NOW()
+      SET scheduled_at = $1, notes = $2
       WHERE id = $3
       RETURNING *
     `, [scheduled_at, notes, id]);
