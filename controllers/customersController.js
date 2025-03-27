@@ -3,10 +3,34 @@ const pool = require('../db');
 // Get all customers
 const getAllCustomers = async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT * FROM customers
-      ORDER BY name ASC
-    `);
+    const { name, phone, service_type } = req.query;
+    
+    let query = 'SELECT * FROM customers';
+    const queryParams = [];
+    const conditions = [];
+    
+    if (name) {
+      queryParams.push(`%${name}%`);
+      conditions.push(`name ILIKE $${queryParams.length}`);
+    }
+    
+    if (phone) {
+      queryParams.push(`%${phone}%`);
+      conditions.push(`phone ILIKE $${queryParams.length}`);
+    }
+    
+    if (service_type) {
+      queryParams.push(`%${service_type}%`);
+      conditions.push(`service_type ILIKE $${queryParams.length}`);
+    }
+    
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+    
+    query += ' ORDER BY name ASC';
+    
+    const result = await pool.query(query, queryParams);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching customers:', error);
