@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const pool = require('./db');
 const appointmentRoutes = require('./routes/appointments');
+const customerRoutes = require('./routes/customers');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,6 +13,7 @@ app.use(express.json());
 
 // Routes
 app.use('/appointments', appointmentRoutes);
+app.use('/customers', customerRoutes);
 
 app.get('/', (req, res) => res.send('Extern MVP API is live 🎯'));
 
