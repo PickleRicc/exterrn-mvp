@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --primary: #3B82F6;
+  --primary-dark: #2563EB;
+  --secondary: #10B981;
+  --secondary-dark: #059669;
+  --accent: #F59E0B;
+  --gray-light: #F3F4F6;
+  --gray: #E5E7EB;
+  --gray-dark: #9CA3AF;
+  --error: #EF4444;
+  --success: #10B981;
+  --border-radius: 0.5rem;
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --header-height: 60px;
+  --safe-area-top: env(safe-area-inset-top);
+  --safe-area-bottom: env(safe-area-inset-bottom);
+  --safe-area-left: env(safe-area-inset-left);
+  --safe-area-right: env(safe-area-inset-right);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --gray-light: #1F2937;
+    --gray: #374151;
+    --gray-dark: #6B7280;
+  }
+}
+
+/* Base styles */
+html {
+  -webkit-text-size-adjust: 100%;
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  min-height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  touch-action: manipulation;
+}
+
+/* Mobile viewport adjustments */
+@supports (padding-top: env(safe-area-inset-top)) {
+  body {
+    /* Add safe area insets padding */
+    padding-top: var(--safe-area-top);
+    padding-bottom: var(--safe-area-bottom);
+    padding-left: var(--safe-area-left);
+    padding-right: var(--safe-area-right);
+  }
+}
+
+/* Prevent pull-to-refresh and overscrolling on iOS */
+body {
+  overscroll-behavior-y: none;
+}
+
+/* Remove tap highlight on iOS */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom utility classes */
+@layer components {
+  .container-mobile {
+    @apply w-full px-4 mx-auto max-w-md;
+  }
+  
+  .container-tablet {
+    @apply w-full px-6 mx-auto max-w-2xl;
+  }
+  
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-md font-medium transition-colors;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-dark;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-white hover:bg-secondary-dark;
+  }
+  
+  .btn-outline {
+    @apply border border-gray-dark text-foreground hover:bg-gray-light;
+  }
+  
+  .card {
+    @apply bg-white dark:bg-gray-light rounded-lg shadow p-4 mb-4;
+  }
+  
+  .form-input {
+    @apply w-full p-2 border border-gray rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+  }
+  
+  .form-label {
+    @apply block mb-2 font-medium;
+  }
+  
+  /* Mobile navigation */
+  .mobile-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-light shadow-lg flex justify-around items-center h-16 z-50;
+    padding-bottom: max(0.5rem, var(--safe-area-bottom));
+  }
+  
+  .mobile-nav-item {
+    @apply flex flex-col items-center justify-center text-xs text-gray-dark hover:text-primary;
+  }
+  
+  /* Mobile header */
+  .mobile-header {
+    @apply fixed top-0 left-0 right-0 bg-white dark:bg-gray-light shadow-sm flex justify-between items-center h-16 px-4 z-50;
+    padding-top: max(1rem, var(--safe-area-top));
+  }
+  
+  /* Page container with proper spacing for fixed header and nav */
+  .page-container {
+    @apply pt-16 pb-16 min-h-screen;
+  }
+}
