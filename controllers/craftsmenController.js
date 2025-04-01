@@ -204,7 +204,7 @@ const checkCraftsmanAvailability = async (req, res) => {
     const craftsman = craftsmanCheck.rows[0];
     
     // Get day of week from date
-    const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'lowercase' });
+    const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
     
     // Check if craftsman works on this day
     if (craftsman.availability_hours && 
