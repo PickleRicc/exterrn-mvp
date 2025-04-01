@@ -50,8 +50,35 @@ export const authAPI = {
     const response = await api.post('/auth/login', { email, password });
     return response.data;
   },
-  register: async (username, email, password) => {
-    const response = await api.post('/auth/register', { username, email, password });
+  register: async (username, email, password, role, phone, specialty) => {
+    const response = await api.post('/auth/register', { 
+      username, 
+      email, 
+      password,
+      role,
+      phone,
+      specialty
+    });
+    return response.data;
+  },
+};
+
+// Craftsmen API calls
+export const craftsmenAPI = {
+  getAll: async (filters = {}) => {
+    const response = await api.get('/craftsmen', { params: filters });
+    return response.data;
+  },
+  getById: async (id) => {
+    const response = await api.get(`/craftsmen/${id}`);
+    return response.data;
+  },
+  update: async (id, craftsmanData) => {
+    const response = await api.put(`/craftsmen/${id}`, craftsmanData);
+    return response.data;
+  },
+  getAppointments: async (id) => {
+    const response = await api.get(`/craftsmen/${id}/appointments`);
     return response.data;
   },
 };

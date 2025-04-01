@@ -9,6 +9,9 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState('customer');
+  const [phone, setPhone] = useState('');
+  const [specialty, setSpecialty] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -23,10 +26,16 @@ export default function RegisterPage() {
       return;
     }
 
+    // Validate phone number for craftsmen
+    if (role === 'craftsman' && !phone) {
+      setError('Phone number is required for craftsmen');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await authAPI.register(username, email, password);
+      await authAPI.register(username, email, password, role, phone, specialty);
       
       // Redirect to login page after successful registration
       router.push('/auth/login?registered=true');
@@ -92,7 +101,7 @@ export default function RegisterPage() {
             />
           </div>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <label htmlFor="confirmPassword" className="block mb-2 text-sm font-medium">
               Confirm Password
             </label>
@@ -105,6 +114,61 @@ export default function RegisterPage() {
               required
             />
           </div>
+          
+          <div className="mb-4">
+            <label htmlFor="role" className="block mb-2 text-sm font-medium">
+              Account Type
+            </label>
+            <select
+              id="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded"
+              required
+            >
+              <option value="customer">Customer</option>
+              <option value="craftsman">Craftsman</option>
+            </select>
+          </div>
+          
+          {role === 'craftsman' && (
+            <>
+              <div className="mb-4">
+                <label htmlFor="phone" className="block mb-2 text-sm font-medium">
+                  Phone Number
+                </label>
+                <input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label htmlFor="specialty" className="block mb-2 text-sm font-medium">
+                  Specialty
+                </label>
+                <select
+                  id="specialty"
+                  value={specialty}
+                  onChange={(e) => setSpecialty(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded"
+                >
+                  <option value="">Select a specialty</option>
+                  <option value="Plumbing">Plumbing</option>
+                  <option value="Electrical">Electrical</option>
+                  <option value="Carpentry">Carpentry</option>
+                  <option value="HVAC">HVAC</option>
+                  <option value="Painting">Painting</option>
+                  <option value="Roofing">Roofing</option>
+                  <option value="General">General Contracting</option>
+                </select>
+              </div>
+            </>
+          )}
           
           <button
             type="submit"

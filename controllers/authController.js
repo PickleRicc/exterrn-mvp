@@ -5,7 +5,10 @@ const jwt = require('jsonwebtoken');
 // Register new user
 const register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, role, phone, specialty } = req.body;
+    
+    // Begin transaction
+    await pool.query('BEGIN');
     
     // Check if user already exists
     const userCheck = await pool.query(
@@ -14,6 +17,7 @@ const register = async (req, res) => {
     );
     
     if (userCheck.rows.length > 0) {
+      await pool.query('ROLLBACK');
       return res.status(400).json({ 
         error: 'User already exists with that email or username' 
       });
@@ -23,19 +27,43 @@ const register = async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     
+    // Set default role if not provided
+    const userRole = role || 'customer';
+    
     // Insert new user
     const result = await pool.query(
-      `INSERT INTO users (username, email, password) 
-       VALUES ($1, $2, $3) 
-       RETURNING id, username, email, created_at`,
-      [username, email, hashedPassword]
+      `INSERT INTO users (username, email, password, role) 
+       VALUES ($1, $2, $3, $4) 
+       RETURNING id, username, email, role, created_at`,
+      [username, email, hashedPassword, userRole]
     );
+    
+    const userId = result.rows[0].id;
+    
+    // If craftsman role, create craftsman entry
+    if (userRole === 'craftsman') {
+      if (!phone) {
+        await pool.query('ROLLBACK');
+        return res.status(400).json({ error: 'Phone number is required for craftsmen' });
+      }
+      
+      await pool.query(
+        `INSERT INTO craftsmen (name, phone, specialty, user_id) 
+         VALUES ($1, $2, $3, $4)`,
+        [username, phone, specialty || '', userId]
+      );
+    }
+    
+    // Commit transaction
+    await pool.query('COMMIT');
     
     res.status(201).json({
       message: 'User registered successfully',
       user: result.rows[0]
     });
   } catch (error) {
+    // Rollback in case of error
+    await pool.query('ROLLBACK');
     console.error('Error registering user:', error);
     res.status(500).json({ error: error.message });
   }
@@ -72,9 +100,27 @@ const login = async (req, res) => {
       return res.status(500).json({ error: 'Server configuration error' });
     }
     
+    // Get craftsman info if user is a craftsman
+    let craftsmanInfo = null;
+    if (user.role === 'craftsman') {
+      const craftsmanResult = await pool.query(
+        'SELECT id, name, phone, specialty FROM craftsmen WHERE user_id = $1',
+        [user.id]
+      );
+      
+      if (craftsmanResult.rows.length > 0) {
+        craftsmanInfo = craftsmanResult.rows[0];
+      }
+    }
+    
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { 
+        userId: user.id, 
+        email: user.email,
+        role: user.role || 'customer',
+        craftsmanId: craftsmanInfo?.id
+      },
       jwtSecret,
       { expiresIn: '1h' }
     );
@@ -85,7 +131,9 @@ const login = async (req, res) => {
       user: {
         id: user.id,
         username: user.username,
-        email: user.email
+        email: user.email,
+        role: user.role || 'customer',
+        craftsman: craftsmanInfo
       }
     });
   } catch (error) {

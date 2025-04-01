@@ -7,6 +7,7 @@ const pool = require('./db');
 const appointmentRoutes = require('./routes/appointments');
 const customerRoutes = require('./routes/customers');
 const authRoutes = require('./routes/auth');
+const craftsmenRoutes = require('./routes/craftsmen');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,8 +20,14 @@ app.use(express.json());
 app.use('/appointments', appointmentRoutes);
 app.use('/customers', customerRoutes);
 app.use('/auth', authRoutes);
+app.use('/craftsmen', craftsmenRoutes);
 
-app.get('/', (req, res) => res.send('Extern MVP API is live 🎯'));
+app.get('/', (req, res) => res.send('Extern MVP API is live '));
+
+// Simple test endpoint to verify routes can be added
+app.get('/test-craftsmen', (req, res) => {
+  res.json({ message: 'Craftsmen test endpoint is working' });
+});
 
 app.get('/db-test', async (req, res) => {
   try {
