@@ -82,6 +82,12 @@ export const craftsmenAPI = {
     const response = await api.get(`/craftsmen/${id}/appointments`);
     return response.data;
   },
+  checkAvailability: async (id, date, time) => {
+    const response = await api.get(`/craftsmen/${id}/availability`, {
+      params: { date, time }
+    });
+    return response.data;
+  }
 };
 
 // Customers API calls

@@ -5,7 +5,8 @@ const {
   getAllCraftsmen, 
   getCraftsmanById, 
   updateCraftsman, 
-  getCraftsmanAppointments 
+  getCraftsmanAppointments,
+  checkCraftsmanAvailability
 } = require('../controllers/craftsmenController');
 
 // Get all craftsmen (public)
@@ -13,6 +14,9 @@ router.get('/', getAllCraftsmen);
 
 // Get craftsman by ID (public)
 router.get('/:id', getCraftsmanById);
+
+// Check craftsman availability (public)
+router.get('/:id/availability', checkCraftsmanAvailability);
 
 // Protected routes
 router.use(authenticateToken);

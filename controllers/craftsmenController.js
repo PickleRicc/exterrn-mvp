@@ -181,9 +181,120 @@ const getCraftsmanAppointments = async (req, res) => {
   }
 };
 
+// Check craftsman availability
+const checkCraftsmanAvailability = async (req, res) => {
+  try {
+    const { date, time } = req.query;
+    const { id } = req.params;
+    
+    if (!date) {
+      return res.status(400).json({ error: 'Date parameter is required (YYYY-MM-DD format)' });
+    }
+    
+    // First check if craftsman exists
+    const craftsmanCheck = await pool.query(
+      'SELECT id, name, availability_hours FROM craftsmen WHERE id = $1', 
+      [id]
+    );
+    
+    if (craftsmanCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Craftsman not found' });
+    }
+    
+    const craftsman = craftsmanCheck.rows[0];
+    
+    // Get day of week from date
+    const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'lowercase' });
+    
+    // Check if craftsman works on this day
+    if (craftsman.availability_hours && 
+        (!craftsman.availability_hours[dayOfWeek] || 
+         craftsman.availability_hours[dayOfWeek].length === 0)) {
+      return res.json({
+        available: false,
+        reason: `${craftsman.name} does not work on ${dayOfWeek}s`,
+        appointments: []
+      });
+    }
+    
+    // If time is provided, check if it's within working hours
+    if (time && craftsman.availability_hours && craftsman.availability_hours[dayOfWeek]) {
+      const timeInMinutes = convertTimeToMinutes(time);
+      let withinWorkingHours = false;
+      
+      for (const range of craftsman.availability_hours[dayOfWeek]) {
+        const [start, end] = range.split('-').map(convertTimeToMinutes);
+        if (timeInMinutes >= start && timeInMinutes <= end) {
+          withinWorkingHours = true;
+          break;
+        }
+      }
+      
+      if (!withinWorkingHours) {
+        return res.json({
+          available: false,
+          reason: `${craftsman.name} does not work at ${time} on ${dayOfWeek}s`,
+          workingHours: craftsman.availability_hours[dayOfWeek],
+          appointments: []
+        });
+      }
+    }
+    
+    // Query for appointments on the specified date
+    let queryText = `
+      SELECT a.*, c.name as customer_name
+      FROM appointments a
+      JOIN customers c ON a.customer_id = c.id
+      WHERE a.craftsman_id = $1 AND DATE(a.scheduled_at) = $2
+    `;
+    
+    const queryParams = [id, date];
+    
+    // If time is provided, filter for appointments around that time (±2 hours)
+    if (time) {
+      // Convert time to timestamp
+      const timestamp = `${date}T${time}:00`;
+      queryText += `
+        AND a.scheduled_at BETWEEN 
+        ($3::timestamp - interval '2 hours') AND 
+        ($3::timestamp + interval '2 hours')
+      `;
+      queryParams.push(timestamp);
+    }
+    
+    queryText += ` ORDER BY a.scheduled_at`;
+    
+    const result = await pool.query(queryText, queryParams);
+    
+    // Determine availability
+    const appointments = result.rows;
+    const isAvailable = appointments.length === 0;
+    
+    res.json({
+      available: isAvailable,
+      craftsman: {
+        id: craftsman.id,
+        name: craftsman.name,
+        workingHours: craftsman.availability_hours ? craftsman.availability_hours[dayOfWeek] : null
+      },
+      appointments: appointments
+    });
+  } catch (error) {
+    console.error('Error checking craftsman availability:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Helper function to convert time string (HH:MM) to minutes
+const convertTimeToMinutes = (timeString) => {
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
 module.exports = {
   getAllCraftsmen,
   getCraftsmanById,
   updateCraftsman,
-  getCraftsmanAppointments
+  getCraftsmanAppointments,
+  checkCraftsmanAvailability
 };
