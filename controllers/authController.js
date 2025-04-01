@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 // Register new user
 const register = async (req, res) => {
   try {
-    const { username, email, password, role, phone, specialty } = req.body;
+    const { username, email, password, role, phone, specialty, name } = req.body;
     
     // Begin transaction
     await pool.query('BEGIN');
@@ -47,10 +47,13 @@ const register = async (req, res) => {
         return res.status(400).json({ error: 'Phone number is required for craftsmen' });
       }
       
+      // Use the provided name or fallback to username if not provided
+      const craftsmanName = name || username;
+      
       await pool.query(
         `INSERT INTO craftsmen (name, phone, specialty, user_id) 
          VALUES ($1, $2, $3, $4)`,
-        [username, phone, specialty || '', userId]
+        [craftsmanName, phone, specialty || '', userId]
       );
     }
     

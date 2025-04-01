@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState('customer');
+  const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [specialty, setSpecialty] = useState('');
   const [error, setError] = useState('');
@@ -35,7 +36,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await authAPI.register(username, email, password, role, phone, specialty);
+      await authAPI.register(username, email, password, role, phone, specialty, name);
       
       // Redirect to login page after successful registration
       router.push('/auth/login?registered=true');
@@ -133,6 +134,20 @@ export default function RegisterPage() {
           
           {role === 'craftsman' && (
             <>
+              <div className="mb-4">
+                <label htmlFor="name" className="block mb-2 text-sm font-medium">
+                  Full Name / Business Name
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  placeholder="How customers will see you"
+                />
+              </div>
+            
               <div className="mb-4">
                 <label htmlFor="phone" className="block mb-2 text-sm font-medium">
                   Phone Number
