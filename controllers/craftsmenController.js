@@ -352,12 +352,12 @@ const checkCraftsmanAvailabilityWithAlternatives = async (req, res) => {
         } else {
           // Check for conflicting appointments
           const conflictingAppointments = await pool.query(`
-            SELECT id, scheduled_at, duration_minutes
+            SELECT id, scheduled_at, duration
             FROM appointments
             WHERE craftsman_id = $1
               AND DATE(scheduled_at) = $2
               AND (
-                (scheduled_at <= $3 AND scheduled_at + (duration_minutes || ' minutes')::interval > $3)
+                (scheduled_at <= $3 AND scheduled_at + (duration || ' minutes')::interval > $3)
                 OR
                 (scheduled_at > $3 AND scheduled_at < $3 + interval '1 hour')
               )
@@ -445,7 +445,7 @@ const findAvailableSlots = async (craftsmanId, availabilityHours, requestedDate,
     
     // Get all appointments for this day
     const appointments = await pool.query(`
-      SELECT scheduled_at, duration_minutes
+      SELECT scheduled_at, duration
       FROM appointments
       WHERE craftsman_id = $1
         AND DATE(scheduled_at) = $2
@@ -483,7 +483,7 @@ const findAvailableSlots = async (craftsmanId, availabilityHours, requestedDate,
         for (const appointment of appointments.rows) {
           const appointmentStart = new Date(appointment.scheduled_at);
           const appointmentEnd = new Date(appointmentStart);
-          appointmentEnd.setMinutes(appointmentEnd.getMinutes() + appointment.duration_minutes);
+          appointmentEnd.setMinutes(appointmentEnd.getMinutes() + appointment.duration);
           
           const slotEnd = new Date(slotTime);
           slotEnd.setHours(slotEnd.getHours() + 1); // Assuming 1-hour slots
