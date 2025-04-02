@@ -53,13 +53,26 @@ const getAppointmentById = async (req, res) => {
 // Create new appointment
 const createAppointment = async (req, res) => {
   try {
-    const { customer_id, scheduled_at, notes } = req.body;
+    const { customer_id, scheduled_at, notes, craftsman_id, duration, location, status } = req.body;
+    
+    // Validate required fields
+    if (!customer_id) {
+      return res.status(400).json({ error: 'customer_id is required' });
+    }
+    
+    if (!scheduled_at) {
+      return res.status(400).json({ error: 'scheduled_at is required' });
+    }
+    
+    if (!craftsman_id) {
+      return res.status(400).json({ error: 'craftsman_id is required' });
+    }
     
     const result = await pool.query(`
-      INSERT INTO appointments (customer_id, scheduled_at, notes)
-      VALUES ($1, $2, $3)
+      INSERT INTO appointments (customer_id, scheduled_at, notes, craftsman_id, duration, location, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
-    `, [customer_id, scheduled_at, notes]);
+    `, [customer_id, scheduled_at, notes || '', craftsman_id, duration || 60, location || '', status || 'scheduled']);
     
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -72,14 +85,61 @@ const createAppointment = async (req, res) => {
 const updateAppointment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { scheduled_at, notes } = req.body;
+    const { scheduled_at, notes, craftsman_id, customer_id, duration, location, status } = req.body;
+    
+    // Build the update query dynamically based on provided fields
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+    
+    if (scheduled_at) {
+      updates.push(`scheduled_at = $${paramIndex++}`);
+      values.push(scheduled_at);
+    }
+    
+    if (notes !== undefined) {
+      updates.push(`notes = $${paramIndex++}`);
+      values.push(notes);
+    }
+    
+    if (craftsman_id) {
+      updates.push(`craftsman_id = $${paramIndex++}`);
+      values.push(craftsman_id);
+    }
+    
+    if (customer_id) {
+      updates.push(`customer_id = $${paramIndex++}`);
+      values.push(customer_id);
+    }
+    
+    if (duration) {
+      updates.push(`duration = $${paramIndex++}`);
+      values.push(duration);
+    }
+    
+    if (location !== undefined) {
+      updates.push(`location = $${paramIndex++}`);
+      values.push(location);
+    }
+    
+    if (status) {
+      updates.push(`status = $${paramIndex++}`);
+      values.push(status);
+    }
+    
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+    
+    // Add the ID parameter
+    values.push(id);
     
     const result = await pool.query(`
       UPDATE appointments
-      SET scheduled_at = $1, notes = $2
-      WHERE id = $3
+      SET ${updates.join(', ')}
+      WHERE id = $${paramIndex}
       RETURNING *
-    `, [scheduled_at, notes, id]);
+    `, values);
     
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Appointment not found' });
