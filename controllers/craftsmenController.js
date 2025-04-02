@@ -322,9 +322,12 @@ const checkCraftsmanAvailabilityWithAlternatives = async (req, res) => {
     // Format date for SQL query (YYYY-MM-DD)
     const formattedDate = requestedDate.toISOString().split('T')[0];
     
+    // Map day of week to day name
+    const dayName = getDayName(dayOfWeek).toLowerCase();
+    
     // Check if craftsman works on this day
     const availabilityHours = craftsman.availability_hours || {};
-    const dayAvailability = availabilityHours[dayOfWeek] || null;
+    const dayAvailability = availabilityHours[dayName] || null;
     
     let isAvailable = false;
     let reason = '';
@@ -332,36 +335,39 @@ const checkCraftsmanAvailabilityWithAlternatives = async (req, res) => {
     if (!dayAvailability) {
       reason = 'Craftsman does not work on this day';
     } else {
-      // Check if time is within working hours
-      const startHour = parseInt(dayAvailability.start.split(':')[0]);
-      const startMinute = parseInt(dayAvailability.start.split(':')[1]);
-      const endHour = parseInt(dayAvailability.end.split(':')[0]);
-      const endMinute = parseInt(dayAvailability.end.split(':')[1]);
+      // Parse time range (assuming format like ["9:00-17:00"])
+      const timeRange = parseTimeRange(dayAvailability[0]);
       
-      const requestedTimeInMinutes = requestedHour * 60 + requestedMinutes;
-      const startTimeInMinutes = startHour * 60 + startMinute;
-      const endTimeInMinutes = endHour * 60 + endMinute;
-      
-      if (requestedTimeInMinutes < startTimeInMinutes || requestedTimeInMinutes > endTimeInMinutes) {
-        reason = 'Requested time is outside working hours';
+      if (!timeRange) {
+        reason = 'Invalid time range format';
       } else {
-        // Check for conflicting appointments
-        const conflictingAppointments = await pool.query(`
-          SELECT id, scheduled_at, duration_minutes
-          FROM appointments
-          WHERE craftsman_id = $1
-            AND DATE(scheduled_at) = $2
-            AND (
-              (scheduled_at <= $3 AND scheduled_at + (duration_minutes || ' minutes')::interval > $3)
-              OR
-              (scheduled_at > $3 AND scheduled_at < $3 + interval '1 hour')
-            )
-        `, [id, formattedDate, requestedDateTime]);
+        const { startHour, startMinute, endHour, endMinute } = timeRange;
         
-        if (conflictingAppointments.rows.length > 0) {
-          reason = 'Craftsman has conflicting appointments';
+        const requestedTimeInMinutes = requestedHour * 60 + requestedMinutes;
+        const startTimeInMinutes = startHour * 60 + startMinute;
+        const endTimeInMinutes = endHour * 60 + endMinute;
+        
+        if (requestedTimeInMinutes < startTimeInMinutes || requestedTimeInMinutes > endTimeInMinutes) {
+          reason = 'Requested time is outside working hours';
         } else {
-          isAvailable = true;
+          // Check for conflicting appointments
+          const conflictingAppointments = await pool.query(`
+            SELECT id, scheduled_at, duration_minutes
+            FROM appointments
+            WHERE craftsman_id = $1
+              AND DATE(scheduled_at) = $2
+              AND (
+                (scheduled_at <= $3 AND scheduled_at + (duration_minutes || ' minutes')::interval > $3)
+                OR
+                (scheduled_at > $3 AND scheduled_at < $3 + interval '1 hour')
+              )
+          `, [id, formattedDate, requestedDateTime]);
+          
+          if (conflictingAppointments.rows.length > 0) {
+            reason = 'Craftsman has conflicting appointments';
+          } else {
+            isAvailable = true;
+          }
         }
       }
     }
@@ -422,16 +428,17 @@ const findAvailableSlots = async (craftsmanId, availabilityHours, requestedDate,
     currentDate.setDate(currentDate.getDate() + dayOffset);
     
     const dayOfWeek = currentDate.getDay();
-    const dayAvailability = availabilityHours[dayOfWeek];
+    const dayName = getDayName(dayOfWeek).toLowerCase();
+    const dayAvailability = availabilityHours[dayName];
     
     // Skip days when craftsman doesn't work
     if (!dayAvailability) continue;
     
-    // Get working hours for this day
-    const startHour = parseInt(dayAvailability.start.split(':')[0]);
-    const startMinute = parseInt(dayAvailability.start.split(':')[1]);
-    const endHour = parseInt(dayAvailability.end.split(':')[0]);
-    const endMinute = parseInt(dayAvailability.end.split(':')[1]);
+    // Parse time range (assuming format like ["9:00-17:00"])
+    const timeRange = parseTimeRange(dayAvailability[0]);
+    if (!timeRange) continue;
+    
+    const { startHour, startMinute, endHour, endMinute } = timeRange;
     
     // Format date for SQL query (YYYY-MM-DD)
     const formattedDate = currentDate.toISOString().split('T')[0];
@@ -498,6 +505,32 @@ const findAvailableSlots = async (craftsmanId, availabilityHours, requestedDate,
   }
   
   return availableSlots;
+};
+
+// Helper function to get day name from day of week
+const getDayName = (dayOfWeek) => {
+  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  return days[dayOfWeek];
+};
+
+// Helper function to parse time range string (e.g., "9:00-17:00")
+const parseTimeRange = (timeRangeStr) => {
+  if (!timeRangeStr) return null;
+  
+  const parts = timeRangeStr.split('-');
+  if (parts.length !== 2) return null;
+  
+  const startParts = parts[0].split(':');
+  const endParts = parts[1].split(':');
+  
+  if (startParts.length !== 2 || endParts.length !== 2) return null;
+  
+  return {
+    startHour: parseInt(startParts[0]),
+    startMinute: parseInt(startParts[1]),
+    endHour: parseInt(endParts[0]),
+    endMinute: parseInt(endParts[1])
+  };
 };
 
 // Helper function to format date for human-readable messages
