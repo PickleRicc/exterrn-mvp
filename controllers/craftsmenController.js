@@ -285,6 +285,258 @@ const checkCraftsmanAvailability = async (req, res) => {
   }
 };
 
+// Check craftsman availability with alternatives
+const checkCraftsmanAvailabilityWithAlternatives = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { requestedDateTime, daysToCheck = 7, slotsToReturn = 3 } = req.query;
+    
+    // Validate input
+    if (!requestedDateTime) {
+      return res.status(400).json({ error: 'requestedDateTime parameter is required (ISO format)' });
+    }
+    
+    // First check if craftsman exists
+    const craftsmanCheck = await pool.query(
+      'SELECT id, name, specialty, availability_hours FROM craftsmen WHERE id = $1', 
+      [id]
+    );
+    
+    if (craftsmanCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Craftsman not found' });
+    }
+    
+    const craftsman = craftsmanCheck.rows[0];
+    
+    // Parse the requested date and time
+    const requestedDate = new Date(requestedDateTime);
+    if (isNaN(requestedDate.getTime())) {
+      return res.status(400).json({ error: 'Invalid date format. Please use ISO format (e.g., 2025-04-15T09:00:00)' });
+    }
+    
+    // Check if the requested time is available
+    const dayOfWeek = requestedDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const requestedHour = requestedDate.getHours();
+    const requestedMinutes = requestedDate.getMinutes();
+    
+    // Format date for SQL query (YYYY-MM-DD)
+    const formattedDate = requestedDate.toISOString().split('T')[0];
+    
+    // Check if craftsman works on this day
+    const availabilityHours = craftsman.availability_hours || {};
+    const dayAvailability = availabilityHours[dayOfWeek] || null;
+    
+    let isAvailable = false;
+    let reason = '';
+    
+    if (!dayAvailability) {
+      reason = 'Craftsman does not work on this day';
+    } else {
+      // Check if time is within working hours
+      const startHour = parseInt(dayAvailability.start.split(':')[0]);
+      const startMinute = parseInt(dayAvailability.start.split(':')[1]);
+      const endHour = parseInt(dayAvailability.end.split(':')[0]);
+      const endMinute = parseInt(dayAvailability.end.split(':')[1]);
+      
+      const requestedTimeInMinutes = requestedHour * 60 + requestedMinutes;
+      const startTimeInMinutes = startHour * 60 + startMinute;
+      const endTimeInMinutes = endHour * 60 + endMinute;
+      
+      if (requestedTimeInMinutes < startTimeInMinutes || requestedTimeInMinutes > endTimeInMinutes) {
+        reason = 'Requested time is outside working hours';
+      } else {
+        // Check for conflicting appointments
+        const conflictingAppointments = await pool.query(`
+          SELECT id, scheduled_at, duration_minutes
+          FROM appointments
+          WHERE craftsman_id = $1
+            AND DATE(scheduled_at) = $2
+            AND (
+              (scheduled_at <= $3 AND scheduled_at + (duration_minutes || ' minutes')::interval > $3)
+              OR
+              (scheduled_at > $3 AND scheduled_at < $3 + interval '1 hour')
+            )
+        `, [id, formattedDate, requestedDateTime]);
+        
+        if (conflictingAppointments.rows.length > 0) {
+          reason = 'Craftsman has conflicting appointments';
+        } else {
+          isAvailable = true;
+        }
+      }
+    }
+    
+    // If not available, find alternative slots
+    let availableSlots = [];
+    let messageToSend = '';
+    
+    if (isAvailable) {
+      messageToSend = `The craftsman ${craftsman.name} is available at the requested time on ${formatDateForHumans(requestedDate)}.`;
+    } else {
+      // Find alternative slots
+      availableSlots = await findAvailableSlots(
+        id, 
+        craftsman.availability_hours, 
+        requestedDate, 
+        parseInt(daysToCheck), 
+        parseInt(slotsToReturn)
+      );
+      
+      // Generate message
+      messageToSend = generateMessageWithAlternatives(
+        craftsman.name,
+        requestedDate,
+        reason,
+        availableSlots
+      );
+    }
+    
+    // Format response
+    const response = {
+      isAvailable,
+      requestedDateTime,
+      craftsman: {
+        id: craftsman.id,
+        name: craftsman.name,
+        specialty: craftsman.specialty
+      },
+      availableSlots: availableSlots.map(slot => slot.toISOString()),
+      messageToSend
+    };
+    
+    res.json(response);
+  } catch (error) {
+    console.error('Error checking craftsman availability with alternatives:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Helper function to find available slots
+const findAvailableSlots = async (craftsmanId, availabilityHours, requestedDate, daysToCheck, slotsToReturn) => {
+  const availableSlots = [];
+  const startDate = new Date(requestedDate);
+  
+  // Check for slots for the next X days
+  for (let dayOffset = 0; dayOffset < daysToCheck && availableSlots.length < slotsToReturn; dayOffset++) {
+    const currentDate = new Date(startDate);
+    currentDate.setDate(currentDate.getDate() + dayOffset);
+    
+    const dayOfWeek = currentDate.getDay();
+    const dayAvailability = availabilityHours[dayOfWeek];
+    
+    // Skip days when craftsman doesn't work
+    if (!dayAvailability) continue;
+    
+    // Get working hours for this day
+    const startHour = parseInt(dayAvailability.start.split(':')[0]);
+    const startMinute = parseInt(dayAvailability.start.split(':')[1]);
+    const endHour = parseInt(dayAvailability.end.split(':')[0]);
+    const endMinute = parseInt(dayAvailability.end.split(':')[1]);
+    
+    // Format date for SQL query (YYYY-MM-DD)
+    const formattedDate = currentDate.toISOString().split('T')[0];
+    
+    // Get all appointments for this day
+    const appointments = await pool.query(`
+      SELECT scheduled_at, duration_minutes
+      FROM appointments
+      WHERE craftsman_id = $1
+        AND DATE(scheduled_at) = $2
+      ORDER BY scheduled_at
+    `, [craftsmanId, formattedDate]);
+    
+    // Check each hour slot during working hours
+    for (let hour = startHour; hour < endHour && availableSlots.length < slotsToReturn; hour++) {
+      // For the first hour, respect minutes
+      let minute = (hour === startHour) ? startMinute : 0;
+      
+      // For the last hour, respect end minutes
+      const endMinuteForHour = (hour === endHour - 1) ? endMinute : 60;
+      
+      // Check each hour slot at 0 and 30 minute marks
+      for (let minuteMark of [0, 30]) {
+        if (minute > minuteMark) continue;
+        if (hour === endHour - 1 && minuteMark >= endMinute) continue;
+        
+        const slotTime = new Date(currentDate);
+        slotTime.setHours(hour, minuteMark, 0, 0);
+        
+        // Skip slots in the past
+        if (slotTime < new Date()) continue;
+        
+        // Skip the exact requested time if we're on the first day
+        if (dayOffset === 0 && 
+            slotTime.getHours() === requestedDate.getHours() && 
+            slotTime.getMinutes() === requestedDate.getMinutes()) {
+          continue;
+        }
+        
+        // Check if this slot conflicts with any appointment
+        let hasConflict = false;
+        for (const appointment of appointments.rows) {
+          const appointmentStart = new Date(appointment.scheduled_at);
+          const appointmentEnd = new Date(appointmentStart);
+          appointmentEnd.setMinutes(appointmentEnd.getMinutes() + appointment.duration_minutes);
+          
+          const slotEnd = new Date(slotTime);
+          slotEnd.setHours(slotEnd.getHours() + 1); // Assuming 1-hour slots
+          
+          if ((slotTime >= appointmentStart && slotTime < appointmentEnd) || 
+              (slotEnd > appointmentStart && slotEnd <= appointmentEnd) ||
+              (slotTime <= appointmentStart && slotEnd >= appointmentEnd)) {
+            hasConflict = true;
+            break;
+          }
+        }
+        
+        if (!hasConflict) {
+          availableSlots.push(slotTime);
+          if (availableSlots.length >= slotsToReturn) break;
+        }
+      }
+    }
+  }
+  
+  return availableSlots;
+};
+
+// Helper function to format date for human-readable messages
+const formatDateForHumans = (date) => {
+  const options = { 
+    weekday: 'long', 
+    month: 'long', 
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  };
+  return date.toLocaleDateString('en-US', options);
+};
+
+// Helper function to generate message with alternatives
+const generateMessageWithAlternatives = (craftsmanName, requestedDate, reason, availableSlots) => {
+  if (availableSlots.length === 0) {
+    return `${craftsmanName} is not available at the requested time (${formatDateForHumans(requestedDate)}). Unfortunately, no alternative slots were found in the next few days.`;
+  }
+  
+  let message = `${craftsmanName} is not available at the requested time (${formatDateForHumans(requestedDate)}).`;
+  
+  if (availableSlots.length === 1) {
+    message += ` However, they are available on ${formatDateForHumans(availableSlots[0])}.`;
+  } else {
+    message += ' However, they are available on: ';
+    
+    availableSlots.forEach((slot, index) => {
+      if (index === availableSlots.length - 1) {
+        message += `and ${formatDateForHumans(slot)}.`;
+      } else {
+        message += `${formatDateForHumans(slot)}, `;
+      }
+    });
+  }
+  
+  return message;
+};
+
 // Helper function to convert time string (HH:MM) to minutes
 const convertTimeToMinutes = (timeString) => {
   const [hours, minutes] = timeString.split(':').map(Number);
@@ -296,5 +548,6 @@ module.exports = {
   getCraftsmanById,
   updateCraftsman,
   getCraftsmanAppointments,
-  checkCraftsmanAvailability
+  checkCraftsmanAvailability,
+  checkCraftsmanAvailabilityWithAlternatives
 };

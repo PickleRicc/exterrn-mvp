@@ -171,3 +171,111 @@ pm2 restart all
 ---
 
 This summary documents the changes made on April 1, 2025, to the Extern MVP platform, focusing on connecting users and craftsmen tables and adding craftsmen API endpoints.
+
+---
+
+## Section 2: Additional Enhancements (April 1, 2025 - Afternoon)
+
+### 1. Improved Craftsmen Registration
+
+#### Problem Identified
+- Username was being used as the craftsman's display name, causing confusion and inconsistency
+
+#### Solution Implemented
+- Added a separate "name" field in the registration form for craftsmen
+- Updated authController.js to accept and process the name field
+- Modified the frontend registration page to collect the name
+- Updated the API utility to pass the name parameter
+
+#### Implementation Details
+```javascript
+// In authController.js
+const { username, email, password, role, phone, specialty, name } = req.body;
+// ...
+// Use the provided name or fallback to username if not provided
+const craftsmanName = name || username;
+      
+await pool.query(
+  `INSERT INTO craftsmen (name, phone, specialty, user_id) 
+   VALUES ($1, $2, $3, $4)`,
+  [craftsmanName, phone, specialty || '', userId]
+);
+```
+
+### 2. Craftsmen Availability Endpoint
+
+#### New Endpoint Created
+- `GET /craftsmen/:id/availability` - Check craftsman availability for a specific date/time
+
+#### Features
+- Accepts date (required) and time (optional) parameters
+- Checks if craftsman works on the requested day
+- Checks if the requested time is within working hours
+- Searches for conflicting appointments
+
+#### Implementation Details
+```javascript
+// Example request
+GET http://3.127.139.32:3000/craftsmen/1/availability?date=2025-04-05&time=10:00
+
+// Example response
+{
+  "available": true,
+  "craftsman": {
+    "id": 1,
+    "name": "Hanz Zimmer",
+    "workingHours": ["9:00-17:00"]
+  },
+  "appointments": []
+}
+```
+
+#### Integration with n8n
+For n8n workflows, use the following URL format:
+```
+http://3.127.139.32:3000/craftsmen/{{ $('Get Craftsman ID').item.json.user_id }}/availability?date={{ encodeURIComponent($('Process Craftsman Availability').item.json.date) }}&time={{ encodeURIComponent($('Process Craftsman Availability').item.json.time) }}
+```
+
+### 3. Craftsmen-User Linking Script
+
+#### Problem Identified
+- Existing craftsmen records were missing user_id values
+- This prevented proper authentication and profile management
+
+#### Solution Implemented
+- Created a script (scripts/link-craftsmen-users.js) that:
+  - Finds craftsmen without user_id
+  - Attempts to match them with existing users by name
+  - Creates new user accounts for craftsmen without matches
+  - Updates craftsmen records with the appropriate user_id
+
+#### Implementation Details
+```javascript
+// Find all craftsmen without user_id
+const craftsmenResult = await pool.query(`
+  SELECT * FROM craftsmen WHERE user_id IS NULL
+`);
+
+// For each craftsman, find or create a user account
+for (const craftsman of craftsmenResult.rows) {
+  // Try to find a matching user by name
+  const userResult = await pool.query(`
+    SELECT * FROM users WHERE username = $1 OR email = $2
+  `, [craftsman.name, `${craftsman.name.replace(/\s+/g, '.')}@extern.de`]);
+  
+  // If found, use that user; otherwise create a new one
+  // ...
+  
+  // Update craftsman with user_id
+  await pool.query(`
+    UPDATE craftsmen SET user_id = $1 WHERE id = $2
+  `, [userId, craftsman.id]);
+}
+```
+
+### Next Steps
+1. Create frontend pages for craftsmen management
+2. Implement availability management UI for craftsmen
+3. Enhance appointment scheduling to check craftsman availability
+4. Add filtering and search functionality for craftsmen
+5. Implement notifications for appointment confirmations

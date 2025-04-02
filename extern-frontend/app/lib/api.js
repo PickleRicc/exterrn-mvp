@@ -87,6 +87,16 @@ export const craftsmenAPI = {
       params: { date, time }
     });
     return response.data;
+  },
+  checkAvailabilityWithAlternatives: async (id, requestedDateTime, options = {}) => {
+    const response = await api.get(`/craftsmen/${id}/availability-check`, {
+      params: { 
+        requestedDateTime,
+        daysToCheck: options.daysToCheck,
+        slotsToReturn: options.slotsToReturn
+      }
+    });
+    return response.data;
   }
 };
 
