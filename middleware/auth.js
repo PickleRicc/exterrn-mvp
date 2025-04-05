@@ -22,7 +22,17 @@ const authenticateToken = (req, res, next) => {
     const decoded = jwt.verify(token, jwtSecret);
     
     // Add the user info to the request
-    req.user = decoded;
+    req.user = {
+      id: decoded.userId,
+      role: decoded.role,
+      craftsmanId: decoded.craftsmanId
+    };
+    
+    console.log('Authenticated user:', {
+      userId: req.user.id,
+      role: req.user.role,
+      craftsmanId: req.user.craftsmanId
+    });
     
     // Continue to the next middleware or route handler
     next();

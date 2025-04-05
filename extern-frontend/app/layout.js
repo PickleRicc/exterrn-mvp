@@ -1,15 +1,18 @@
-import './styles/globals.css';
+import './globals.css';
+import { OnboardingMiddleware } from './middleware';
 
 export const metadata = {
   title: 'Extern App',
-  description: 'Extern Application',
+  description: 'Extern Application for Craftsmen in Germany',
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="antialiased">
-        {children}
+        <OnboardingMiddleware>
+          {children}
+        </OnboardingMiddleware>
       </body>
     </html>
   );

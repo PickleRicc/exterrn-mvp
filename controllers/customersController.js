@@ -3,11 +3,46 @@ const pool = require('../db');
 // Get all customers
 const getAllCustomers = async (req, res) => {
   try {
-    const { name, phone, service_type } = req.query;
+    const { name, phone, service_type, craftsman_id } = req.query;
+    
+    console.log('Request query params:', req.query);
+    console.log('Craftsman ID from query:', craftsman_id);
     
     let query = 'SELECT * FROM customers';
     const queryParams = [];
     const conditions = [];
+    
+    // Get the craftsman ID from the authenticated user if not provided
+    const userId = req.user?.id;
+    let craftsmanIdToUse = craftsman_id;
+    
+    // If craftsman_id is provided as a query parameter, use it
+    if (craftsman_id) {
+      // Convert string to number if it's a numeric string
+      const craftsmanIdNumber = parseInt(craftsman_id, 10);
+      if (!isNaN(craftsmanIdNumber)) {
+        queryParams.push(craftsmanIdNumber);
+      } else {
+        queryParams.push(craftsman_id);
+      }
+      conditions.push(`craftsman_id = $${queryParams.length}`);
+      console.log('Using craftsman_id from query params:', craftsman_id);
+    }
+    // If no craftsman_id is provided but we have a user ID, try to get their craftsman ID
+    else if (userId) {
+      // First check if this user is a craftsman
+      const craftsmanResult = await pool.query(
+        'SELECT id FROM craftsmen WHERE user_id = $1',
+        [userId]
+      );
+      
+      if (craftsmanResult.rows.length > 0) {
+        craftsmanIdToUse = craftsmanResult.rows[0].id;
+        queryParams.push(craftsmanIdToUse);
+        conditions.push(`craftsman_id = $${queryParams.length}`);
+        console.log('Using craftsman_id from user authentication:', craftsmanIdToUse);
+      }
+    }
     
     if (name) {
       queryParams.push(`%${name}%`);
@@ -30,8 +65,14 @@ const getAllCustomers = async (req, res) => {
     
     query += ' ORDER BY name ASC';
     
+    console.log('Final SQL query:', query);
+    console.log('Query parameters:', queryParams);
+    
     const result = await pool.query(query, queryParams);
-    res.json(result.rows);
+    console.log('Query returned', result.rows.length, 'customers');
+    
+    // Always return an array, even if empty
+    res.json(result.rows || []);
   } catch (error) {
     console.error('Error fetching customers:', error);
     res.status(500).json({ error: error.message });
@@ -60,13 +101,39 @@ const getCustomerById = async (req, res) => {
 // Create new customer
 const createCustomer = async (req, res) => {
   try {
-    const { name, phone, service_type } = req.body;
+    const { name, phone, email, address, service_type } = req.body;
+    let { craftsman_id } = req.body;
+    
+    // If craftsman_id is not provided in the request body, try to get it from the authenticated user
+    if (!craftsman_id && req.user) {
+      const craftsmanResult = await pool.query(
+        'SELECT id FROM craftsmen WHERE user_id = $1',
+        [req.user.id]
+      );
+      
+      if (craftsmanResult.rows.length > 0) {
+        craftsman_id = craftsmanResult.rows[0].id;
+      } else {
+        return res.status(400).json({ error: 'Craftsman ID is required' });
+      }
+    }
+    
+    // Ensure craftsman_id is provided
+    if (!craftsman_id) {
+      return res.status(400).json({ error: 'Craftsman ID is required' });
+    }
+    
+    // Check if the craftsman exists
+    const craftsmanCheck = await pool.query('SELECT id FROM craftsmen WHERE id = $1', [craftsman_id]);
+    if (craftsmanCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Craftsman not found' });
+    }
     
     const result = await pool.query(`
-      INSERT INTO customers (name, phone, service_type)
-      VALUES ($1, $2, $3)
+      INSERT INTO customers (name, phone, email, address, service_type, craftsman_id)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
-    `, [name, phone, service_type]);
+    `, [name, phone, email || null, address || null, service_type || null, craftsman_id]);
     
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -79,18 +146,47 @@ const createCustomer = async (req, res) => {
 const updateCustomer = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, phone, service_type } = req.body;
+    const { name, phone, email, address, service_type } = req.body;
+    
+    // First check if the customer exists and belongs to the current craftsman
+    let customerCheck;
+    if (req.user) {
+      const craftsmanResult = await pool.query(
+        'SELECT id FROM craftsmen WHERE user_id = $1',
+        [req.user.id]
+      );
+      
+      if (craftsmanResult.rows.length > 0) {
+        const craftsmanId = craftsmanResult.rows[0].id;
+        customerCheck = await pool.query(
+          'SELECT * FROM customers WHERE id = $1 AND craftsman_id = $2',
+          [id, craftsmanId]
+        );
+      }
+    } else {
+      customerCheck = await pool.query('SELECT * FROM customers WHERE id = $1', [id]);
+    }
+    
+    if (!customerCheck || customerCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Customer not found or you do not have permission to update this customer' });
+    }
+    
+    // Keep the existing craftsman_id to maintain the association
+    const existingCustomer = customerCheck.rows[0];
     
     const result = await pool.query(`
       UPDATE customers
-      SET name = $1, phone = $2, service_type = $3
-      WHERE id = $4
+      SET name = $1, phone = $2, email = $3, address = $4, service_type = $5
+      WHERE id = $6
       RETURNING *
-    `, [name, phone, service_type, id]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Customer not found' });
-    }
+    `, [
+      name || existingCustomer.name, 
+      phone || existingCustomer.phone, 
+      email !== undefined ? email : existingCustomer.email,
+      address !== undefined ? address : existingCustomer.address,
+      service_type !== undefined ? service_type : existingCustomer.service_type,
+      id
+    ]);
     
     res.json(result.rows[0]);
   } catch (error) {
@@ -104,6 +200,29 @@ const deleteCustomer = async (req, res) => {
   try {
     const { id } = req.params;
     
+    // Check if the customer exists and belongs to the current craftsman
+    let customerCheck;
+    if (req.user) {
+      const craftsmanResult = await pool.query(
+        'SELECT id FROM craftsmen WHERE user_id = $1',
+        [req.user.id]
+      );
+      
+      if (craftsmanResult.rows.length > 0) {
+        const craftsmanId = craftsmanResult.rows[0].id;
+        customerCheck = await pool.query(
+          'SELECT * FROM customers WHERE id = $1 AND craftsman_id = $2',
+          [id, craftsmanId]
+        );
+      }
+    } else {
+      customerCheck = await pool.query('SELECT * FROM customers WHERE id = $1', [id]);
+    }
+    
+    if (!customerCheck || customerCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Customer not found or you do not have permission to delete this customer' });
+    }
+    
     // Begin a transaction
     await pool.query('BEGIN');
     
@@ -112,11 +231,6 @@ const deleteCustomer = async (req, res) => {
     
     // Then delete the customer
     const result = await pool.query('DELETE FROM customers WHERE id = $1 RETURNING *', [id]);
-    
-    if (result.rows.length === 0) {
-      await pool.query('ROLLBACK');
-      return res.status(404).json({ error: 'Customer not found' });
-    }
     
     // Commit the transaction
     await pool.query('COMMIT');

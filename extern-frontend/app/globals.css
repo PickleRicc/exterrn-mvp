@@ -5,18 +5,36 @@
   --foreground: #171717;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+}
+
+/* Prevent horizontal scrolling on mobile */
+html, body {
+  overflow-x: hidden;
+  position: relative;
+  width: 100%;
+}
+
+/* Ensure all content respects viewport boundaries */
+* {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+/* Ensure images and other media don't cause overflow */
+img, video, iframe, embed, object {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Fix for long words and URLs */
+p, h1, h2, h3, h4, h5, h6, a, span, div {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 body {

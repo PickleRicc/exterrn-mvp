@@ -159,11 +159,41 @@ const getCraftsmanAppointments = async (req, res) => {
   try {
     const { id } = req.params;
     
+    console.log('Request to get appointments for craftsman ID:', id);
+    console.log('User in request:', req.user);
+    
     // First check if craftsman exists
-    const craftsmanCheck = await pool.query('SELECT id FROM craftsmen WHERE id = $1', [id]);
+    const craftsmanCheck = await pool.query('SELECT id, user_id FROM craftsmen WHERE id = $1', [id]);
     
     if (craftsmanCheck.rows.length === 0) {
       return res.status(404).json({ error: 'Craftsman not found' });
+    }
+    
+    // Check if the user is authorized to view this craftsman's appointments
+    if (req.user) {
+      const craftsman = craftsmanCheck.rows[0];
+      
+      console.log('Comparing user ID:', req.user.id, 'with craftsman user_id:', craftsman.user_id);
+      console.log('Comparing craftsman ID:', req.user.craftsmanId, 'with requested craftsman ID:', id);
+      
+      // Allow access if:
+      // 1. User is an admin, OR
+      // 2. User's craftsman ID matches the requested craftsman ID, OR
+      // 3. User ID matches the craftsman's user_id
+      if (req.user.role === 'admin' || 
+          req.user.craftsmanId === parseInt(id) || 
+          req.user.craftsmanId === id ||
+          parseInt(req.user.id) === parseInt(craftsman.user_id)) {
+        console.log('Authorization successful');
+      } else {
+        console.log('Authorization failed: User ID:', req.user.id, 'Craftsman user_id:', craftsman.user_id);
+        console.log('Authorization failed: User craftsman ID:', req.user.craftsmanId, 'Requested craftsman ID:', id);
+        return res.status(403).json({ error: 'Not authorized to view these appointments' });
+      }
+    } else {
+      // If there's no user in the request, it means the auth middleware didn't run or the token is invalid
+      console.log('No user found in request - auth middleware may not be working');
+      return res.status(401).json({ error: 'Authentication required' });
     }
     
     const result = await pool.query(`
@@ -174,6 +204,7 @@ const getCraftsmanAppointments = async (req, res) => {
       ORDER BY a.scheduled_at DESC
     `, [id]);
     
+    console.log('Found', result.rows.length, 'appointments for craftsman', id);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching craftsman appointments:', error);
