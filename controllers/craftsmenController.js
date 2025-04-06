@@ -94,10 +94,13 @@ const updateCraftsman = async (req, res) => {
     const { id } = req.params;
     const { name, phone, specialty, availability_hours } = req.body;
     
+    console.log('Request to update craftsman ID:', id);
+    console.log('User in request:', JSON.stringify(req.user));
+    console.log('Update data:', JSON.stringify({ name, phone, specialty, availability_hours }));
+    
     // Validate that the user is authorized to update this craftsman
-    // This assumes the auth middleware has added the user info to the request
     const craftsmanCheck = await pool.query(
-      'SELECT user_id FROM craftsmen WHERE id = $1',
+      'SELECT id, user_id FROM craftsmen WHERE id = $1',
       [id]
     );
     
@@ -105,9 +108,49 @@ const updateCraftsman = async (req, res) => {
       return res.status(404).json({ error: 'Craftsman not found' });
     }
     
-    // Only allow updates if the user is the owner or an admin
-    if (req.user.role !== 'admin' && req.user.userId !== craftsmanCheck.rows[0].user_id) {
-      return res.status(403).json({ error: 'Not authorized to update this craftsman' });
+    const craftsman = craftsmanCheck.rows[0];
+    console.log('Craftsman found:', JSON.stringify(craftsman));
+    
+    // Get all possible IDs for comparison
+    const requestedCraftsmanId = parseInt(id);
+    const userCraftsmanId = req.user.craftsmanId ? parseInt(req.user.craftsmanId) : null;
+    const userId = req.user.id ? parseInt(req.user.id) : (req.user.userId ? parseInt(req.user.userId) : null);
+    const craftsmanUserId = parseInt(craftsman.user_id);
+    
+    console.log('ID Comparison:');
+    console.log('- Requested craftsman ID:', requestedCraftsmanId);
+    console.log('- User craftsman ID from token:', userCraftsmanId);
+    console.log('- User ID from token:', userId);
+    console.log('- Craftsman user_id from DB:', craftsmanUserId);
+    
+    // Allow updates if any of the conditions are met
+    let authorized = false;
+    let authReason = '';
+    
+    if (req.user.role === 'admin') {
+      authorized = true;
+      authReason = 'User is admin';
+    } else if (userCraftsmanId === requestedCraftsmanId) {
+      authorized = true;
+      authReason = 'User craftsman ID matches requested craftsman ID';
+    } else if (userId === craftsmanUserId) {
+      authorized = true;
+      authReason = 'User ID matches craftsman user_id';
+    }
+    
+    console.log('Authorization result:', authorized ? 'Authorized' : 'Not authorized');
+    console.log('Authorization reason:', authReason || 'No matching condition');
+    
+    if (!authorized) {
+      return res.status(403).json({ 
+        error: 'Not authorized to update this craftsman',
+        details: {
+          requestedCraftsmanId,
+          userCraftsmanId,
+          userId,
+          craftsmanUserId
+        }
+      });
     }
     
     const updateFields = [];
@@ -147,6 +190,7 @@ const updateCraftsman = async (req, res) => {
       RETURNING *
     `, queryParams);
     
+    console.log('Craftsman updated successfully');
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Error updating craftsman:', error);

@@ -21,18 +21,22 @@ const authenticateToken = (req, res, next) => {
     // Verify the token
     const decoded = jwt.verify(token, jwtSecret);
     
-    // Add the user info to the request
-    req.user = {
-      id: decoded.userId,
+    console.log('Token decoded successfully:', JSON.stringify({
+      userId: decoded.userId,
       role: decoded.role,
       craftsmanId: decoded.craftsmanId
+    }));
+    
+    // Add the user info to the request - ensure we include both id and userId for backward compatibility
+    req.user = {
+      id: decoded.userId,
+      userId: decoded.userId, // Include both formats for backward compatibility
+      role: decoded.role,
+      craftsmanId: decoded.craftsmanId,
+      email: decoded.email
     };
     
-    console.log('Authenticated user:', {
-      userId: req.user.id,
-      role: req.user.role,
-      craftsmanId: req.user.craftsmanId
-    });
+    console.log('User object set in request:', JSON.stringify(req.user));
     
     // Continue to the next middleware or route handler
     next();
