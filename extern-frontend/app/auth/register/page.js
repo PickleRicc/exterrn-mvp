@@ -84,21 +84,33 @@ export default function RegisterPage() {
       const response = await authAPI.register(username, email, password, role, phone, specialty, fullName, name);
       
       if (role === 'craftsman') {
-        // Store token for availability setting
-        localStorage.setItem('token', response.token);
-        setToken(response.token);
-        
-        // Get craftsman ID from token
+        // After registration, we need to login to get the token
         try {
-          const tokenData = JSON.parse(atob(response.token.split('.')[1]));
-          if (tokenData.craftsmanId) {
-            setCraftsmanId(tokenData.craftsmanId);
-            setRegistrationComplete(true);
-            setCurrentStep(2);
+          const loginResponse = await authAPI.login(email, password);
+          
+          // Store token for availability setting
+          localStorage.setItem('token', loginResponse.token);
+          setToken(loginResponse.token);
+          
+          // Get craftsman ID from token
+          try {
+            const tokenData = JSON.parse(atob(loginResponse.token.split('.')[1]));
+            if (tokenData.craftsmanId) {
+              setCraftsmanId(tokenData.craftsmanId);
+              setRegistrationComplete(true);
+              setCurrentStep(2);
+            } else {
+              // If no craftsman ID in token, redirect to login
+              router.push('/auth/login?registered=true');
+            }
+          } catch (err) {
+            console.error('Error parsing token:', err);
+            // If we can't get the craftsman ID, redirect to login
+            router.push('/auth/login?registered=true');
           }
-        } catch (err) {
-          console.error('Error parsing token:', err);
-          // If we can't get the craftsman ID, redirect to login
+        } catch (loginErr) {
+          console.error('Error logging in after registration:', loginErr);
+          // If login fails, redirect to login page
           router.push('/auth/login?registered=true');
         }
       } else {
