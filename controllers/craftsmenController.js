@@ -219,19 +219,30 @@ const getCraftsmanAppointments = async (req, res) => {
       
       console.log('Comparing user ID:', req.user.id, 'with craftsman user_id:', craftsman.user_id);
       console.log('Comparing craftsman ID:', req.user.craftsmanId, 'with requested craftsman ID:', id);
+      console.log('User role:', req.user.role);
       
       // Allow access if:
       // 1. User is an admin, OR
       // 2. User's craftsman ID matches the requested craftsman ID, OR
       // 3. User ID matches the craftsman's user_id
+      const requestedIdAsInt = parseInt(id);
+      const userCraftsmanIdAsInt = req.user.craftsmanId ? parseInt(req.user.craftsmanId) : null;
+      const userIdAsInt = parseInt(req.user.id);
+      const craftsmanUserIdAsInt = parseInt(craftsman.user_id);
+      
+      console.log('Converted IDs for comparison:');
+      console.log('- Requested craftsman ID (int):', requestedIdAsInt);
+      console.log('- User craftsman ID (int):', userCraftsmanIdAsInt);
+      console.log('- User ID (int):', userIdAsInt);
+      console.log('- Craftsman user_id (int):', craftsmanUserIdAsInt);
+      
       if (req.user.role === 'admin' || 
-          req.user.craftsmanId === parseInt(id) || 
-          req.user.craftsmanId === id ||
-          parseInt(req.user.id) === parseInt(craftsman.user_id)) {
+          userCraftsmanIdAsInt === requestedIdAsInt || 
+          userIdAsInt === craftsmanUserIdAsInt) {
         console.log('Authorization successful');
       } else {
-        console.log('Authorization failed: User ID:', req.user.id, 'Craftsman user_id:', craftsman.user_id);
-        console.log('Authorization failed: User craftsman ID:', req.user.craftsmanId, 'Requested craftsman ID:', id);
+        console.log('Authorization failed: User ID:', userIdAsInt, 'Craftsman user_id:', craftsmanUserIdAsInt);
+        console.log('Authorization failed: User craftsman ID:', userCraftsmanIdAsInt, 'Requested craftsman ID:', requestedIdAsInt);
         return res.status(403).json({ error: 'Not authorized to view these appointments' });
       }
     } else {

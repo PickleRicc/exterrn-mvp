@@ -18,6 +18,18 @@ api.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
         // Add a debug log to help diagnose token issues
         console.debug('Request with auth header:', config.url);
+        
+        // For debugging token issues
+        try {
+          const tokenData = JSON.parse(atob(token.split('.')[1]));
+          console.debug('Token data for request:', {
+            userId: tokenData.userId,
+            role: tokenData.role,
+            craftsmanId: tokenData.craftsmanId
+          });
+        } catch (err) {
+          console.error('Error parsing token for debug:', err);
+        }
       } else {
         console.debug('No token found for request:', config.url);
       }
