@@ -38,8 +38,23 @@ export default function LoginPage() {
       // Check if user is a craftsman and redirect accordingly
       if (response.user.role === 'craftsman') {
         // Check if this is a new account that needs onboarding
-        // For now, always redirect to onboarding for craftsmen
-        router.push('/onboarding');
+        const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+        
+        // Only redirect to onboarding if it hasn't been completed
+        if (!onboardingCompleted && response.user.craftsman) {
+          // Check if the craftsman has availability_hours set
+          const hasAvailabilityHours = 
+            response.user.craftsman.availability_hours && 
+            Object.keys(response.user.craftsman.availability_hours).length > 0;
+          
+          if (!hasAvailabilityHours) {
+            router.push('/onboarding');
+            return;
+          }
+        }
+        
+        // If onboarding is completed or not needed, go to dashboard
+        router.push('/');
       } else {
         // Redirect to the home page for other users
         router.push('/');

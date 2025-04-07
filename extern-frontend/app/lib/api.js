@@ -16,6 +16,10 @@ api.interceptors.request.use(
       const token = localStorage.getItem('token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+        // Add a debug log to help diagnose token issues
+        console.debug('Request with auth header:', config.url);
+      } else {
+        console.debug('No token found for request:', config.url);
       }
     }
     return config;
@@ -35,11 +39,18 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // Only run on the client side
       if (typeof window !== 'undefined') {
+        console.error('Authentication error (401):', error.config.url);
         localStorage.removeItem('token');
         // Redirect to login page
         window.location.href = '/auth/login';
       }
     }
+    
+    // Handle 403 Forbidden errors (insufficient permissions)
+    if (error.response && error.response.status === 403) {
+      console.error('Permission error (403):', error.config.url, error.response.data);
+    }
+    
     return Promise.reject(error);
   }
 );

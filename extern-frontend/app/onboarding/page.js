@@ -37,6 +37,9 @@ export default function OnboardingPage() {
       return;
     }
 
+    // Check if onboarding is already completed
+    const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+    
     // Parse the token to get user info
     try {
       const tokenData = JSON.parse(atob(token.split('.')[1]));
@@ -57,7 +60,12 @@ export default function OnboardingPage() {
   const fetchCraftsmanDetails = async (id) => {
     try {
       const data = await craftsmenAPI.getById(id);
-      if (data.availability_hours) {
+      
+      // Check if craftsman already has availability hours set
+      if (data.availability_hours && Object.keys(data.availability_hours).length > 0) {
+        // If they have hours set, mark onboarding as completed
+        localStorage.setItem('onboardingCompleted', 'true');
+        
         setAvailabilityHours({
           ...availabilityHours,
           ...data.availability_hours,
@@ -66,6 +74,7 @@ export default function OnboardingPage() {
           sunday: data.availability_hours.sunday || []
         });
       }
+      
       setLoading(false);
     } catch (err) {
       console.error('Error fetching craftsman details:', err);

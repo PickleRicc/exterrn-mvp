@@ -28,7 +28,11 @@ export default function Home() {
     try {
       const tokenData = JSON.parse(atob(token.split('.')[1]));
       if (tokenData.craftsmanId) {
-        fetchCraftsmanData(tokenData.craftsmanId);
+        // Add a small delay to ensure the token is properly set in localStorage
+        // and the auth interceptor has time to set up
+        setTimeout(() => {
+          fetchCraftsmanData(tokenData.craftsmanId);
+        }, 100);
       } else {
         setLoading(false);
       }
