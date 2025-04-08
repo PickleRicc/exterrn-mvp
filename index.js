@@ -29,6 +29,46 @@ app.get('/test-craftsmen', (req, res) => {
   res.json({ message: 'Craftsmen test endpoint is working' });
 });
 
+// Test email endpoint
+app.get('/test-email', async (req, res) => {
+  try {
+    const emailService = require('./services/emailService');
+    const result = await emailService.testEmailConnection();
+    res.json({ 
+      success: result, 
+      message: result ? 'Email service is configured correctly' : 'Email service configuration failed',
+      emailConfig: {
+        host: process.env.EMAIL_HOST || 'Using Ethereal test account',
+        port: process.env.EMAIL_PORT || '587 (Ethereal)',
+        secure: process.env.EMAIL_SECURE === 'true',
+        user: process.env.EMAIL_USER ? '✓ Set' : '✓ Using Ethereal test account',
+        password: process.env.EMAIL_PASSWORD ? '✓ Set' : '✓ Using Ethereal test account',
+        from: process.env.EMAIL_FROM || 'test@example.com'
+      }
+    });
+  } catch (error) {
+    console.error('Email test error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Send test email endpoint
+app.get('/send-test-email', async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email parameter is required' });
+    }
+    
+    const emailService = require('./services/emailService');
+    const result = await emailService.sendTestEmail(email);
+    res.json(result);
+  } catch (error) {
+    console.error('Send test email error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.get('/db-test', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');

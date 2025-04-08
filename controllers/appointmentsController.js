@@ -110,10 +110,12 @@ const createAppointment = async (req, res) => {
       try {
         const appointmentDetails = await pool.query(`
           SELECT a.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
-                 cr.name as craftsman_name, cr.email as craftsman_email, cr.phone as craftsman_phone
+                 cr.name as craftsman_name, cr.phone as craftsman_phone,
+                 u.email as craftsman_email
           FROM appointments a
           JOIN customers c ON a.customer_id = c.id
           JOIN craftsmen cr ON a.craftsman_id = cr.id
+          JOIN users u ON cr.user_id = u.id
           WHERE a.id = $1
         `, [result.rows[0].id]);
         
@@ -236,10 +238,12 @@ const approveAppointment = async (req, res) => {
     // First, check if the appointment exists and get its details
     const checkResult = await pool.query(`
       SELECT a.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
-             cr.name as craftsman_name, cr.email as craftsman_email, cr.phone as craftsman_phone
+             cr.name as craftsman_name, cr.phone as craftsman_phone,
+             u.email as craftsman_email
       FROM appointments a
       JOIN customers c ON a.customer_id = c.id
       JOIN craftsmen cr ON a.craftsman_id = cr.id
+      JOIN users u ON cr.user_id = u.id
       WHERE a.id = $1
     `, [id]);
     
@@ -290,10 +294,12 @@ const rejectAppointment = async (req, res) => {
     // First, check if the appointment exists
     const checkResult = await pool.query(`
       SELECT a.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
-             cr.name as craftsman_name, cr.email as craftsman_email, cr.phone as craftsman_phone
+             cr.name as craftsman_name, cr.phone as craftsman_phone,
+             u.email as craftsman_email
       FROM appointments a
       JOIN customers c ON a.customer_id = c.id
       JOIN craftsmen cr ON a.craftsman_id = cr.id
+      JOIN users u ON cr.user_id = u.id
       WHERE a.id = $1
     `, [id]);
     

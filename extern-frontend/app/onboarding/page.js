@@ -37,9 +37,6 @@ export default function OnboardingPage() {
       return;
     }
 
-    // Check if onboarding is already completed
-    const onboardingCompleted = localStorage.getItem('onboardingCompleted');
-    
     // Parse the token to get user info
     try {
       const tokenData = JSON.parse(atob(token.split('.')[1]));
@@ -128,10 +125,10 @@ export default function OnboardingPage() {
       
       setSuccess('Your availability has been saved successfully!');
       
-      // Redirect to dashboard after a short delay
+      // Redirect to appointments page after a short delay
       setTimeout(() => {
-        router.push('/');
-      }, 2000);
+        router.push('/appointments');
+      }, 1500);
     } catch (err) {
       console.error('Error saving availability:', err);
       setError('Failed to save your availability. Please try again.');
@@ -284,7 +281,15 @@ export default function OnboardingPage() {
               </div>
             </div>
             
-            <div className="flex justify-end space-x-3 pt-6 border-t border-white/10">
+            <div className="flex justify-between space-x-3 pt-6 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => router.push('/appointments')}
+                className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-all"
+              >
+                Skip for Now
+              </button>
+              
               <button
                 type="button"
                 onClick={handleSave}
