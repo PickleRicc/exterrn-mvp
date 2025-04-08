@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an axios instance with default config
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3000',
+  baseURL: 'http://localhost:3000',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -46,13 +46,20 @@ api.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config;
+    
     // Handle 401 Unauthorized errors (token expired or invalid)
-    if (error.response && error.response.status === 401) {
+    if (error.response && error.response.status === 401 && !originalRequest._retry) {
       // Only run on the client side
       if (typeof window !== 'undefined') {
         console.error('Authentication error (401):', error.config.url);
+        
+        // Check if we have a refresh token (for future implementation)
+        // For now, we'll just redirect to login
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        
         // Redirect to login page
         window.location.href = '/auth/login';
       }
@@ -61,6 +68,36 @@ api.interceptors.response.use(
     // Handle 403 Forbidden errors (insufficient permissions)
     if (error.response && error.response.status === 403) {
       console.error('Permission error (403):', error.config.url, error.response.data);
+      
+      // If we get multiple 403 errors, it might be due to token issues
+      // Check if the token is still valid by decoding it
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            const tokenData = JSON.parse(atob(token.split('.')[1]));
+            const expiryTime = tokenData.exp * 1000; // Convert to milliseconds
+            const currentTime = Date.now();
+            
+            console.debug('Token expiry check:', {
+              expiryTime: new Date(expiryTime).toISOString(),
+              currentTime: new Date(currentTime).toISOString(),
+              timeRemaining: Math.floor((expiryTime - currentTime) / 1000 / 60) + ' minutes'
+            });
+            
+            // If token is expired or about to expire (less than 5 minutes left)
+            if (expiryTime - currentTime < 5 * 60 * 1000) {
+              console.warn('Token is expired or about to expire, redirecting to login');
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              window.location.href = '/auth/login';
+              return Promise.reject(error);
+            }
+          } catch (err) {
+            console.error('Error checking token expiry:', err);
+          }
+        }
+      }
     }
     
     return Promise.reject(error);
@@ -173,6 +210,14 @@ export const appointmentsAPI = {
     const response = await api.delete(`/appointments/${id}`);
     return response.data;
   },
+  approve: async (id) => {
+    const response = await api.put(`/appointments/${id}/approve`);
+    return response.data;
+  },
+  reject: async (id, reason) => {
+    const response = await api.put(`/appointments/${id}/reject`, { reason });
+    return response.data;
+  }
 };
 
 export default api;

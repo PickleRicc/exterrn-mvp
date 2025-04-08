@@ -125,7 +125,7 @@ const login = async (req, res) => {
         craftsmanId: craftsmanInfo?.id
       },
       jwtSecret,
-      { expiresIn: '1h' }
+      { expiresIn: '24h' } 
     );
     
     res.json({

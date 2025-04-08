@@ -6,7 +6,9 @@ const {
   getAppointmentById,
   createAppointment,
   updateAppointment,
-  deleteAppointment
+  deleteAppointment,
+  approveAppointment,
+  rejectAppointment
 } = require('../controllers/appointmentsController');
 
 // Apply authentication middleware to all routes
@@ -26,5 +28,11 @@ router.put('/:id', updateAppointment);
 
 // DELETE appointment
 router.delete('/:id', deleteAppointment);
+
+// PUT approve appointment
+router.put('/:id/approve', approveAppointment);
+
+// PUT reject appointment
+router.put('/:id/reject', rejectAppointment);
 
 module.exports = router;

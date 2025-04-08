@@ -142,9 +142,9 @@ export default function OnboardingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center items-center bg-[#0a1929]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#e91e63] mx-auto"></div>
-        <p className="mt-4 text-white">Loading your profile...</p>
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-[#0a1929] to-[#132f4c]">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#00c2ff] mx-auto"></div>
+        <p className="mt-6 text-white/80 font-medium">Loading your profile...</p>
       </div>
     );
   }
@@ -161,74 +161,119 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0a1929]">
-      <div className="flex-grow container mx-auto px-4 py-6 max-w-4xl">
-        <h1 className="text-2xl md:text-3xl font-bold mb-6 text-white">Complete Your Profile</h1>
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#0a1929] to-[#132f4c]">
+      <div className="flex-grow container mx-auto px-5 py-8 max-w-4xl">
+        <div className="mb-8 animate-fade-in">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">
+            <span className="bg-gradient-to-r from-[#00c2ff] to-[#7928ca] bg-clip-text text-transparent">
+              Complete Your Profile
+            </span>
+          </h1>
+          <p className="text-white/70">Set your availability hours to help customers book appointments</p>
+        </div>
         
         {error && (
-          <div className="mb-6 p-3 bg-red-100 text-red-700 rounded text-sm">
-            {error}
+          <div className="mb-6 p-4 bg-red-100/90 backdrop-blur-sm text-red-700 rounded-xl border border-red-200/50 shadow-lg animate-slide-up flex items-center">
+            <svg className="w-5 h-5 mr-2 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>{error}</span>
           </div>
         )}
         
         {success && (
-          <div className="mb-6 p-3 bg-green-100 text-green-700 rounded text-sm">
-            {success}
+          <div className="mb-6 p-4 bg-green-100/90 backdrop-blur-sm text-green-700 rounded-xl border border-green-200/50 shadow-lg animate-slide-up flex items-center">
+            <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>{success}</span>
           </div>
         )}
         
-        <div className="bg-[#132f4c] rounded-lg shadow-lg p-4 md:p-8">
+        <div className="bg-white/5 backdrop-blur-xl rounded-2xl shadow-xl border border-white/10 p-6 md:p-8 animate-fade-in">
           <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-white">Your Working Hours</h2>
-              <p className="text-gray-300 text-sm">Set your regular working hours for each day of the week.</p>
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-white">Your Working Hours</h2>
+                  <p className="text-white/70 text-sm mt-1">Set your regular working hours for each day of the week</p>
+                </div>
+                <div className="p-2 bg-[#0070f3]/20 rounded-full">
+                  <svg className="w-6 h-6 text-[#0070f3]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+              </div>
               
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
                 {days.map((day) => (
-                  <div key={day} className="bg-[#1e3a5f] p-4 rounded-md space-y-3">
+                  <div key={day} className="bg-white/5 backdrop-blur-sm p-5 rounded-xl border border-white/10 space-y-3 transition-all hover:bg-white/10">
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium text-white">{dayLabels[day]}</h3>
                       <button
                         type="button"
                         onClick={() => handleAddTimeSlot(day)}
-                        className="text-[#f48fb1] hover:text-[#e91e63] text-sm"
+                        className="text-[#00c2ff] hover:text-white text-sm flex items-center transition-colors"
                       >
-                        + Add Time Slot
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Add Time Slot
                       </button>
                     </div>
                     
                     {availabilityHours[day].length === 0 ? (
-                      <p className="text-gray-400 italic">Not available</p>
+                      <p className="text-white/50 italic text-sm">Not available</p>
                     ) : (
                       availabilityHours[day].map((timeSlot, index) => {
                         const [start, end] = timeSlot.split('-');
                         return (
-                          <div key={index} className="flex items-center mb-2 space-x-2">
-                            <select
-                              value={start}
-                              onChange={(e) => handleTimeSlotChange(day, index, 'start', e.target.value)}
-                              className="p-2 border border-gray-600 rounded bg-[#1e3a5f] text-white"
-                            >
-                              {timeSlots.map(time => (
-                                <option key={time} value={time}>{time}</option>
-                              ))}
-                            </select>
-                            <span className="text-white">to</span>
-                            <select
-                              value={end}
-                              onChange={(e) => handleTimeSlotChange(day, index, 'end', e.target.value)}
-                              className="p-2 border border-gray-600 rounded bg-[#1e3a5f] text-white"
-                            >
-                              {timeSlots.map(time => (
-                                <option key={time} value={time}>{time}</option>
-                              ))}
-                            </select>
+                          <div key={index} className="flex items-center mb-3 space-x-2 bg-white/5 p-2 rounded-lg">
+                            <div className="relative flex-1">
+                              <select
+                                value={start}
+                                onChange={(e) => handleTimeSlotChange(day, index, 'start', e.target.value)}
+                                className="w-full p-2 border border-white/10 rounded-lg bg-[#132f4c] text-white appearance-none pl-3 pr-8"
+                              >
+                                {timeSlots.map(time => (
+                                  <option key={time} value={time}>{time}</option>
+                                ))}
+                              </select>
+                              <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                                <svg className="h-4 w-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                              </div>
+                            </div>
+                            
+                            <span className="text-white/70">to</span>
+                            
+                            <div className="relative flex-1">
+                              <select
+                                value={end}
+                                onChange={(e) => handleTimeSlotChange(day, index, 'end', e.target.value)}
+                                className="w-full p-2 border border-white/10 rounded-lg bg-[#132f4c] text-white appearance-none pl-3 pr-8"
+                              >
+                                {timeSlots.map(time => (
+                                  <option key={time} value={time}>{time}</option>
+                                ))}
+                              </select>
+                              <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                                <svg className="h-4 w-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                              </div>
+                            </div>
+                            
                             <button
                               type="button"
                               onClick={() => handleRemoveTimeSlot(day, index)}
-                              className="text-[#f48fb1] hover:text-[#e91e63]"
+                              className="text-white/70 hover:text-red-400 p-1 rounded-full hover:bg-white/10 transition-colors"
+                              aria-label="Remove time slot"
                             >
-                              Remove
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                              </svg>
                             </button>
                           </div>
                         );
@@ -239,14 +284,24 @@ export default function OnboardingPage() {
               </div>
             </div>
             
-            <div className="flex justify-end space-x-3 pt-4">
+            <div className="flex justify-end space-x-3 pt-6 border-t border-white/10">
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={saving}
-                className="px-4 py-2 bg-[#e91e63] hover:bg-[#c2185b] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e91e63]"
+                className="px-6 py-3 bg-gradient-to-r from-[#0070f3] to-[#0050d3] hover:from-[#0060df] hover:to-[#0040c0] text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5"
               >
-                {saving ? 'Saving...' : 'Save and Continue'}
+                {saving ? (
+                  <div className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Saving...</span>
+                  </div>
+                ) : (
+                  'Save and Continue'
+                )}
               </button>
             </div>
           </form>
