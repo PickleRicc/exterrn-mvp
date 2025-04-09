@@ -6,6 +6,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true
 });
 
 // Add a request interceptor to attach the JWT token to every request
