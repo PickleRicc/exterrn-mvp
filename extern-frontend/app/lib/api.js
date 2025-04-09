@@ -2,12 +2,16 @@ import axios from 'axios';
 
 // Create an axios instance with default config
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3000',
+  // Use relative URL to the Next.js API proxy to avoid mixed content issues
+  baseURL: '/api/proxy',
   headers: {
     'Content-Type': 'application/json',
   },
   withCredentials: true
 });
+
+// NOTE: This uses a Next.js API route as a proxy to avoid mixed content errors
+// when the frontend is served over HTTPS (as it is on Vercel) and the backend is HTTP
 
 // Add a request interceptor to attach the JWT token to every request
 api.interceptors.request.use(
