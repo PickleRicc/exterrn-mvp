@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors({
   origin: [
-    'http://localhost:3001',
+    'http://localhost:3000',
     'https://zimmr-428ddgywp-picklericcs-projects.vercel.app',
     process.env.FRONTEND_URL
   ].filter(Boolean),
