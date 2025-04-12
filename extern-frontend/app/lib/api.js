@@ -225,4 +225,88 @@ export const appointmentsAPI = {
   }
 };
 
+// Materials API calls
+export const materialsAPI = {
+  getAll: async (filters = {}) => {
+    const response = await api.get('/materials', { params: filters });
+    return response.data;
+  },
+  getById: async (id) => {
+    const response = await api.get(`/materials/${id}`);
+    return response.data;
+  },
+  create: async (materialData) => {
+    const response = await api.post('/materials', materialData);
+    return response.data;
+  },
+  update: async (id, materialData) => {
+    const response = await api.put(`/materials/${id}`, materialData);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/materials/${id}`);
+    return response.data;
+  },
+  getByCraftsmanId: async (craftsmanId) => {
+    const response = await api.get(`/materials/craftsman/${craftsmanId}`);
+    return response.data;
+  }
+};
+
+// Customer Spaces API calls
+export const spacesAPI = {
+  getAll: async (filters = {}) => {
+    const response = await api.get('/spaces', { params: filters });
+    return response.data;
+  },
+  getById: async (id) => {
+    const response = await api.get(`/spaces/${id}`);
+    return response.data;
+  },
+  create: async (spaceData) => {
+    const response = await api.post('/spaces', spaceData);
+    return response.data;
+  },
+  update: async (id, spaceData) => {
+    const response = await api.put(`/spaces/${id}`, spaceData);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/spaces/${id}`);
+    return response.data;
+  },
+  getByCustomerId: async (customerId) => {
+    const response = await api.get(`/spaces/customer/${customerId}`);
+    return response.data;
+  }
+};
+
+// Service Types API calls
+export const serviceTypesAPI = {
+  getAll: async (filters = {}) => {
+    const response = await api.get('/service-types', { params: filters });
+    return response.data;
+  },
+  getById: async (id) => {
+    const response = await api.get(`/service-types/${id}`);
+    return response.data;
+  },
+  create: async (serviceTypeData) => {
+    const response = await api.post('/service-types', serviceTypeData);
+    return response.data;
+  },
+  update: async (id, serviceTypeData) => {
+    const response = await api.put(`/service-types/${id}`, serviceTypeData);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/service-types/${id}`);
+    return response.data;
+  },
+  getByCategory: async (category) => {
+    const response = await api.get(`/service-types/category/${category}`);
+    return response.data;
+  }
+};
+
 export default api;

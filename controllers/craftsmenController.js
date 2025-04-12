@@ -260,7 +260,9 @@ const getCraftsmanAppointments = async (req, res) => {
     `, [id]);
     
     console.log('Found', result.rows.length, 'appointments for craftsman', id);
-    res.json(result.rows);
+    
+    // Always return an array, even if empty
+    res.json(result.rows || []);
   } catch (error) {
     console.error('Error fetching craftsman appointments:', error);
     res.status(500).json({ error: error.message });

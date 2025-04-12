@@ -50,16 +50,23 @@ export default function AppointmentsPage() {
     try {
       // Fetch appointments
       const appointmentsData = await craftsmenAPI.getAppointments(craftsmanId);
-      setAppointments(appointmentsData);
+      // Ensure appointmentsData is an array
+      setAppointments(Array.isArray(appointmentsData) ? appointmentsData : []);
       
       // Fetch customers to display names
       const customersData = await customersAPI.getAll({ craftsman_id: craftsmanId });
-      const customersMap = {};
-      customersData.forEach(customer => {
-        customersMap[customer.id] = customer;
-      });
-      setCustomers(customersMap);
       
+      // Ensure customersData is an array before using forEach
+      const customersMap = {};
+      if (Array.isArray(customersData)) {
+        customersData.forEach(customer => {
+          customersMap[customer.id] = customer;
+        });
+      } else {
+        console.error('Customer data is not an array:', customersData);
+      }
+      
+      setCustomers(customersMap);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching data:', err);
@@ -104,6 +111,12 @@ export default function AppointmentsPage() {
   };
 
   const getFilteredAppointments = () => {
+    // Ensure appointments is an array before filtering
+    if (!Array.isArray(appointments)) {
+      console.error('Appointments is not an array:', appointments);
+      return [];
+    }
+    
     const now = new Date();
     
     if (filter === 'pending') {
@@ -227,7 +240,7 @@ export default function AppointmentsPage() {
   };
 
   // Count pending appointments
-  const pendingCount = appointments.filter(apt => apt.approval_status === 'pending').length;
+  const pendingCount = Array.isArray(appointments) ? appointments.filter(apt => apt.approval_status === 'pending').length : 0;
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#0a1929] to-[#132f4c]">

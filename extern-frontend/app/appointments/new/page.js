@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { appointmentsAPI, customersAPI } from '../../lib/api';
+import { appointmentsAPI, customersAPI, materialsAPI, spacesAPI, serviceTypesAPI } from '../../lib/api';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 
@@ -13,6 +13,9 @@ export default function NewAppointmentPage() {
   const [success, setSuccess] = useState('');
   const [customers, setCustomers] = useState([]);
   const [craftsmanId, setCraftsmanId] = useState(null);
+  const [materials, setMaterials] = useState([]);
+  const [serviceTypes, setServiceTypes] = useState([]);
+  const [customerSpaces, setCustomerSpaces] = useState([]);
   
   // Form state
   const [customerId, setCustomerId] = useState('');
@@ -22,6 +25,12 @@ export default function NewAppointmentPage() {
   const [duration, setDuration] = useState(60);
   const [location, setLocation] = useState('');
   const [status, setStatus] = useState('scheduled');
+  // Tilesmen-specific form fields
+  const [serviceType, setServiceType] = useState('');
+  const [areaSizeSqm, setAreaSizeSqm] = useState('');
+  const [materialNotes, setMaterialNotes] = useState('');
+  const [customerSpaceId, setCustomerSpaceId] = useState('');
+  const [selectedMaterials, setSelectedMaterials] = useState([]);
   
   const router = useRouter();
 
@@ -39,6 +48,8 @@ export default function NewAppointmentPage() {
       if (tokenData.craftsmanId) {
         setCraftsmanId(tokenData.craftsmanId);
         fetchCustomers();
+        fetchMaterials();
+        fetchServiceTypes();
       } else {
         setError('Your account is not set up as a craftsman. Please contact support.');
         setLoading(false);
@@ -54,10 +65,41 @@ export default function NewAppointmentPage() {
     try {
       const data = await customersAPI.getAll();
       setCustomers(data);
-      setLoading(false);
     } catch (err) {
       console.error('Error fetching customers:', err);
       setError('Failed to load customers. Please try again.');
+    }
+  };
+
+  const fetchMaterials = async () => {
+    try {
+      const data = await materialsAPI.getAll();
+      setMaterials(data);
+    } catch (err) {
+      console.error('Error fetching materials:', err);
+      setError('Failed to load materials. Please try again.');
+    }
+  };
+
+  const fetchServiceTypes = async () => {
+    try {
+      const data = await serviceTypesAPI.getAll();
+      setServiceTypes(data);
+    } catch (err) {
+      console.error('Error fetching service types:', err);
+      setError('Failed to load service types. Please try again.');
+    }
+  };
+
+  const fetchCustomerSpaces = async (customerId) => {
+    try {
+      const data = await spacesAPI.getByCustomerId(customerId);
+      setCustomerSpaces(Array.isArray(data) ? data : []);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching customer spaces:', err);
+      setError('Failed to load customer spaces. Please try again.');
+      setCustomerSpaces([]);
       setLoading(false);
     }
   };
@@ -93,7 +135,12 @@ export default function NewAppointmentPage() {
         notes,
         duration: parseInt(duration),
         location,
-        status
+        status,
+        service_type: serviceType,
+        area_size_sqm: areaSizeSqm,
+        material_notes: materialNotes,
+        customer_space_id: customerSpaceId,
+        selected_materials: selectedMaterials,
       });
 
       setSuccess('Appointment created successfully!');
@@ -105,6 +152,11 @@ export default function NewAppointmentPage() {
       setNotes('');
       setDuration(60);
       setLocation('');
+      setServiceType('');
+      setAreaSizeSqm('');
+      setMaterialNotes('');
+      setCustomerSpaceId('');
+      setSelectedMaterials([]);
       
       // Redirect after a short delay
       setTimeout(() => {
@@ -178,7 +230,10 @@ export default function NewAppointmentPage() {
                     <select
                       id="customerId"
                       value={customerId}
-                      onChange={(e) => setCustomerId(e.target.value)}
+                      onChange={(e) => {
+                        setCustomerId(e.target.value);
+                        fetchCustomerSpaces(e.target.value);
+                      }}
                       className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                       required
                     >
@@ -313,6 +368,140 @@ export default function NewAppointmentPage() {
                       rows="3"
                       placeholder="Details about the appointment..."
                     ></textarea>
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  <label htmlFor="serviceType" className="block mb-2 text-sm font-medium text-white">
+                    Service Type
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </div>
+                    <select
+                      id="serviceType"
+                      value={serviceType}
+                      onChange={(e) => setServiceType(e.target.value)}
+                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    >
+                      <option value="">Select a service type</option>
+                      {serviceTypes.map((serviceType) => (
+                        <option key={serviceType.id} value={serviceType.id}>
+                          {serviceType.name}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  <label htmlFor="areaSizeSqm" className="block mb-2 text-sm font-medium text-white">
+                    Area Size (sqm)
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </div>
+                    <input
+                      id="areaSizeSqm"
+                      type="number"
+                      value={areaSizeSqm}
+                      onChange={(e) => setAreaSizeSqm(e.target.value)}
+                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    />
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  <label htmlFor="materialNotes" className="block mb-2 text-sm font-medium text-white">
+                    Material Notes
+                  </label>
+                  <div className="relative">
+                    <div className="absolute top-3 left-3 flex items-start pointer-events-none">
+                      <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                    </div>
+                    <textarea
+                      id="materialNotes"
+                      value={materialNotes}
+                      onChange={(e) => setMaterialNotes(e.target.value)}
+                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      rows="3"
+                      placeholder="Notes about the materials..."
+                    ></textarea>
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  <label htmlFor="customerSpaceId" className="block mb-2 text-sm font-medium text-white">
+                    Customer Space
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </div>
+                    <select
+                      id="customerSpaceId"
+                      value={customerSpaceId}
+                      onChange={(e) => setCustomerSpaceId(e.target.value)}
+                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    >
+                      <option value="">Select a customer space</option>
+                      {customerSpaces.map((space) => (
+                        <option key={space.id} value={space.id}>
+                          {space.name}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  <label htmlFor="selectedMaterials" className="block mb-2 text-sm font-medium text-white">
+                    Selected Materials
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </div>
+                    <select
+                      id="selectedMaterials"
+                      value={selectedMaterials}
+                      onChange={(e) => setSelectedMaterials(e.target.value)}
+                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      multiple
+                    >
+                      {materials.map((material) => (
+                        <option key={material.id} value={material.id}>
+                          {material.name}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>

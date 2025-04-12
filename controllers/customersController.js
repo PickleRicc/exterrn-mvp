@@ -7,6 +7,7 @@ const getAllCustomers = async (req, res) => {
     
     console.log('Request query params:', req.query);
     console.log('Craftsman ID from query:', craftsman_id);
+    console.log('User from request:', req.user ? { id: req.user.id, role: req.user.role, craftsmanId: req.user.craftsmanId } : 'No user');
     
     let query = 'SELECT * FROM customers';
     const queryParams = [];
@@ -41,7 +42,11 @@ const getAllCustomers = async (req, res) => {
         queryParams.push(craftsmanIdToUse);
         conditions.push(`craftsman_id = $${queryParams.length}`);
         console.log('Using craftsman_id from user authentication:', craftsmanIdToUse);
+      } else {
+        console.log('User is not a craftsman, no craftsman_id filter applied');
       }
+    } else {
+      console.log('No craftsman_id provided and no authenticated user, no filter applied');
     }
     
     if (name) {
@@ -72,7 +77,12 @@ const getAllCustomers = async (req, res) => {
     console.log('Query returned', result.rows.length, 'customers');
     
     // Always return an array, even if empty
-    res.json(result.rows || []);
+    if (!result.rows) {
+      console.log('Result rows is null or undefined, returning empty array');
+      return res.json([]);
+    }
+    
+    res.json(result.rows);
   } catch (error) {
     console.error('Error fetching customers:', error);
     res.status(500).json({ error: error.message });
@@ -262,7 +272,10 @@ const getCustomerAppointments = async (req, res) => {
       ORDER BY scheduled_at DESC
     `, [id]);
     
-    res.json(result.rows);
+    console.log('Found', result.rows.length, 'appointments for customer', id);
+    
+    // Always return an array, even if empty
+    res.json(result.rows || []);
   } catch (error) {
     console.error('Error fetching customer appointments:', error);
     res.status(500).json({ error: error.message });

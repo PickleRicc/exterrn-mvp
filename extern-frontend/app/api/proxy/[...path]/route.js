@@ -3,7 +3,12 @@ import { NextResponse } from 'next/server';
 // This is a simple API proxy that forwards requests to the backend
 // It solves the mixed content issue by proxying HTTP requests through the HTTPS frontend
 export async function GET(request, { params }) {
-  const path = params.path.join('/');
+  // Get path from params without using Promise.resolve
+  let path = '';
+  if (params && params.path) {
+    path = Array.isArray(params.path) ? params.path.join('/') : params.path;
+  }
+  
   const searchParams = request.nextUrl.searchParams;
   const queryString = searchParams.toString() ? `?${searchParams.toString()}` : '';
   
@@ -19,12 +24,34 @@ export async function GET(request, { params }) {
     cache: 'no-store'
   });
 
-  const data = await response.json();
-  return NextResponse.json(data);
+  // Handle different response types
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    try {
+      const data = await response.json();
+      return NextResponse.json(Array.isArray(data) ? data : (data || []));
+    } catch (error) {
+      console.error('Error parsing JSON response:', error);
+      return NextResponse.json([]);
+    }
+  } else {
+    const text = await response.text();
+    return new NextResponse(text, {
+      status: response.status,
+      headers: {
+        'Content-Type': contentType || 'text/plain'
+      }
+    });
+  }
 }
 
 export async function POST(request, { params }) {
-  const path = params.path.join('/');
+  // Get path from params without using Promise.resolve
+  let path = '';
+  if (params && params.path) {
+    path = Array.isArray(params.path) ? params.path.join('/') : params.path;
+  }
+  
   const backendUrl = process.env.BACKEND_URL || 'http://3.127.139.32:3000';
   
   const body = await request.json();
@@ -45,7 +72,12 @@ export async function POST(request, { params }) {
 }
 
 export async function PUT(request, { params }) {
-  const path = params.path.join('/');
+  // Get path from params without using Promise.resolve
+  let path = '';
+  if (params && params.path) {
+    path = Array.isArray(params.path) ? params.path.join('/') : params.path;
+  }
+  
   const backendUrl = process.env.BACKEND_URL || 'http://3.127.139.32:3000';
   
   const body = await request.json();
@@ -66,7 +98,12 @@ export async function PUT(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  const path = params.path.join('/');
+  // Get path from params without using Promise.resolve
+  let path = '';
+  if (params && params.path) {
+    path = Array.isArray(params.path) ? params.path.join('/') : params.path;
+  }
+  
   const backendUrl = process.env.BACKEND_URL || 'http://3.127.139.32:3000';
   
   const response = await fetch(`${backendUrl}/${path}`, {
