@@ -202,12 +202,12 @@ export default function MaterialsPage() {
                     <div className="mt-4 space-y-2">
                       <div className="flex justify-between">
                         <span className="text-white/60">Price per sqm:</span>
-                        <span className="font-medium">€{material.price_per_sqm.toFixed(2)}</span>
+                        <span className="font-medium">€{material.price_per_sqm ? material.price_per_sqm.toFixed(2) : '0.00'}</span>
                       </div>
                       {material.quantity && (
                         <div className="flex justify-between">
                           <span className="text-white/60">Quantity:</span>
-                          <span className="font-medium">{material.quantity} {material.unit}</span>
+                          <span className="font-medium">{material.quantity} {material.unit || 'pcs'}</span>
                         </div>
                       )}
                       {material.description && (
