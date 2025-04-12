@@ -1,0 +1,92 @@
+# EXTERN MVP – PROJECT CONTEXT
+
+## 🧠 Project Purpose
+
+Extern is a platform designed for **craftsmen in Germany** (e.g. plumbers, electricians, etc.) to **easily speak with their customers, schedule appointments**, and **automate backend tasks** using AI voice calls and background agents.
+
+The goal is to:
+- Replace tedious admin work (calls, scheduling, reminders)
+- Centralize customer and appointment data
+- Use AI + automation to streamline the business
+- Be easy to use on mobile or desktop
+
+---
+
+## 🧩 Key Features (Phase 1)
+
+### Backend (Node.js + Express + PostgreSQL):
+- JWT-based login and user auth
+- `/customers` endpoint (CRUD)
+- `/appointments` endpoint (CRUD + filtering)
+- `/auth` endpoint for register/login
+- Dockerized server on EC2
+- Connected to AWS RDS PostgreSQL
+- Modular structure (routes, controllers, middleware)
+
+### Frontend (Next.js + Tailwind):
+- Login screen
+- Appointments view (list + create)
+- Customers view (list + create)
+- Mobile-first, responsive UI
+- Secured with JWT in localStorage
+
+### Automation (n8n, Phase 2+):
+- Receive webhook data from Vapi or Twilio
+- Auto-create customers/appointments from AI call
+- Send reminders or follow-ups
+
+---
+
+## 📱 Design & Layout Rules
+
+- Must be **mobile-first**, responsive for both mobile and desktop
+- Use **Tailwind CSS**
+- Layouts should be clean, professional, and minimalist
+- Use cards and grids for lists (e.g. appointment/customer cards)
+- Forms should use proper labels, error handling, and spacing
+- Navigation bar should be at the top (or hamburger for mobile)
+
+---
+
+## 🧠 Rules for AI IDE Behavior
+
+Please follow these **strict rules** when generating or updating code:
+
+### 1. DO NOT HALLUCINATE:
+- Only use routes, tables, and functions that exist or have been defined
+- Do not invent new files, endpoints, or data fields unless explicitly instructed
+
+### 2. STICK TO BEST PRACTICES:
+- Use `async/await` and proper `try/catch`
+- Use named controller functions and route files
+- Use middleware for authentication
+- Validate input on all POST/PUT endpoints
+- Sanitize/filter DB queries (especially with search or filters)
+- Do not hardcode JWTs, passwords, or tokens
+
+### 3. KEEP CODE CLEAN:
+- Use consistent 2-space indentation
+- Use named functions, not inline anonymous ones
+- Separate route logic from controller logic
+- Avoid repetitive code and reuse helpers where possible
+
+### 4. FRONTEND:
+- Always use `Axios` from `lib/api.js`
+- Store JWT in `localStorage` and attach to `Authorization` header
+- Redirect to `/login` if token is missing
+- Keep components modular and re-usable
+- Use `useEffect` for data fetching and `useState` for UI logic
+
+### 5. DO NOT:
+- Add TypeScript unless explicitly asked
+- Mix frontend/backend code in the same file
+- Assume ORM usage (we are using raw SQL with `pg`)
+- Expose sensitive data in frontend files
+
+---
+
+## ✅ When In Doubt
+- Ask for confirmation before creating new routes, files, or DB changes
+- Default to simplicity
+- Prioritize security, readability, and scalability
+

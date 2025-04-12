@@ -4,12 +4,14 @@ const emailService = require('../services/emailService');
 // Get all appointments with customer data
 const getAllAppointments = async (req, res) => {
   try {
-    const { date, approval_status } = req.query;
+    const { date, approval_status, service_type } = req.query;
     
     let queryText = `
-      SELECT a.*, c.name as customer_name, c.phone as customer_phone, c.service_type
+      SELECT a.*, c.name as customer_name, c.phone as customer_phone, 
+             cr.name as craftsman_name, cr.specialty
       FROM appointments a
       JOIN customers c ON a.customer_id = c.id
+      JOIN craftsmen cr ON a.craftsman_id = cr.id
     `;
     
     const queryParams = [];
@@ -25,6 +27,18 @@ const getAllAppointments = async (req, res) => {
     if (approval_status) {
       queryParams.push(approval_status);
       queryText += whereClauseAdded ? ` AND approval_status = $${paramIndex++}` : ` WHERE approval_status = $${paramIndex++}`;
+      whereClauseAdded = true;
+    }
+    
+    if (service_type) {
+      queryParams.push(service_type);
+      queryText += whereClauseAdded ? ` AND a.service_type = $${paramIndex++}` : ` WHERE a.service_type = $${paramIndex++}`;
+    }
+    
+    // If user is a craftsman, only show their appointments
+    if (req.user && req.user.role === 'craftsman' && req.user.craftsmanId) {
+      queryParams.push(req.user.craftsmanId);
+      queryText += whereClauseAdded ? ` AND a.craftsman_id = $${paramIndex++}` : ` WHERE a.craftsman_id = $${paramIndex++}`;
     }
     
     queryText += ` ORDER BY a.scheduled_at DESC`;
@@ -42,9 +56,13 @@ const getAppointmentById = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(`
-      SELECT a.*, c.name as customer_name, c.phone as customer_phone, c.service_type
+      SELECT a.*, c.name as customer_name, c.phone as customer_phone,
+             cr.name as craftsman_name, cr.specialty,
+             cs.name as space_name, cs.type as space_type, cs.area_sqm as space_area
       FROM appointments a
       JOIN customers c ON a.customer_id = c.id
+      JOIN craftsmen cr ON a.craftsman_id = cr.id
+      LEFT JOIN customer_spaces cs ON a.customer_space_id = cs.id
       WHERE a.id = $1
     `, [id]);
     
@@ -52,7 +70,18 @@ const getAppointmentById = async (req, res) => {
       return res.status(404).json({ error: 'Appointment not found' });
     }
     
-    res.json(result.rows[0]);
+    // Get materials for this appointment if any
+    const materialsResult = await pool.query(`
+      SELECT m.*, am.quantity
+      FROM appointment_materials am
+      JOIN materials m ON am.material_id = m.id
+      WHERE am.appointment_id = $1
+    `, [id]);
+    
+    const appointment = result.rows[0];
+    appointment.materials = materialsResult.rows;
+    
+    res.json(appointment);
   } catch (error) {
     console.error('Error fetching appointment:', error);
     res.status(500).json({ error: error.message });
@@ -62,7 +91,21 @@ const getAppointmentById = async (req, res) => {
 // Create new appointment
 const createAppointment = async (req, res) => {
   try {
-    const { customer_id, scheduled_at, notes, craftsman_id, duration, location, status, approval_status } = req.body;
+    const { 
+      customer_id, 
+      scheduled_at, 
+      notes, 
+      craftsman_id, 
+      duration, 
+      location, 
+      status, 
+      approval_status,
+      service_type,
+      area_size_sqm,
+      material_notes,
+      customer_space_id,
+      materials
+    } = req.body;
     
     // Validate required fields
     if (!customer_id) {
@@ -77,10 +120,13 @@ const createAppointment = async (req, res) => {
       return res.status(400).json({ error: 'craftsman_id is required' });
     }
     
+    // Begin transaction
+    await pool.query('BEGIN');
+    
     // Set default approval_status to 'pending' for appointments created via API
-    // This will apply to appointments created through Vapi
     const appointmentApprovalStatus = approval_status || 'pending';
     
+    // Insert the appointment
     const result = await pool.query(`
       INSERT INTO appointments (
         customer_id, 
@@ -90,9 +136,13 @@ const createAppointment = async (req, res) => {
         duration, 
         location, 
         status, 
-        approval_status
+        approval_status,
+        service_type,
+        area_size_sqm,
+        material_notes,
+        customer_space_id
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *
     `, [
       customer_id, 
@@ -102,8 +152,27 @@ const createAppointment = async (req, res) => {
       duration || 60, 
       location || '', 
       status || 'scheduled',
-      appointmentApprovalStatus
+      appointmentApprovalStatus,
+      service_type || null,
+      area_size_sqm || null,
+      material_notes || null,
+      customer_space_id || null
     ]);
+    
+    const appointmentId = result.rows[0].id;
+    
+    // If materials are provided, add them to the appointment
+    if (materials && Array.isArray(materials) && materials.length > 0) {
+      for (const material of materials) {
+        await pool.query(`
+          INSERT INTO appointment_materials (appointment_id, material_id, quantity)
+          VALUES ($1, $2, $3)
+        `, [appointmentId, material.id, material.quantity]);
+      }
+    }
+    
+    // Commit transaction
+    await pool.query('COMMIT');
     
     // Get the full appointment details with customer and craftsman info for the email
     if (appointmentApprovalStatus === 'pending') {
@@ -131,6 +200,8 @@ const createAppointment = async (req, res) => {
     
     res.status(201).json(result.rows[0]);
   } catch (error) {
+    // Rollback transaction in case of error
+    await pool.query('ROLLBACK');
     console.error('Error creating appointment:', error);
     res.status(500).json({ error: error.message });
   }
@@ -140,73 +211,137 @@ const createAppointment = async (req, res) => {
 const updateAppointment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { scheduled_at, notes, craftsman_id, customer_id, duration, location, status, approval_status } = req.body;
+    const { 
+      customer_id, 
+      scheduled_at, 
+      notes, 
+      craftsman_id, 
+      duration, 
+      location, 
+      status,
+      service_type,
+      area_size_sqm,
+      material_notes,
+      customer_space_id,
+      materials
+    } = req.body;
     
-    // Build the update query dynamically based on provided fields
-    const updates = [];
-    const values = [];
-    let paramIndex = 1;
+    // Check if appointment exists
+    const checkResult = await pool.query('SELECT * FROM appointments WHERE id = $1', [id]);
     
-    if (scheduled_at) {
-      updates.push(`scheduled_at = $${paramIndex++}`);
-      values.push(scheduled_at);
-    }
-    
-    if (notes !== undefined) {
-      updates.push(`notes = $${paramIndex++}`);
-      values.push(notes);
-    }
-    
-    if (craftsman_id) {
-      updates.push(`craftsman_id = $${paramIndex++}`);
-      values.push(craftsman_id);
-    }
-    
-    if (customer_id) {
-      updates.push(`customer_id = $${paramIndex++}`);
-      values.push(customer_id);
-    }
-    
-    if (duration) {
-      updates.push(`duration = $${paramIndex++}`);
-      values.push(duration);
-    }
-    
-    if (location !== undefined) {
-      updates.push(`location = $${paramIndex++}`);
-      values.push(location);
-    }
-    
-    if (status) {
-      updates.push(`status = $${paramIndex++}`);
-      values.push(status);
-    }
-    
-    if (approval_status) {
-      updates.push(`approval_status = $${paramIndex++}`);
-      values.push(approval_status);
-    }
-    
-    if (updates.length === 0) {
-      return res.status(400).json({ error: 'No fields to update' });
-    }
-    
-    // Add the ID parameter
-    values.push(id);
-    
-    const result = await pool.query(`
-      UPDATE appointments
-      SET ${updates.join(', ')}
-      WHERE id = $${paramIndex}
-      RETURNING *
-    `, values);
-    
-    if (result.rows.length === 0) {
+    if (checkResult.rows.length === 0) {
       return res.status(404).json({ error: 'Appointment not found' });
     }
     
+    // Begin transaction
+    await pool.query('BEGIN');
+    
+    // Build dynamic update query
+    let query = 'UPDATE appointments SET ';
+    const queryParams = [];
+    const updateFields = [];
+    let paramIndex = 1;
+    
+    if (customer_id !== undefined) {
+      updateFields.push(`customer_id = $${paramIndex}`);
+      queryParams.push(customer_id);
+      paramIndex++;
+    }
+    
+    if (scheduled_at !== undefined) {
+      updateFields.push(`scheduled_at = $${paramIndex}`);
+      queryParams.push(scheduled_at);
+      paramIndex++;
+    }
+    
+    if (notes !== undefined) {
+      updateFields.push(`notes = $${paramIndex}`);
+      queryParams.push(notes);
+      paramIndex++;
+    }
+    
+    if (craftsman_id !== undefined) {
+      updateFields.push(`craftsman_id = $${paramIndex}`);
+      queryParams.push(craftsman_id);
+      paramIndex++;
+    }
+    
+    if (duration !== undefined) {
+      updateFields.push(`duration = $${paramIndex}`);
+      queryParams.push(duration);
+      paramIndex++;
+    }
+    
+    if (location !== undefined) {
+      updateFields.push(`location = $${paramIndex}`);
+      queryParams.push(location);
+      paramIndex++;
+    }
+    
+    if (status !== undefined) {
+      updateFields.push(`status = $${paramIndex}`);
+      queryParams.push(status);
+      paramIndex++;
+    }
+    
+    if (service_type !== undefined) {
+      updateFields.push(`service_type = $${paramIndex}`);
+      queryParams.push(service_type);
+      paramIndex++;
+    }
+    
+    if (area_size_sqm !== undefined) {
+      updateFields.push(`area_size_sqm = $${paramIndex}`);
+      queryParams.push(area_size_sqm);
+      paramIndex++;
+    }
+    
+    if (material_notes !== undefined) {
+      updateFields.push(`material_notes = $${paramIndex}`);
+      queryParams.push(material_notes);
+      paramIndex++;
+    }
+    
+    if (customer_space_id !== undefined) {
+      updateFields.push(`customer_space_id = $${paramIndex}`);
+      queryParams.push(customer_space_id);
+      paramIndex++;
+    }
+    
+    updateFields.push(`updated_at = NOW()`);
+    
+    // If no fields to update
+    if (updateFields.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+    
+    query += updateFields.join(', ');
+    query += ` WHERE id = $${paramIndex} RETURNING *`;
+    queryParams.push(id);
+    
+    const result = await pool.query(query, queryParams);
+    
+    // Update materials if provided
+    if (materials && Array.isArray(materials)) {
+      // First, remove existing materials
+      await pool.query('DELETE FROM appointment_materials WHERE appointment_id = $1', [id]);
+      
+      // Then add the new ones
+      for (const material of materials) {
+        await pool.query(`
+          INSERT INTO appointment_materials (appointment_id, material_id, quantity)
+          VALUES ($1, $2, $3)
+        `, [id, material.id, material.quantity]);
+      }
+    }
+    
+    // Commit transaction
+    await pool.query('COMMIT');
+    
     res.json(result.rows[0]);
   } catch (error) {
+    // Rollback transaction in case of error
+    await pool.query('ROLLBACK');
     console.error('Error updating appointment:', error);
     res.status(500).json({ error: error.message });
   }
@@ -217,7 +352,20 @@ const deleteAppointment = async (req, res) => {
   try {
     const { id } = req.params;
     
-    const result = await pool.query('DELETE FROM appointments WHERE id = $1 RETURNING *', [id]);
+    // Begin transaction
+    await pool.query('BEGIN');
+    
+    // First delete any related materials
+    await pool.query('DELETE FROM appointment_materials WHERE appointment_id = $1', [id]);
+    
+    // Then delete the appointment
+    const result = await pool.query(
+      'DELETE FROM appointments WHERE id = $1 RETURNING *',
+      [id]
+    );
+    
+    // Commit transaction
+    await pool.query('COMMIT');
     
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Appointment not found' });
@@ -225,6 +373,8 @@ const deleteAppointment = async (req, res) => {
     
     res.json({ message: 'Appointment deleted successfully', appointment: result.rows[0] });
   } catch (error) {
+    // Rollback transaction in case of error
+    await pool.query('ROLLBACK');
     console.error('Error deleting appointment:', error);
     res.status(500).json({ error: error.message });
   }
@@ -346,6 +496,69 @@ const rejectAppointment = async (req, res) => {
   }
 };
 
+// Get appointment materials
+const getAppointmentMaterials = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query(`
+      SELECT m.*, am.quantity
+      FROM appointment_materials am
+      JOIN materials m ON am.material_id = m.id
+      WHERE am.appointment_id = $1
+    `, [id]);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching appointment materials:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Update appointment materials
+const updateAppointmentMaterials = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { materials } = req.body;
+    
+    if (!materials || !Array.isArray(materials)) {
+      return res.status(400).json({ error: 'Materials array is required' });
+    }
+    
+    // Begin transaction
+    await pool.query('BEGIN');
+    
+    // First, remove existing materials
+    await pool.query('DELETE FROM appointment_materials WHERE appointment_id = $1', [id]);
+    
+    // Then add the new ones
+    for (const material of materials) {
+      await pool.query(`
+        INSERT INTO appointment_materials (appointment_id, material_id, quantity)
+        VALUES ($1, $2, $3)
+      `, [id, material.id, material.quantity]);
+    }
+    
+    // Commit transaction
+    await pool.query('COMMIT');
+    
+    // Get the updated materials
+    const result = await pool.query(`
+      SELECT m.*, am.quantity
+      FROM appointment_materials am
+      JOIN materials m ON am.material_id = m.id
+      WHERE am.appointment_id = $1
+    `, [id]);
+    
+    res.json(result.rows);
+  } catch (error) {
+    // Rollback transaction in case of error
+    await pool.query('ROLLBACK');
+    console.error('Error updating appointment materials:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getAllAppointments,
   getAppointmentById,
@@ -353,5 +566,7 @@ module.exports = {
   updateAppointment,
   deleteAppointment,
   approveAppointment,
-  rejectAppointment
+  rejectAppointment,
+  getAppointmentMaterials,
+  updateAppointmentMaterials
 };

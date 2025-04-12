@@ -1,6 +1,4 @@
 node_modules
 .env
 extern.pem
-
-# windsurf rules
-.windsurfrules
+.md
