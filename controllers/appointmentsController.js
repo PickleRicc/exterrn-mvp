@@ -4,39 +4,17 @@ const emailService = require('../services/emailService');
 // Get all appointments with customer data
 const getAllAppointments = async (req, res) => {
   try {
-    const { date, approval_status, service_type, craftsman_id } = req.query;
-    
-    console.log('Request query params:', req.query);
-    console.log('Craftsman ID from query:', craftsman_id);
-    console.log('User from request:', req.user ? { id: req.user.id, role: req.user.role, craftsmanId: req.user.craftsmanId } : 'No user');
+    const { date, approval_status } = req.query;
     
     let queryText = `
-      SELECT a.*, c.name as customer_name, c.phone as customer_phone, 
-             cr.name as craftsman_name, cr.specialty
+      SELECT a.*, c.name as customer_name, c.phone as customer_phone, c.service_type
       FROM appointments a
-      LEFT JOIN customers c ON a.customer_id = c.id
-      LEFT JOIN craftsmen cr ON a.craftsman_id = cr.id
+      JOIN customers c ON a.customer_id = c.id
     `;
     
     const queryParams = [];
     let paramIndex = 1;
     let whereClauseAdded = false;
-    
-    // Handle craftsman_id filtering - prioritize query parameter over JWT token
-    let craftsmanIdToUse = null;
-    
-    // If craftsman_id is provided as a query parameter, use it
-    if (craftsman_id) {
-      // Convert string to number if it's a numeric string
-      const craftsmanIdNumber = parseInt(craftsman_id, 10);
-      craftsmanIdToUse = !isNaN(craftsmanIdNumber) ? craftsmanIdNumber : craftsman_id;
-      console.log('Using craftsman_id from query params:', craftsmanIdToUse);
-    }
-    // If no craftsman_id is provided but we have a user with craftsman role, use their ID
-    else if (req.user && req.user.role === 'craftsman' && req.user.craftsmanId) {
-      craftsmanIdToUse = req.user.craftsmanId;
-      console.log('Using craftsman_id from JWT token:', craftsmanIdToUse);
-    }
     
     if (date) {
       queryParams.push(date);
@@ -47,36 +25,11 @@ const getAllAppointments = async (req, res) => {
     if (approval_status) {
       queryParams.push(approval_status);
       queryText += whereClauseAdded ? ` AND approval_status = $${paramIndex++}` : ` WHERE approval_status = $${paramIndex++}`;
-      whereClauseAdded = true;
-    }
-    
-    if (service_type) {
-      queryParams.push(service_type);
-      queryText += whereClauseAdded ? ` AND a.service_type = $${paramIndex++}` : ` WHERE a.service_type = $${paramIndex++}`;
-      whereClauseAdded = true;
-    }
-    
-    // Apply craftsman_id filter if we have one
-    if (craftsmanIdToUse) {
-      queryParams.push(craftsmanIdToUse);
-      queryText += whereClauseAdded ? ` AND a.craftsman_id = $${paramIndex++}` : ` WHERE a.craftsman_id = $${paramIndex++}`;
-      whereClauseAdded = true;
     }
     
     queryText += ` ORDER BY a.scheduled_at DESC`;
     
-    console.log('Final SQL query:', queryText);
-    console.log('Query parameters:', queryParams);
-    
     const result = await pool.query(queryText, queryParams);
-    console.log('Query returned', result.rows.length, 'appointments');
-    
-    // Always return an array, even if empty
-    if (!result.rows) {
-      console.log('Result rows is null or undefined, returning empty array');
-      return res.json([]);
-    }
-    
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching appointments:', error);
@@ -88,40 +41,20 @@ const getAllAppointments = async (req, res) => {
 const getAppointmentById = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Getting appointment by ID:', id);
-    
     const result = await pool.query(`
-      SELECT a.*, c.name as customer_name, c.phone as customer_phone,
-             cr.name as craftsman_name, cr.specialty
+      SELECT a.*, c.name as customer_name, c.phone as customer_phone, c.service_type
       FROM appointments a
-      LEFT JOIN customers c ON a.customer_id = c.id
-      LEFT JOIN craftsmen cr ON a.craftsman_id = cr.id
+      JOIN customers c ON a.customer_id = c.id
       WHERE a.id = $1
     `, [id]);
     
     if (result.rows.length === 0) {
-      console.log('Appointment not found with ID:', id);
       return res.status(404).json({ error: 'Appointment not found' });
     }
     
-    console.log('Appointment found:', result.rows[0].id);
-    
-    // Get materials for this appointment if any
-    const materialsResult = await pool.query(`
-      SELECT m.*, am.quantity
-      FROM appointment_materials am
-      LEFT JOIN materials m ON am.material_id = m.id
-      WHERE am.appointment_id = $1
-    `, [id]);
-    
-    console.log('Found', materialsResult.rows.length, 'materials for appointment');
-    
-    const appointment = result.rows[0];
-    appointment.materials = materialsResult.rows;
-    
-    res.json(appointment);
+    res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error fetching appointment by ID:', error);
+    console.error('Error fetching appointment:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -129,28 +62,7 @@ const getAppointmentById = async (req, res) => {
 // Create new appointment
 const createAppointment = async (req, res) => {
   try {
-    const { 
-      customer_id, 
-      scheduled_at, 
-      notes, 
-      craftsman_id, 
-      duration, 
-      location, 
-      status, 
-      approval_status,
-      service_type,
-      area_size_sqm,
-      material_notes,
-      selected_materials
-    } = req.body;
-    
-    console.log('Creating appointment with data:', {
-      customer_id,
-      craftsman_id,
-      scheduled_at,
-      status,
-      approval_status
-    });
+    const { customer_id, scheduled_at, notes, craftsman_id, duration, location, status, approval_status } = req.body;
     
     // Validate required fields
     if (!customer_id) {
@@ -161,34 +73,14 @@ const createAppointment = async (req, res) => {
       return res.status(400).json({ error: 'scheduled_at is required' });
     }
     
-    // Get craftsman ID from request body or from JWT token
-    let craftsmanIdToUse = craftsman_id;
-    
-    if (!craftsmanIdToUse && req.user && req.user.role === 'craftsman' && req.user.craftsmanId) {
-      craftsmanIdToUse = req.user.craftsmanId;
-      console.log('Using craftsman_id from JWT token:', craftsmanIdToUse);
-    }
-    
-    if (!craftsmanIdToUse) {
+    if (!craftsman_id) {
       return res.status(400).json({ error: 'craftsman_id is required' });
     }
     
-    // Begin transaction
-    await pool.query('BEGIN');
-    
     // Set default approval_status to 'pending' for appointments created via API
+    // This will apply to appointments created through Vapi
     const appointmentApprovalStatus = approval_status || 'pending';
     
-    // Convert craftsman_id to integer if it's a string
-    const parsedCraftsmanId = typeof craftsmanIdToUse === 'string' ? parseInt(craftsmanIdToUse, 10) : craftsmanIdToUse;
-    const parsedCustomerId = typeof customer_id === 'string' ? parseInt(customer_id, 10) : customer_id;
-    
-    console.log('Using parsed IDs:', {
-      parsedCraftsmanId,
-      parsedCustomerId
-    });
-    
-    // Insert the appointment
     const result = await pool.query(`
       INSERT INTO appointments (
         customer_id, 
@@ -198,65 +90,47 @@ const createAppointment = async (req, res) => {
         duration, 
         location, 
         status, 
-        approval_status,
-        service_type,
-        area_size_sqm,
-        material_notes
+        approval_status
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `, [
-      parsedCustomerId, 
+      customer_id, 
       scheduled_at, 
       notes || '', 
-      parsedCraftsmanId, 
+      craftsman_id, 
       duration || 60, 
       location || '', 
       status || 'scheduled',
-      appointmentApprovalStatus,
-      service_type || null,
-      area_size_sqm || null,
-      material_notes || null
+      appointmentApprovalStatus
     ]);
     
-    const appointmentId = result.rows[0].id;
-    console.log('Appointment created with ID:', appointmentId);
-    
-    // If materials are provided, add them to the appointment
-    if (selected_materials && Array.isArray(selected_materials) && selected_materials.length > 0) {
-      console.log('Adding materials to appointment:', selected_materials);
-      
-      for (const material of selected_materials) {
-        const materialId = typeof material === 'object' ? material.id : material;
-        const quantity = typeof material === 'object' ? (material.quantity || 1) : 1;
+    // Get the full appointment details with customer and craftsman info for the email
+    if (appointmentApprovalStatus === 'pending') {
+      try {
+        const appointmentDetails = await pool.query(`
+          SELECT a.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
+                 cr.name as craftsman_name, cr.phone as craftsman_phone,
+                 u.email as craftsman_email
+          FROM appointments a
+          JOIN customers c ON a.customer_id = c.id
+          JOIN craftsmen cr ON a.craftsman_id = cr.id
+          JOIN users u ON cr.user_id = u.id
+          WHERE a.id = $1
+        `, [result.rows[0].id]);
         
-        await pool.query(`
-          INSERT INTO appointment_materials (appointment_id, material_id, quantity)
-          VALUES ($1, $2, $3)
-        `, [appointmentId, materialId, quantity]);
+        if (appointmentDetails.rows.length > 0) {
+          // Send notification email to craftsman
+          await emailService.sendNewAppointmentNotificationEmail(appointmentDetails.rows[0]);
+        }
+      } catch (emailError) {
+        console.error('Error sending craftsman notification email:', emailError);
+        // We don't want to fail the API call if email sending fails
       }
     }
     
-    // Commit transaction
-    await pool.query('COMMIT');
-    
-    // Fetch the complete appointment with joins to return
-    const completeAppointment = await pool.query(`
-      SELECT a.*, c.name as customer_name, c.phone as customer_phone,
-             cr.name as craftsman_name, cr.specialty
-      FROM appointments a
-      LEFT JOIN customers c ON a.customer_id = c.id
-      LEFT JOIN craftsmen cr ON a.craftsman_id = cr.id
-      WHERE a.id = $1
-    `, [appointmentId]);
-    
-    res.status(201).json({
-      message: 'Appointment created successfully',
-      appointment: completeAppointment.rows[0]
-    });
+    res.status(201).json(result.rows[0]);
   } catch (error) {
-    // Rollback transaction in case of error
-    await pool.query('ROLLBACK');
     console.error('Error creating appointment:', error);
     res.status(500).json({ error: error.message });
   }
@@ -266,130 +140,73 @@ const createAppointment = async (req, res) => {
 const updateAppointment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { 
-      customer_id, 
-      scheduled_at, 
-      notes, 
-      craftsman_id, 
-      duration, 
-      location, 
-      status,
-      service_type,
-      area_size_sqm,
-      material_notes,
-      materials
-    } = req.body;
+    const { scheduled_at, notes, craftsman_id, customer_id, duration, location, status, approval_status } = req.body;
     
-    // Check if appointment exists
-    const checkResult = await pool.query('SELECT * FROM appointments WHERE id = $1', [id]);
-    
-    if (checkResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Appointment not found' });
-    }
-    
-    // Begin transaction
-    await pool.query('BEGIN');
-    
-    // Build dynamic update query
-    let query = 'UPDATE appointments SET ';
-    const queryParams = [];
-    const updateFields = [];
+    // Build the update query dynamically based on provided fields
+    const updates = [];
+    const values = [];
     let paramIndex = 1;
     
-    if (customer_id !== undefined) {
-      updateFields.push(`customer_id = $${paramIndex}`);
-      queryParams.push(customer_id);
-      paramIndex++;
-    }
-    
-    if (scheduled_at !== undefined) {
-      updateFields.push(`scheduled_at = $${paramIndex}`);
-      queryParams.push(scheduled_at);
-      paramIndex++;
+    if (scheduled_at) {
+      updates.push(`scheduled_at = $${paramIndex++}`);
+      values.push(scheduled_at);
     }
     
     if (notes !== undefined) {
-      updateFields.push(`notes = $${paramIndex}`);
-      queryParams.push(notes);
-      paramIndex++;
+      updates.push(`notes = $${paramIndex++}`);
+      values.push(notes);
     }
     
-    if (craftsman_id !== undefined) {
-      updateFields.push(`craftsman_id = $${paramIndex}`);
-      queryParams.push(craftsman_id);
-      paramIndex++;
+    if (craftsman_id) {
+      updates.push(`craftsman_id = $${paramIndex++}`);
+      values.push(craftsman_id);
     }
     
-    if (duration !== undefined) {
-      updateFields.push(`duration = $${paramIndex}`);
-      queryParams.push(duration);
-      paramIndex++;
+    if (customer_id) {
+      updates.push(`customer_id = $${paramIndex++}`);
+      values.push(customer_id);
+    }
+    
+    if (duration) {
+      updates.push(`duration = $${paramIndex++}`);
+      values.push(duration);
     }
     
     if (location !== undefined) {
-      updateFields.push(`location = $${paramIndex}`);
-      queryParams.push(location);
-      paramIndex++;
+      updates.push(`location = $${paramIndex++}`);
+      values.push(location);
     }
     
-    if (status !== undefined) {
-      updateFields.push(`status = $${paramIndex}`);
-      queryParams.push(status);
-      paramIndex++;
+    if (status) {
+      updates.push(`status = $${paramIndex++}`);
+      values.push(status);
     }
     
-    if (service_type !== undefined) {
-      updateFields.push(`service_type = $${paramIndex}`);
-      queryParams.push(service_type);
-      paramIndex++;
+    if (approval_status) {
+      updates.push(`approval_status = $${paramIndex++}`);
+      values.push(approval_status);
     }
     
-    if (area_size_sqm !== undefined) {
-      updateFields.push(`area_size_sqm = $${paramIndex}`);
-      queryParams.push(area_size_sqm);
-      paramIndex++;
-    }
-    
-    if (material_notes !== undefined) {
-      updateFields.push(`material_notes = $${paramIndex}`);
-      queryParams.push(material_notes);
-      paramIndex++;
-    }
-    
-    updateFields.push(`updated_at = NOW()`);
-    
-    // If no fields to update
-    if (updateFields.length === 0) {
+    if (updates.length === 0) {
       return res.status(400).json({ error: 'No fields to update' });
     }
     
-    query += updateFields.join(', ');
-    query += ` WHERE id = $${paramIndex} RETURNING *`;
-    queryParams.push(id);
+    // Add the ID parameter
+    values.push(id);
     
-    const result = await pool.query(query, queryParams);
+    const result = await pool.query(`
+      UPDATE appointments
+      SET ${updates.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `, values);
     
-    // Update materials if provided
-    if (materials && Array.isArray(materials)) {
-      // First, remove existing materials
-      await pool.query('DELETE FROM appointment_materials WHERE appointment_id = $1', [id]);
-      
-      // Then add the new ones
-      for (const material of materials) {
-        await pool.query(`
-          INSERT INTO appointment_materials (appointment_id, material_id, quantity)
-          VALUES ($1, $2, $3)
-        `, [id, material.id, material.quantity]);
-      }
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Appointment not found' });
     }
-    
-    // Commit transaction
-    await pool.query('COMMIT');
     
     res.json(result.rows[0]);
   } catch (error) {
-    // Rollback transaction in case of error
-    await pool.query('ROLLBACK');
     console.error('Error updating appointment:', error);
     res.status(500).json({ error: error.message });
   }
@@ -400,20 +217,7 @@ const deleteAppointment = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Begin transaction
-    await pool.query('BEGIN');
-    
-    // First delete any related materials
-    await pool.query('DELETE FROM appointment_materials WHERE appointment_id = $1', [id]);
-    
-    // Then delete the appointment
-    const result = await pool.query(
-      'DELETE FROM appointments WHERE id = $1 RETURNING *',
-      [id]
-    );
-    
-    // Commit transaction
-    await pool.query('COMMIT');
+    const result = await pool.query('DELETE FROM appointments WHERE id = $1 RETURNING *', [id]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Appointment not found' });
@@ -421,8 +225,6 @@ const deleteAppointment = async (req, res) => {
     
     res.json({ message: 'Appointment deleted successfully', appointment: result.rows[0] });
   } catch (error) {
-    // Rollback transaction in case of error
-    await pool.query('ROLLBACK');
     console.error('Error deleting appointment:', error);
     res.status(500).json({ error: error.message });
   }
@@ -544,69 +346,6 @@ const rejectAppointment = async (req, res) => {
   }
 };
 
-// Get appointment materials
-const getAppointmentMaterials = async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    const result = await pool.query(`
-      SELECT m.*, am.quantity
-      FROM appointment_materials am
-      JOIN materials m ON am.material_id = m.id
-      WHERE am.appointment_id = $1
-    `, [id]);
-    
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error fetching appointment materials:', error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// Update appointment materials
-const updateAppointmentMaterials = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { materials } = req.body;
-    
-    if (!materials || !Array.isArray(materials)) {
-      return res.status(400).json({ error: 'Materials array is required' });
-    }
-    
-    // Begin transaction
-    await pool.query('BEGIN');
-    
-    // First, remove existing materials
-    await pool.query('DELETE FROM appointment_materials WHERE appointment_id = $1', [id]);
-    
-    // Then add the new ones
-    for (const material of materials) {
-      await pool.query(`
-        INSERT INTO appointment_materials (appointment_id, material_id, quantity)
-        VALUES ($1, $2, $3)
-      `, [id, material.id, material.quantity]);
-    }
-    
-    // Commit transaction
-    await pool.query('COMMIT');
-    
-    // Get the updated materials
-    const result = await pool.query(`
-      SELECT m.*, am.quantity
-      FROM appointment_materials am
-      JOIN materials m ON am.material_id = m.id
-      WHERE am.appointment_id = $1
-    `, [id]);
-    
-    res.json(result.rows);
-  } catch (error) {
-    // Rollback transaction in case of error
-    await pool.query('ROLLBACK');
-    console.error('Error updating appointment materials:', error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
 module.exports = {
   getAllAppointments,
   getAppointmentById,
@@ -614,7 +353,5 @@ module.exports = {
   updateAppointment,
   deleteAppointment,
   approveAppointment,
-  rejectAppointment,
-  getAppointmentMaterials,
-  updateAppointmentMaterials
+  rejectAppointment
 };
