@@ -47,16 +47,25 @@ export default function NewInvoicePage() {
       try {
         setLoading(true);
         
-        // Fetch appointments for this craftsman
-        const filters = {};
-        if (craftsmanId) {
-          filters.craftsman_id = craftsmanId;
+        // Only proceed if we have a craftsman ID
+        if (!craftsmanId) {
+          setError('Craftsman ID not found. Please log in again.');
+          setLoading(false);
+          return;
         }
+        
+        // Fetch appointments and customers for this craftsman
+        const filters = { craftsman_id: craftsmanId };
+        
+        console.log('Fetching data with filters:', filters);
         
         const [appointmentsData, customersData] = await Promise.all([
           appointmentsAPI.getAll(filters),
           customersAPI.getAll(filters)
         ]);
+        
+        console.log('Fetched appointments:', appointmentsData.length);
+        console.log('Fetched customers:', customersData.length);
         
         // Filter to only show completed or scheduled appointments
         const filteredAppointments = appointmentsData.filter(

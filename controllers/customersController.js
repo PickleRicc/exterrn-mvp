@@ -7,15 +7,10 @@ const getAllCustomers = async (req, res) => {
     
     console.log('Request query params:', req.query);
     console.log('Craftsman ID from query:', craftsman_id);
-    console.log('User from request:', req.user ? { id: req.user.id, role: req.user.role, craftsmanId: req.user.craftsmanId } : 'No user');
     
     let query = 'SELECT * FROM customers';
     const queryParams = [];
     const conditions = [];
-    
-    // Get the craftsman ID from the authenticated user if not provided
-    const userId = req.user?.id;
-    let craftsmanIdToUse = craftsman_id;
     
     // If craftsman_id is provided as a query parameter, use it
     if (craftsman_id) {
@@ -30,18 +25,18 @@ const getAllCustomers = async (req, res) => {
       console.log('Using craftsman_id from query params:', craftsman_id);
     }
     // If no craftsman_id is provided but we have a user ID, try to get their craftsman ID
-    else if (userId) {
+    else if (req.user?.id) {
       // First check if this user is a craftsman
       const craftsmanResult = await pool.query(
         'SELECT id FROM craftsmen WHERE user_id = $1',
-        [userId]
+        [req.user.id]
       );
       
       if (craftsmanResult.rows.length > 0) {
-        craftsmanIdToUse = craftsmanResult.rows[0].id;
-        queryParams.push(craftsmanIdToUse);
+        const craftsmanIdFromUser = craftsmanResult.rows[0].id;
+        queryParams.push(craftsmanIdFromUser);
         conditions.push(`craftsman_id = $${queryParams.length}`);
-        console.log('Using craftsman_id from user authentication:', craftsmanIdToUse);
+        console.log('Using craftsman_id from user authentication:', craftsmanIdFromUser);
       } else {
         console.log('User is not a craftsman, no craftsman_id filter applied');
       }

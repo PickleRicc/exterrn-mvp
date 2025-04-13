@@ -4,7 +4,10 @@ const emailService = require('../services/emailService');
 // Get all appointments with customer data
 const getAllAppointments = async (req, res) => {
   try {
-    const { date, approval_status } = req.query;
+    const { date, approval_status, craftsman_id } = req.query;
+    
+    console.log('Request query params for appointments:', req.query);
+    console.log('Craftsman ID from query:', craftsman_id);
     
     let queryText = `
       SELECT a.*, c.name as customer_name, c.phone as customer_phone, c.service_type
@@ -16,9 +19,17 @@ const getAllAppointments = async (req, res) => {
     let paramIndex = 1;
     let whereClauseAdded = false;
     
+    // Filter by craftsman_id if provided (important for security)
+    if (craftsman_id) {
+      queryParams.push(craftsman_id);
+      queryText += ` WHERE a.craftsman_id = $${paramIndex++}`;
+      whereClauseAdded = true;
+      console.log('Filtering appointments by craftsman_id:', craftsman_id);
+    }
+    
     if (date) {
       queryParams.push(date);
-      queryText += ` WHERE DATE(scheduled_at) = $${paramIndex++}`;
+      queryText += whereClauseAdded ? ` AND DATE(scheduled_at) = $${paramIndex++}` : ` WHERE DATE(scheduled_at) = $${paramIndex++}`;
       whereClauseAdded = true;
     }
     
@@ -29,7 +40,12 @@ const getAllAppointments = async (req, res) => {
     
     queryText += ` ORDER BY a.scheduled_at DESC`;
     
+    console.log('Final appointments query:', queryText);
+    console.log('Query parameters:', queryParams);
+    
     const result = await pool.query(queryText, queryParams);
+    console.log('Query returned', result.rows.length, 'appointments');
+    
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching appointments:', error);
