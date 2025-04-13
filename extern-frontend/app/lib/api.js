@@ -309,4 +309,43 @@ export const serviceTypesAPI = {
   }
 };
 
+// Invoices API calls
+export const invoicesAPI = {
+  getAll: async (filters = {}) => {
+    const response = await api.get('/invoices', { params: filters });
+    return response.data;
+  },
+  getById: async (id) => {
+    const response = await api.get(`/invoices/${id}`);
+    return response.data;
+  },
+  create: async (invoiceData) => {
+    const response = await api.post('/invoices', invoiceData);
+    return response.data;
+  },
+  update: async (id, invoiceData) => {
+    const response = await api.put(`/invoices/${id}`, invoiceData);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/invoices/${id}`);
+    return response.data;
+  },
+  generatePDF: async (id) => {
+    // This will return a blob that can be used to create a download link
+    const response = await api.get(`/invoices/${id}/pdf`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+  sendEmail: async (id) => {
+    const response = await api.post(`/invoices/${id}/send`);
+    return response.data;
+  },
+  completeAppointment: async (appointmentId, invoiceData) => {
+    const response = await api.post(`/invoices/appointments/${appointmentId}/complete`, invoiceData);
+    return response.data;
+  }
+};
+
 export default api;

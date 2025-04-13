@@ -11,6 +11,7 @@ const craftsmenRoutes = require('./routes/craftsmen');
 const materialsRoutes = require('./routes/materials');
 const spacesRoutes = require('./routes/spaces');
 const serviceTypesRoutes = require('./routes/serviceTypes');
+const invoicesRoutes = require('./routes/invoicesRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,6 +37,7 @@ app.use('/craftsmen', craftsmenRoutes);
 app.use('/materials', materialsRoutes);
 app.use('/spaces', spacesRoutes);
 app.use('/service-types', serviceTypesRoutes);
+app.use('/invoices', invoicesRoutes);
 
 app.get('/', (req, res) => res.send('Extern MVP API is live '));
 

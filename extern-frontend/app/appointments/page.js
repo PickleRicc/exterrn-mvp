@@ -13,11 +13,12 @@ export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState([]);
   const [customers, setCustomers] = useState({});
   const [craftsmanId, setCraftsmanId] = useState(null);
-  const [filter, setFilter] = useState('upcoming'); // upcoming, past, all, pending
+  const [filter, setFilter] = useState('all'); 
   const [processingAppointment, setProcessingAppointment] = useState(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [appointmentToReject, setAppointmentToReject] = useState(null);
+  const [debugMode, setDebugMode] = useState(false);
   
   const router = useRouter();
 
@@ -46,10 +47,23 @@ export default function AppointmentsPage() {
     }
   }, [router]);
 
+  // Add a refresh effect when the component mounts or when navigating back to this page
+  useEffect(() => {
+    if (craftsmanId) {
+      fetchData(craftsmanId);
+    }
+  }, [craftsmanId]); 
+
   const fetchData = async (craftsmanId) => {
     try {
+      setLoading(true);
       // Fetch appointments
-      const appointmentsData = await craftsmenAPI.getAppointments(craftsmanId);
+      const appointmentsData = await appointmentsAPI.getAll({ craftsman_id: craftsmanId });
+      
+      if (debugMode) {
+        console.log('Fetched appointments:', appointmentsData);
+      }
+      
       // Ensure appointmentsData is an array
       setAppointments(Array.isArray(appointmentsData) ? appointmentsData : []);
       
@@ -117,6 +131,11 @@ export default function AppointmentsPage() {
       return [];
     }
     
+    if (debugMode) {
+      console.log('Filtering appointments:', appointments.length, 'filter:', filter);
+      console.log('Raw appointments data:', appointments);
+    }
+    
     const now = new Date();
     
     if (filter === 'pending') {
@@ -125,16 +144,37 @@ export default function AppointmentsPage() {
         .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
     } else if (filter === 'upcoming') {
       return appointments
-        .filter(apt => new Date(apt.scheduled_at) > now && apt.approval_status !== 'pending')
+        .filter(apt => {
+          // Check if scheduled_at is a valid date string
+          if (!apt.scheduled_at) return false;
+          
+          try {
+            const aptDate = new Date(apt.scheduled_at);
+            return aptDate > now && apt.approval_status !== 'rejected';
+          } catch (e) {
+            console.error('Invalid date format:', apt.scheduled_at);
+            return false;
+          }
+        })
         .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
     } else if (filter === 'past') {
       return appointments
-        .filter(apt => new Date(apt.scheduled_at) <= now && apt.approval_status !== 'pending')
+        .filter(apt => {
+          if (!apt.scheduled_at) return false;
+          
+          try {
+            const aptDate = new Date(apt.scheduled_at);
+            return aptDate <= now && apt.approval_status !== 'rejected';
+          } catch (e) {
+            console.error('Invalid date format:', apt.scheduled_at);
+            return false;
+          }
+        })
         .sort((a, b) => new Date(b.scheduled_at) - new Date(a.scheduled_at));
     } else {
+      // 'all' filter - show everything
       return appointments
-        .filter(apt => apt.approval_status !== 'pending')
-        .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
+        .sort((a, b) => new Date(b.scheduled_at) - new Date(a.scheduled_at));
     }
   };
   
@@ -265,76 +305,75 @@ export default function AppointmentsPage() {
         )}
         
         <div className="bg-white/5 backdrop-blur-xl rounded-2xl shadow-xl border border-white/10 p-6 md:p-8 animate-fade-in">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold mb-2">
-                <span className="bg-gradient-to-r from-[#00c2ff] to-[#7928ca] bg-clip-text text-transparent">
-                  Appointments
-                </span>
-              </h1>
-              <p className="text-white/70">Manage your appointments and schedule</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {pendingCount > 0 && (
-                <button 
-                  onClick={() => setFilter('pending')}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center ${
-                    filter === 'pending' 
-                      ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' 
-                      : 'bg-white/5 text-white/70 border border-white/10 hover:bg-white/10'
-                  }`}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4 md:mb-0">Appointments</h1>
+            
+            <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+              <div className="flex-grow">
+                <select
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg bg-[#071a2b] text-white border border-white/10 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                 >
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  <option value="all">All Appointments</option>
+                  <option value="upcoming">Upcoming Appointments</option>
+                  <option value="past">Past Appointments</option>
+                  <option value="pending">Pending Approval</option>
+                </select>
+              </div>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={() => fetchData(craftsmanId)}
+                  className="px-4 py-2 bg-[#071a2b] hover:bg-[#0a2540] text-white rounded-lg border border-white/10 transition-colors flex items-center justify-center"
+                  title="Refresh appointments"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                   </svg>
-                  Pending
-                  <span className="ml-1 bg-yellow-500/30 text-yellow-200 text-xs rounded-full px-2 py-0.5">
-                    {pendingCount}
-                  </span>
                 </button>
-              )}
-              <button 
-                onClick={() => setFilter('upcoming')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  filter === 'upcoming' 
-                    ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' 
-                    : 'bg-white/5 text-white/70 border border-white/10 hover:bg-white/10'
-                }`}
-              >
-                Upcoming
-              </button>
-              <button 
-                onClick={() => setFilter('past')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  filter === 'past' 
-                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' 
-                    : 'bg-white/5 text-white/70 border border-white/10 hover:bg-white/10'
-                }`}
-              >
-                Past
-              </button>
-              <button 
-                onClick={() => setFilter('all')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  filter === 'all' 
-                    ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
-                    : 'bg-white/5 text-white/70 border border-white/10 hover:bg-white/10'
-                }`}
-              >
-                All
-              </button>
-              <a 
-                href="/appointments/new" 
-                className="px-3 py-2 bg-gradient-to-r from-[#0070f3] to-[#0050d3] text-white rounded-lg text-sm font-medium flex items-center"
-              >
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                </svg>
-                New
-              </a>
+                
+                <button
+                  onClick={() => setDebugMode(!debugMode)}
+                  className={`px-4 py-2 ${debugMode ? 'bg-green-600/50' : 'bg-[#071a2b]'} hover:bg-[#0a2540] text-white rounded-lg border border-white/10 transition-colors flex items-center justify-center`}
+                  title="Toggle debug mode"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                  </svg>
+                </button>
+                
+                <a
+                  href="/appointments/new"
+                  className="px-4 py-2 bg-[#071a2b] hover:bg-[#0a2540] text-white rounded-lg border border-white/10 transition-colors flex items-center justify-center"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+                  New Appointment
+                </a>
+              </div>
             </div>
           </div>
           
+          {debugMode && (
+            <div className="mb-6 p-4 bg-black/30 rounded-xl border border-white/10">
+              <h3 className="text-lg font-semibold text-white mb-2">Debug Information</h3>
+              <div className="text-white/70 text-sm overflow-auto max-h-40">
+                <p>Craftsman ID: {craftsmanId}</p>
+                <p>Total Appointments: {appointments.length}</p>
+                <p>Filtered Appointments: {getFilteredAppointments().length}</p>
+                <p>Current Filter: {filter}</p>
+                <details>
+                  <summary className="cursor-pointer">Appointment Data</summary>
+                  <pre className="text-xs overflow-auto mt-2">
+                    {JSON.stringify(appointments, null, 2)}
+                  </pre>
+                </details>
+              </div>
+            </div>
+          )}
+
           {loading ? (
             <div className="flex flex-col justify-center items-center h-64">
               <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#00c2ff] mx-auto"></div>

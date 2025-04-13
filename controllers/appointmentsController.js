@@ -4,19 +4,39 @@ const emailService = require('../services/emailService');
 // Get all appointments with customer data
 const getAllAppointments = async (req, res) => {
   try {
-    const { date, approval_status, service_type } = req.query;
+    const { date, approval_status, service_type, craftsman_id } = req.query;
+    
+    console.log('Request query params:', req.query);
+    console.log('Craftsman ID from query:', craftsman_id);
+    console.log('User from request:', req.user ? { id: req.user.id, role: req.user.role, craftsmanId: req.user.craftsmanId } : 'No user');
     
     let queryText = `
       SELECT a.*, c.name as customer_name, c.phone as customer_phone, 
              cr.name as craftsman_name, cr.specialty
       FROM appointments a
-      JOIN customers c ON a.customer_id = c.id
-      JOIN craftsmen cr ON a.craftsman_id = cr.id
+      LEFT JOIN customers c ON a.customer_id = c.id
+      LEFT JOIN craftsmen cr ON a.craftsman_id = cr.id
     `;
     
     const queryParams = [];
     let paramIndex = 1;
     let whereClauseAdded = false;
+    
+    // Handle craftsman_id filtering - prioritize query parameter over JWT token
+    let craftsmanIdToUse = null;
+    
+    // If craftsman_id is provided as a query parameter, use it
+    if (craftsman_id) {
+      // Convert string to number if it's a numeric string
+      const craftsmanIdNumber = parseInt(craftsman_id, 10);
+      craftsmanIdToUse = !isNaN(craftsmanIdNumber) ? craftsmanIdNumber : craftsman_id;
+      console.log('Using craftsman_id from query params:', craftsmanIdToUse);
+    }
+    // If no craftsman_id is provided but we have a user with craftsman role, use their ID
+    else if (req.user && req.user.role === 'craftsman' && req.user.craftsmanId) {
+      craftsmanIdToUse = req.user.craftsmanId;
+      console.log('Using craftsman_id from JWT token:', craftsmanIdToUse);
+    }
     
     if (date) {
       queryParams.push(date);
@@ -33,17 +53,30 @@ const getAllAppointments = async (req, res) => {
     if (service_type) {
       queryParams.push(service_type);
       queryText += whereClauseAdded ? ` AND a.service_type = $${paramIndex++}` : ` WHERE a.service_type = $${paramIndex++}`;
+      whereClauseAdded = true;
     }
     
-    // If user is a craftsman, only show their appointments
-    if (req.user && req.user.role === 'craftsman' && req.user.craftsmanId) {
-      queryParams.push(req.user.craftsmanId);
+    // Apply craftsman_id filter if we have one
+    if (craftsmanIdToUse) {
+      queryParams.push(craftsmanIdToUse);
       queryText += whereClauseAdded ? ` AND a.craftsman_id = $${paramIndex++}` : ` WHERE a.craftsman_id = $${paramIndex++}`;
+      whereClauseAdded = true;
     }
     
     queryText += ` ORDER BY a.scheduled_at DESC`;
     
+    console.log('Final SQL query:', queryText);
+    console.log('Query parameters:', queryParams);
+    
     const result = await pool.query(queryText, queryParams);
+    console.log('Query returned', result.rows.length, 'appointments');
+    
+    // Always return an array, even if empty
+    if (!result.rows) {
+      console.log('Result rows is null or undefined, returning empty array');
+      return res.json([]);
+    }
+    
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching appointments:', error);
@@ -55,35 +88,40 @@ const getAllAppointments = async (req, res) => {
 const getAppointmentById = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('Getting appointment by ID:', id);
+    
     const result = await pool.query(`
       SELECT a.*, c.name as customer_name, c.phone as customer_phone,
-             cr.name as craftsman_name, cr.specialty,
-             cs.name as space_name, cs.type as space_type, cs.area_sqm as space_area
+             cr.name as craftsman_name, cr.specialty
       FROM appointments a
-      JOIN customers c ON a.customer_id = c.id
-      JOIN craftsmen cr ON a.craftsman_id = cr.id
-      LEFT JOIN customer_spaces cs ON a.customer_space_id = cs.id
+      LEFT JOIN customers c ON a.customer_id = c.id
+      LEFT JOIN craftsmen cr ON a.craftsman_id = cr.id
       WHERE a.id = $1
     `, [id]);
     
     if (result.rows.length === 0) {
+      console.log('Appointment not found with ID:', id);
       return res.status(404).json({ error: 'Appointment not found' });
     }
+    
+    console.log('Appointment found:', result.rows[0].id);
     
     // Get materials for this appointment if any
     const materialsResult = await pool.query(`
       SELECT m.*, am.quantity
       FROM appointment_materials am
-      JOIN materials m ON am.material_id = m.id
+      LEFT JOIN materials m ON am.material_id = m.id
       WHERE am.appointment_id = $1
     `, [id]);
+    
+    console.log('Found', materialsResult.rows.length, 'materials for appointment');
     
     const appointment = result.rows[0];
     appointment.materials = materialsResult.rows;
     
     res.json(appointment);
   } catch (error) {
-    console.error('Error fetching appointment:', error);
+    console.error('Error fetching appointment by ID:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -103,9 +141,16 @@ const createAppointment = async (req, res) => {
       service_type,
       area_size_sqm,
       material_notes,
-      customer_space_id,
-      materials
+      selected_materials
     } = req.body;
+    
+    console.log('Creating appointment with data:', {
+      customer_id,
+      craftsman_id,
+      scheduled_at,
+      status,
+      approval_status
+    });
     
     // Validate required fields
     if (!customer_id) {
@@ -116,7 +161,15 @@ const createAppointment = async (req, res) => {
       return res.status(400).json({ error: 'scheduled_at is required' });
     }
     
-    if (!craftsman_id) {
+    // Get craftsman ID from request body or from JWT token
+    let craftsmanIdToUse = craftsman_id;
+    
+    if (!craftsmanIdToUse && req.user && req.user.role === 'craftsman' && req.user.craftsmanId) {
+      craftsmanIdToUse = req.user.craftsmanId;
+      console.log('Using craftsman_id from JWT token:', craftsmanIdToUse);
+    }
+    
+    if (!craftsmanIdToUse) {
       return res.status(400).json({ error: 'craftsman_id is required' });
     }
     
@@ -125,6 +178,15 @@ const createAppointment = async (req, res) => {
     
     // Set default approval_status to 'pending' for appointments created via API
     const appointmentApprovalStatus = approval_status || 'pending';
+    
+    // Convert craftsman_id to integer if it's a string
+    const parsedCraftsmanId = typeof craftsmanIdToUse === 'string' ? parseInt(craftsmanIdToUse, 10) : craftsmanIdToUse;
+    const parsedCustomerId = typeof customer_id === 'string' ? parseInt(customer_id, 10) : customer_id;
+    
+    console.log('Using parsed IDs:', {
+      parsedCraftsmanId,
+      parsedCustomerId
+    });
     
     // Insert the appointment
     const result = await pool.query(`
@@ -139,66 +201,59 @@ const createAppointment = async (req, res) => {
         approval_status,
         service_type,
         area_size_sqm,
-        material_notes,
-        customer_space_id
+        material_notes
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *
     `, [
-      customer_id, 
+      parsedCustomerId, 
       scheduled_at, 
       notes || '', 
-      craftsman_id, 
+      parsedCraftsmanId, 
       duration || 60, 
       location || '', 
       status || 'scheduled',
       appointmentApprovalStatus,
       service_type || null,
       area_size_sqm || null,
-      material_notes || null,
-      customer_space_id || null
+      material_notes || null
     ]);
     
     const appointmentId = result.rows[0].id;
+    console.log('Appointment created with ID:', appointmentId);
     
     // If materials are provided, add them to the appointment
-    if (materials && Array.isArray(materials) && materials.length > 0) {
-      for (const material of materials) {
+    if (selected_materials && Array.isArray(selected_materials) && selected_materials.length > 0) {
+      console.log('Adding materials to appointment:', selected_materials);
+      
+      for (const material of selected_materials) {
+        const materialId = typeof material === 'object' ? material.id : material;
+        const quantity = typeof material === 'object' ? (material.quantity || 1) : 1;
+        
         await pool.query(`
           INSERT INTO appointment_materials (appointment_id, material_id, quantity)
           VALUES ($1, $2, $3)
-        `, [appointmentId, material.id, material.quantity]);
+        `, [appointmentId, materialId, quantity]);
       }
     }
     
     // Commit transaction
     await pool.query('COMMIT');
     
-    // Get the full appointment details with customer and craftsman info for the email
-    if (appointmentApprovalStatus === 'pending') {
-      try {
-        const appointmentDetails = await pool.query(`
-          SELECT a.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
-                 cr.name as craftsman_name, cr.phone as craftsman_phone,
-                 u.email as craftsman_email
-          FROM appointments a
-          JOIN customers c ON a.customer_id = c.id
-          JOIN craftsmen cr ON a.craftsman_id = cr.id
-          JOIN users u ON cr.user_id = u.id
-          WHERE a.id = $1
-        `, [result.rows[0].id]);
-        
-        if (appointmentDetails.rows.length > 0) {
-          // Send notification email to craftsman
-          await emailService.sendNewAppointmentNotificationEmail(appointmentDetails.rows[0]);
-        }
-      } catch (emailError) {
-        console.error('Error sending craftsman notification email:', emailError);
-        // We don't want to fail the API call if email sending fails
-      }
-    }
+    // Fetch the complete appointment with joins to return
+    const completeAppointment = await pool.query(`
+      SELECT a.*, c.name as customer_name, c.phone as customer_phone,
+             cr.name as craftsman_name, cr.specialty
+      FROM appointments a
+      LEFT JOIN customers c ON a.customer_id = c.id
+      LEFT JOIN craftsmen cr ON a.craftsman_id = cr.id
+      WHERE a.id = $1
+    `, [appointmentId]);
     
-    res.status(201).json(result.rows[0]);
+    res.status(201).json({
+      message: 'Appointment created successfully',
+      appointment: completeAppointment.rows[0]
+    });
   } catch (error) {
     // Rollback transaction in case of error
     await pool.query('ROLLBACK');
@@ -222,7 +277,6 @@ const updateAppointment = async (req, res) => {
       service_type,
       area_size_sqm,
       material_notes,
-      customer_space_id,
       materials
     } = req.body;
     
@@ -299,12 +353,6 @@ const updateAppointment = async (req, res) => {
     if (material_notes !== undefined) {
       updateFields.push(`material_notes = $${paramIndex}`);
       queryParams.push(material_notes);
-      paramIndex++;
-    }
-    
-    if (customer_space_id !== undefined) {
-      updateFields.push(`customer_space_id = $${paramIndex}`);
-      queryParams.push(customer_space_id);
       paramIndex++;
     }
     

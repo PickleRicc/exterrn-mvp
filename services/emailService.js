@@ -310,6 +310,105 @@ const testEmailConnection = async () => {
   }
 };
 
+/**
+ * Send an invoice email to a customer
+ * @param {number} invoiceId - The ID of the invoice to send
+ * @param {string} pdfPath - Path to the generated PDF file
+ * @returns {Promise<boolean>} - True if email was sent successfully, false otherwise
+ */
+const sendInvoiceEmail = async (invoiceId, pdfPath) => {
+  try {
+    // Get invoice data
+    const db = require('../db');
+    const invoice = await db.query(
+      `SELECT i.*, c.name as customer_name, c.email as customer_email,
+       cr.name as craftsman_name, cr.phone as craftsman_phone, cr.email as craftsman_email,
+       a.title as appointment_title, a.start_time as appointment_date
+       FROM invoices i
+       JOIN customers c ON i.customer_id = c.id
+       JOIN craftsmen cr ON i.craftsman_id = cr.id
+       LEFT JOIN appointments a ON i.appointment_id = a.id
+       WHERE i.id = $1`,
+      [invoiceId]
+    );
+    
+    if (!invoice.rows[0]) {
+      throw new Error('Invoice not found');
+    }
+    
+    const invoiceData = invoice.rows[0];
+    
+    // Format the due date
+    const dueDate = new Date(invoiceData.due_date);
+    const formattedDueDate = dueDate.toLocaleDateString('de-DE', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    // Send email to customer
+    const info = await transporter.sendMail({
+      from: `"ZIMMR Invoicing" <${process.env.EMAIL_FROM || 'invoicing@zimmr.de'}>`,
+      to: invoiceData.customer_email,
+      subject: `Invoice #${invoiceData.invoice_number} from ZIMMR`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #0070f3;">Invoice from ZIMMR</h2>
+          <p>Hello ${invoiceData.customer_name},</p>
+          <p>Thank you for choosing ZIMMR for your tiling needs. Please find attached your invoice #${invoiceData.invoice_number}.</p>
+          
+          <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 15px 0;">
+            <p style="margin: 5px 0;"><strong>Invoice Number:</strong> ${invoiceData.invoice_number}</p>
+            <p style="margin: 5px 0;"><strong>Total Amount:</strong> €${invoiceData.total_amount.toFixed(2)}</p>
+            <p style="margin: 5px 0;"><strong>Due Date:</strong> ${formattedDueDate}</p>
+          </div>
+          
+          ${invoiceData.payment_link ? `
+          <p>To pay your invoice online, please click the button below:</p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${invoiceData.payment_link}" style="background-color: #0070f3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Pay Invoice Now</a>
+          </div>
+          ` : `
+          <p>Payment Details:</p>
+          <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 15px 0;">
+            <p style="margin: 5px 0;"><strong>Bank:</strong> Sample Bank</p>
+            <p style="margin: 5px 0;"><strong>IBAN:</strong> DE89 3704 0044 0532 0130 00</p>
+            <p style="margin: 5px 0;"><strong>BIC:</strong> COBADEFFXXX</p>
+            <p style="margin: 5px 0;"><strong>Account Holder:</strong> ZIMMR Tiling Services</p>
+            <p style="margin: 5px 0;"><strong>Reference:</strong> ${invoiceData.invoice_number}</p>
+          </div>
+          `}
+          
+          <p>If you have any questions about this invoice, please contact ${invoiceData.craftsman_name} at ${invoiceData.craftsman_phone} or reply to this email.</p>
+          
+          <p>Thank you for your business!</p>
+          <p>The ZIMMR Team</p>
+        </div>
+      `,
+      attachments: [
+        {
+          filename: `Invoice_${invoiceData.invoice_number}.pdf`,
+          path: pdfPath,
+          contentType: 'application/pdf'
+        }
+      ]
+    });
+    
+    if (isTestMode && info.messageId) {
+      console.log(`Invoice email sent to customer: ${invoiceData.customer_email}`);
+      console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+    } else {
+      console.log(`Invoice email sent to customer: ${invoiceData.customer_email}`);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending invoice email:', error);
+    return false;
+  }
+};
+
 // Initialize the email service when this module is loaded
 (async () => {
   await initTransporter();
@@ -321,5 +420,6 @@ module.exports = {
   sendNewAppointmentNotificationEmail,
   sendAppointmentRejectionEmail,
   testEmailConnection,
-  sendTestEmail
+  sendTestEmail,
+  sendInvoiceEmail
 };

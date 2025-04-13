@@ -29,7 +29,6 @@ export default function NewAppointmentPage() {
   const [serviceType, setServiceType] = useState('');
   const [areaSizeSqm, setAreaSizeSqm] = useState('');
   const [materialNotes, setMaterialNotes] = useState('');
-  const [customerSpaceId, setCustomerSpaceId] = useState('');
   const [selectedMaterials, setSelectedMaterials] = useState([]);
   
   const router = useRouter();
@@ -47,7 +46,7 @@ export default function NewAppointmentPage() {
       const tokenData = JSON.parse(atob(token.split('.')[1]));
       if (tokenData.craftsmanId) {
         setCraftsmanId(tokenData.craftsmanId);
-        fetchCustomers();
+        fetchCustomers(tokenData.craftsmanId);
         fetchMaterials();
         fetchServiceTypes();
       } else {
@@ -61,13 +60,15 @@ export default function NewAppointmentPage() {
     }
   }, [router]);
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = async (craftsmanId) => {
     try {
-      const data = await customersAPI.getAll();
-      setCustomers(data);
+      const data = await customersAPI.getAll({ craftsman_id: craftsmanId });
+      setCustomers(Array.isArray(data) ? data : []);
+      setLoading(false);
     } catch (err) {
       console.error('Error fetching customers:', err);
       setError('Failed to load customers. Please try again.');
+      setLoading(false);
     }
   };
 
@@ -88,19 +89,6 @@ export default function NewAppointmentPage() {
     } catch (err) {
       console.error('Error fetching service types:', err);
       setError('Failed to load service types. Please try again.');
-    }
-  };
-
-  const fetchCustomerSpaces = async (customerId) => {
-    try {
-      const data = await spacesAPI.getByCustomerId(customerId);
-      setCustomerSpaces(Array.isArray(data) ? data : []);
-      setLoading(false);
-    } catch (err) {
-      console.error('Error fetching customer spaces:', err);
-      setError('Failed to load customer spaces. Please try again.');
-      setCustomerSpaces([]);
-      setLoading(false);
     }
   };
 
@@ -139,7 +127,6 @@ export default function NewAppointmentPage() {
         service_type: serviceType,
         area_size_sqm: areaSizeSqm,
         material_notes: materialNotes,
-        customer_space_id: customerSpaceId,
         selected_materials: selectedMaterials,
       });
 
@@ -155,7 +142,6 @@ export default function NewAppointmentPage() {
       setServiceType('');
       setAreaSizeSqm('');
       setMaterialNotes('');
-      setCustomerSpaceId('');
       setSelectedMaterials([]);
       
       // Redirect after a short delay
@@ -232,7 +218,6 @@ export default function NewAppointmentPage() {
                       value={customerId}
                       onChange={(e) => {
                         setCustomerId(e.target.value);
-                        fetchCustomerSpaces(e.target.value);
                       }}
                       className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                       required
@@ -440,37 +425,6 @@ export default function NewAppointmentPage() {
                       rows="3"
                       placeholder="Notes about the materials..."
                     ></textarea>
-                  </div>
-                </div>
-                
-                <div className="relative">
-                  <label htmlFor="customerSpaceId" className="block mb-2 text-sm font-medium text-white">
-                    Customer Space
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                    </div>
-                    <select
-                      id="customerSpaceId"
-                      value={customerSpaceId}
-                      onChange={(e) => setCustomerSpaceId(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
-                    >
-                      <option value="">Select a customer space</option>
-                      {customerSpaces.map((space) => (
-                        <option key={space.id} value={space.id}>
-                          {space.name}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                      </svg>
-                    </div>
                   </div>
                 </div>
                 
