@@ -8,6 +8,7 @@ import { formatDate } from '@/lib/utils/dateUtils';
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState([]);
+  const [filteredInvoices, setFilteredInvoices] = useState([]); // Added this line
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [craftsmanId, setCraftsmanId] = useState(null);
@@ -32,7 +33,8 @@ export default function InvoicesPage() {
     const fetchInvoices = async () => {
       try {
         setLoading(true);
-        // If we have a craftsman ID, filter invoices by craftsman_id
+        
+        // Only fetch invoices for the current craftsman
         const filters = {};
         if (craftsmanId) {
           filters.craftsman_id = craftsmanId;
@@ -40,6 +42,7 @@ export default function InvoicesPage() {
         
         const data = await invoicesAPI.getAll(filters);
         setInvoices(data);
+        setFilteredInvoices(data); // Added this line
         setError(null);
       } catch (err) {
         console.error('Error fetching invoices:', err);

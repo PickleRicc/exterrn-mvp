@@ -5,6 +5,11 @@ const getAllInvoices = async (req, res) => {
   try {
     const { craftsman_id, customer_id, status } = req.query;
     
+    // Ensure craftsman_id is required for security
+    if (!craftsman_id) {
+      return res.status(400).json({ error: 'craftsman_id is required' });
+    }
+    
     let queryText = `
       SELECT i.*, 
              a.scheduled_at, a.notes as appointment_notes,
@@ -14,27 +19,20 @@ const getAllInvoices = async (req, res) => {
       LEFT JOIN appointments a ON i.appointment_id = a.id
       LEFT JOIN customers c ON i.customer_id = c.id
       LEFT JOIN craftsmen cr ON i.craftsman_id = cr.id
+      WHERE i.craftsman_id = $1
     `;
     
-    const queryParams = [];
-    let paramIndex = 1;
-    let whereClauseAdded = false;
-    
-    if (craftsman_id) {
-      queryParams.push(craftsman_id);
-      queryText += ` WHERE i.craftsman_id = $${paramIndex++}`;
-      whereClauseAdded = true;
-    }
+    const queryParams = [craftsman_id];
+    let paramIndex = 2;
     
     if (customer_id) {
       queryParams.push(customer_id);
-      queryText += whereClauseAdded ? ` AND i.customer_id = $${paramIndex++}` : ` WHERE i.customer_id = $${paramIndex++}`;
-      whereClauseAdded = true;
+      queryText += ` AND i.customer_id = $${paramIndex++}`;
     }
     
     if (status) {
       queryParams.push(status);
-      queryText += whereClauseAdded ? ` AND i.status = $${paramIndex++}` : ` WHERE i.status = $${paramIndex++}`;
+      queryText += ` AND i.status = $${paramIndex++}`;
     }
     
     queryText += ` ORDER BY i.created_at DESC`;
@@ -51,6 +49,13 @@ const getAllInvoices = async (req, res) => {
 const getInvoiceById = async (req, res) => {
   try {
     const { id } = req.params;
+    const { craftsman_id } = req.query;
+    
+    // Ensure craftsman_id is required for security
+    if (!craftsman_id) {
+      return res.status(400).json({ error: 'craftsman_id is required' });
+    }
+    
     const result = await pool.query(`
       SELECT i.*, 
              a.scheduled_at, a.notes as appointment_notes,
@@ -60,8 +65,8 @@ const getInvoiceById = async (req, res) => {
       LEFT JOIN appointments a ON i.appointment_id = a.id
       LEFT JOIN customers c ON i.customer_id = c.id
       LEFT JOIN craftsmen cr ON i.craftsman_id = cr.id
-      WHERE i.id = $1
-    `, [id]);
+      WHERE i.id = $1 AND i.craftsman_id = $2
+    `, [id, craftsman_id]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Invoice not found' });
@@ -163,13 +168,21 @@ const updateInvoice = async (req, res) => {
       status, 
       payment_link, 
       due_date, 
-      notes 
+      notes,
+      craftsman_id: requestCraftsmanId
     } = req.body;
     
-    // Check if invoice exists
-    const checkResult = await pool.query('SELECT * FROM invoices WHERE id = $1', [id]);
+    const { craftsman_id } = req.query;
+    
+    // Ensure craftsman_id is required for security
+    if (!craftsman_id) {
+      return res.status(400).json({ error: 'craftsman_id is required' });
+    }
+    
+    // Check if invoice exists and belongs to the craftsman
+    const checkResult = await pool.query('SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2', [id, craftsman_id]);
     if (checkResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Invoice not found' });
+      return res.status(404).json({ error: 'Invoice not found or you do not have permission to update it' });
     }
     
     // Build dynamic update query
@@ -232,14 +245,15 @@ const updateInvoice = async (req, res) => {
       return res.json(checkResult.rows[0]);
     }
     
-    // Add the id parameter
+    // Add the id and craftsman_id parameters
     queryParams.push(id);
+    queryParams.push(craftsman_id);
     
     // Execute the update query
     const result = await pool.query(`
       UPDATE invoices
       SET ${updateFields.join(', ')}
-      WHERE id = $${paramIndex}
+      WHERE id = $${paramIndex++} AND craftsman_id = $${paramIndex}
       RETURNING *
     `, queryParams);
     
@@ -254,15 +268,21 @@ const updateInvoice = async (req, res) => {
 const deleteInvoice = async (req, res) => {
   try {
     const { id } = req.params;
+    const { craftsman_id } = req.query;
     
-    // Check if invoice exists
-    const checkResult = await pool.query('SELECT * FROM invoices WHERE id = $1', [id]);
+    // Ensure craftsman_id is required for security
+    if (!craftsman_id) {
+      return res.status(400).json({ error: 'craftsman_id is required' });
+    }
+    
+    // Check if invoice exists and belongs to the craftsman
+    const checkResult = await pool.query('SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2', [id, craftsman_id]);
     if (checkResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Invoice not found' });
+      return res.status(404).json({ error: 'Invoice not found or you do not have permission to delete it' });
     }
     
     // Delete the invoice
-    await pool.query('DELETE FROM invoices WHERE id = $1', [id]);
+    await pool.query('DELETE FROM invoices WHERE id = $1 AND craftsman_id = $2', [id, craftsman_id]);
     
     res.json({ message: 'Invoice deleted successfully' });
   } catch (error) {

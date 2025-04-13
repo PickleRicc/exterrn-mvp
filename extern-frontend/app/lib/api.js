@@ -232,19 +232,79 @@ export const invoicesAPI = {
     return response.data;
   },
   getById: async (id) => {
-    const response = await api.get(`/invoices/${id}`);
+    // Get craftsman ID from token
+    let craftsmanId = null;
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const tokenData = JSON.parse(atob(token.split('.')[1]));
+          craftsmanId = tokenData.craftsmanId;
+        } catch (err) {
+          console.error('Error parsing token:', err);
+        }
+      }
+    }
+    
+    const response = await api.get(`/invoices/${id}`, { 
+      params: { craftsman_id: craftsmanId } 
+    });
     return response.data;
   },
   create: async (invoiceData) => {
-    const response = await api.post('/invoices', invoiceData);
+    // Get craftsman ID from token
+    let craftsmanId = null;
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const tokenData = JSON.parse(atob(token.split('.')[1]));
+          craftsmanId = tokenData.craftsmanId;
+        } catch (err) {
+          console.error('Error parsing token:', err);
+        }
+      }
+    }
+    
+    const response = await api.post('/invoices', { ...invoiceData, craftsman_id: craftsmanId });
     return response.data;
   },
   update: async (id, invoiceData) => {
-    const response = await api.put(`/invoices/${id}`, invoiceData);
+    // Get craftsman ID from token
+    let craftsmanId = null;
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const tokenData = JSON.parse(atob(token.split('.')[1]));
+          craftsmanId = tokenData.craftsmanId;
+        } catch (err) {
+          console.error('Error parsing token:', err);
+        }
+      }
+    }
+    
+    const response = await api.put(`/invoices/${id}`, { ...invoiceData, craftsman_id: craftsmanId });
     return response.data;
   },
   delete: async (id) => {
-    const response = await api.delete(`/invoices/${id}`);
+    // Get craftsman ID from token
+    let craftsmanId = null;
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const tokenData = JSON.parse(atob(token.split('.')[1]));
+          craftsmanId = tokenData.craftsmanId;
+        } catch (err) {
+          console.error('Error parsing token:', err);
+        }
+      }
+    }
+    
+    const response = await api.delete(`/invoices/${id}`, {
+      params: { craftsman_id: craftsmanId }
+    });
     return response.data;
   }
 };
