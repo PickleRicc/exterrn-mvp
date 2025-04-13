@@ -122,6 +122,14 @@ export default function Header() {
                   Customers
                 </a>
               </li>
+              <li>
+                <a 
+                  href="/invoices" 
+                  className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
+                >
+                  Invoices
+                </a>
+              </li>
               {isLoggedIn ? (
                 <>
                   <li className="relative ml-2">
@@ -236,6 +244,17 @@ export default function Header() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                   </svg>
                   Customers
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="/invoices" 
+                  className="flex items-center px-4 py-2.5 rounded-xl text-white/90 hover:text-white hover:bg-white/10 transition-all"
+                >
+                  <svg className="w-5 h-5 mr-3 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                  Invoices
                 </a>
               </li>
             </ul>

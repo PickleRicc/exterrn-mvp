@@ -225,4 +225,76 @@ export const appointmentsAPI = {
   }
 };
 
+// Invoices API calls
+export const invoicesAPI = {
+  getAll: async (filters = {}) => {
+    const response = await api.get('/invoices', { params: filters });
+    return response.data;
+  },
+  getById: async (id) => {
+    const response = await api.get(`/invoices/${id}`);
+    return response.data;
+  },
+  create: async (invoiceData) => {
+    const response = await api.post('/invoices', invoiceData);
+    return response.data;
+  },
+  update: async (id, invoiceData) => {
+    const response = await api.put(`/invoices/${id}`, invoiceData);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/invoices/${id}`);
+    return response.data;
+  }
+};
+
+// Spaces API calls
+export const spacesAPI = {
+  getAll: async (filters = {}) => {
+    const response = await api.get('/spaces', { params: filters });
+    return response.data;
+  },
+  getById: async (id) => {
+    const response = await api.get(`/spaces/${id}`);
+    return response.data;
+  },
+  create: async (spaceData) => {
+    const response = await api.post('/spaces', spaceData);
+    return response.data;
+  },
+  update: async (id, spaceData) => {
+    const response = await api.put(`/spaces/${id}`, spaceData);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/spaces/${id}`);
+    return response.data;
+  }
+};
+
+// Materials API calls
+export const materialsAPI = {
+  getAll: async (filters = {}) => {
+    const response = await api.get('/materials', { params: filters });
+    return response.data;
+  },
+  getById: async (id) => {
+    const response = await api.get(`/materials/${id}`);
+    return response.data;
+  },
+  create: async (materialData) => {
+    const response = await api.post('/materials', materialData);
+    return response.data;
+  },
+  update: async (id, materialData) => {
+    const response = await api.put(`/materials/${id}`, materialData);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/materials/${id}`);
+    return response.data;
+  }
+};
+
 export default api;

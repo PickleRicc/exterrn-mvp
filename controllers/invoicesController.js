@@ -8,7 +8,7 @@ const getAllInvoices = async (req, res) => {
     let queryText = `
       SELECT i.*, 
              a.scheduled_at, a.notes as appointment_notes,
-             c.name as customer_name, c.phone as customer_phone,
+             c.name as customer_name, c.phone as customer_phone, c.email as customer_email, c.address as customer_address,
              cr.name as craftsman_name
       FROM invoices i
       LEFT JOIN appointments a ON i.appointment_id = a.id
@@ -54,7 +54,7 @@ const getInvoiceById = async (req, res) => {
     const result = await pool.query(`
       SELECT i.*, 
              a.scheduled_at, a.notes as appointment_notes,
-             c.name as customer_name, c.phone as customer_phone,
+             c.name as customer_name, c.phone as customer_phone, c.email as customer_email, c.address as customer_address,
              cr.name as craftsman_name
       FROM invoices i
       LEFT JOIN appointments a ON i.appointment_id = a.id
@@ -84,7 +84,6 @@ const createInvoice = async (req, res) => {
       invoice_number, 
       amount, 
       tax_amount, 
-      total_amount, 
       status, 
       payment_link, 
       due_date, 
@@ -111,9 +110,11 @@ const createInvoice = async (req, res) => {
     // Generate invoice number if not provided
     const generatedInvoiceNumber = invoice_number || `INV-${Date.now()}`;
     
-    // Calculate total amount if not provided
+    // Calculate tax amount if not provided
     const calculatedTaxAmount = tax_amount || 0;
-    const calculatedTotalAmount = total_amount || (parseFloat(amount) + parseFloat(calculatedTaxAmount));
+    
+    // Calculate total amount (amount + tax_amount)
+    const totalAmount = parseFloat(amount) + parseFloat(calculatedTaxAmount);
     
     const result = await pool.query(`
       INSERT INTO invoices (
@@ -122,8 +123,8 @@ const createInvoice = async (req, res) => {
         customer_id, 
         invoice_number, 
         amount, 
-        tax_amount, 
-        total_amount, 
+        tax_amount,
+        total_amount,
         status, 
         payment_link, 
         due_date, 
@@ -137,12 +138,12 @@ const createInvoice = async (req, res) => {
       customer_id, 
       generatedInvoiceNumber, 
       amount, 
-      calculatedTaxAmount, 
-      calculatedTotalAmount, 
+      calculatedTaxAmount,
+      totalAmount,
       status || 'pending', 
-      payment_link || '', 
+      payment_link || null, 
       due_date || null, 
-      notes || ''
+      notes || null
     ]);
     
     res.status(201).json(result.rows[0]);
@@ -159,7 +160,6 @@ const updateInvoice = async (req, res) => {
     const { 
       amount, 
       tax_amount, 
-      total_amount, 
       status, 
       payment_link, 
       due_date, 
@@ -172,29 +172,76 @@ const updateInvoice = async (req, res) => {
       return res.status(404).json({ error: 'Invoice not found' });
     }
     
-    // Update the invoice
+    // Build dynamic update query
+    let updateFields = [];
+    let queryParams = [];
+    let paramIndex = 1;
+    
+    // Track if we need to update total_amount
+    let newAmount = undefined;
+    let newTaxAmount = undefined;
+    
+    if (amount !== undefined) {
+      updateFields.push(`amount = $${paramIndex++}`);
+      queryParams.push(amount);
+      newAmount = parseFloat(amount);
+    }
+    
+    if (tax_amount !== undefined) {
+      updateFields.push(`tax_amount = $${paramIndex++}`);
+      queryParams.push(tax_amount);
+      newTaxAmount = parseFloat(tax_amount);
+    }
+    
+    // Calculate new total_amount if either amount or tax_amount changed
+    if (newAmount !== undefined || newTaxAmount !== undefined) {
+      const currentInvoice = checkResult.rows[0];
+      const updatedAmount = newAmount !== undefined ? newAmount : parseFloat(currentInvoice.amount);
+      const updatedTaxAmount = newTaxAmount !== undefined ? newTaxAmount : parseFloat(currentInvoice.tax_amount || 0);
+      const newTotalAmount = updatedAmount + updatedTaxAmount;
+      
+      updateFields.push(`total_amount = $${paramIndex++}`);
+      queryParams.push(newTotalAmount);
+    }
+    
+    if (status !== undefined) {
+      updateFields.push(`status = $${paramIndex++}`);
+      queryParams.push(status);
+    }
+    
+    if (payment_link !== undefined) {
+      updateFields.push(`payment_link = $${paramIndex++}`);
+      queryParams.push(payment_link);
+    }
+    
+    if (due_date !== undefined) {
+      updateFields.push(`due_date = $${paramIndex++}`);
+      queryParams.push(due_date);
+    }
+    
+    if (notes !== undefined) {
+      updateFields.push(`notes = $${paramIndex++}`);
+      queryParams.push(notes);
+    }
+    
+    // Add updated_at timestamp
+    updateFields.push(`updated_at = NOW()`);
+    
+    // If no fields to update, return the current invoice
+    if (updateFields.length === 1) {
+      return res.json(checkResult.rows[0]);
+    }
+    
+    // Add the id parameter
+    queryParams.push(id);
+    
+    // Execute the update query
     const result = await pool.query(`
       UPDATE invoices
-      SET amount = $1, 
-          tax_amount = $2, 
-          total_amount = $3, 
-          status = $4, 
-          payment_link = $5, 
-          due_date = $6, 
-          notes = $7,
-          updated_at = NOW()
-      WHERE id = $8
+      SET ${updateFields.join(', ')}
+      WHERE id = $${paramIndex}
       RETURNING *
-    `, [
-      amount || checkResult.rows[0].amount,
-      tax_amount || checkResult.rows[0].tax_amount,
-      total_amount || checkResult.rows[0].total_amount,
-      status || checkResult.rows[0].status,
-      payment_link || checkResult.rows[0].payment_link,
-      due_date || checkResult.rows[0].due_date,
-      notes || checkResult.rows[0].notes,
-      id
-    ]);
+    `, queryParams);
     
     res.json(result.rows[0]);
   } catch (error) {

@@ -106,3 +106,23 @@ export function getRelativeTimeString(date) {
     return formatDate(d);
   }
 }
+
+/**
+ * Formats a currency value
+ * @param {number|string} amount - The amount to format
+ * @param {string} currency - The currency code (e.g., 'EUR', 'USD')
+ * @param {string} locale - The locale to use for formatting
+ * @returns {string} The formatted currency string
+ */
+export function formatCurrency(amount, currency = 'EUR', locale = 'de-DE') {
+  if (amount === null || amount === undefined || isNaN(parseFloat(amount))) {
+    return '';
+  }
+  
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(parseFloat(amount));
+}

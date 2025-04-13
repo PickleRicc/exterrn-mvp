@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { appointmentsAPI, craftsmenAPI, customersAPI } from './lib/api';
+import { appointmentsAPI, craftsmenAPI, customersAPI, invoicesAPI } from './lib/api';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Link from 'next/link';
@@ -12,6 +12,7 @@ export default function Home() {
   const [craftsman, setCraftsman] = useState(null);
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [customerCount, setCustomerCount] = useState(0);
+  const [invoiceCount, setInvoiceCount] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -104,6 +105,16 @@ export default function Home() {
         // Don't set the main error - just handle customers error gracefully
         setCustomerCount(0);
       }
+
+      try {
+        // Fetch invoice count with craftsman_id filter
+        const invoicesData = await invoicesAPI.getAll({ craftsman_id: craftsmanId });
+        setInvoiceCount(Array.isArray(invoicesData) ? invoicesData.length : 0);
+      } catch (invoicesError) {
+        console.error('Error fetching invoices:', invoicesError);
+        // Don't set the main error - just handle invoices error gracefully
+        setInvoiceCount(0);
+      }
     } catch (err) {
       console.error('Error fetching craftsman data:', err);
       setError('Failed to load your data. Please try again later.');
@@ -172,7 +183,7 @@ export default function Home() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 transition-all duration-300 hover:bg-white/10">
                   <div className="flex items-center mb-4">
                     <div className="p-3 bg-[#0070f3]/20 rounded-full mr-4">
@@ -223,6 +234,25 @@ export default function Home() {
                   <p className="text-white/60 mb-4">Manage your tiling inventory</p>
                   <Link href="/materials" className="text-[#00c2ff] hover:underline flex items-center text-sm">
                     View Materials Inventory
+                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </Link>
+                </div>
+
+                <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 transition-all duration-300 hover:bg-white/10">
+                  <div className="flex items-center mb-4">
+                    <div className="p-3 bg-[#0070f3]/20 rounded-full mr-4">
+                      <svg className="w-6 h-6 text-[#0070f3]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
+                    </div>
+                    <h2 className="text-xl font-semibold text-white">Invoices</h2>
+                  </div>
+                  <div className="text-3xl font-bold text-white mb-2">{invoiceCount}</div>
+                  <p className="text-white/60 mb-4">Client invoices</p>
+                  <Link href="/invoices" className="text-[#0070f3] hover:underline flex items-center text-sm">
+                    View All Invoices
                     <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                     </svg>
@@ -285,7 +315,7 @@ export default function Home() {
                     </svg>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   <Link 
                     href="/appointments/new" 
                     className="bg-white/5 hover:bg-white/10 text-white p-4 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-200 h-32"
@@ -329,6 +359,17 @@ export default function Home() {
                       </svg>
                     </div>
                     <span className="font-medium">Add New Customer Space</span>
+                  </Link>
+                  <Link 
+                    href="/invoices/new" 
+                    className="bg-white/5 hover:bg-white/10 text-white p-4 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-200 h-32"
+                  >
+                    <div className="p-3 bg-[#7928ca]/20 rounded-full mb-3">
+                      <svg className="w-6 h-6 text-[#7928ca]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
+                    </div>
+                    <span className="font-medium">Create New Invoice</span>
                   </Link>
                 </div>
               </div>
