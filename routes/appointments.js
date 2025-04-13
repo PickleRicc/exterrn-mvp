@@ -8,9 +8,7 @@ const {
   updateAppointment,
   deleteAppointment,
   approveAppointment,
-  rejectAppointment,
-  getAppointmentMaterials,
-  updateAppointmentMaterials
+  rejectAppointment
 } = require('../controllers/appointmentsController');
 
 // Apply authentication middleware to all routes
@@ -37,10 +35,11 @@ router.put('/:id/approve', approveAppointment);
 // PUT reject appointment
 router.put('/:id/reject', rejectAppointment);
 
-// GET appointment materials
-router.get('/:id/materials', getAppointmentMaterials);
+// Comment out these routes as the controller functions don't exist
+// // GET appointment materials
+// router.get('/:id/materials', getAppointmentMaterials);
 
-// PUT update appointment materials
-router.put('/:id/materials', updateAppointmentMaterials);
+// // PUT update appointment materials
+// router.put('/:id/materials', updateAppointmentMaterials);
 
 module.exports = router;
