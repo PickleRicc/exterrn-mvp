@@ -97,7 +97,18 @@ export async function PUT(request) {
     
     console.log(`Proxying PUT request to: ${fullUrl}`);
     
-    const body = await request.json();
+    // Check if there's a body before trying to parse it
+    let body;
+    const contentType = request.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        const text = await request.text();
+        body = text ? JSON.parse(text) : undefined;
+      } catch (error) {
+        console.error('Error parsing request body:', error);
+        body = undefined;
+      }
+    }
     
     const response = await fetch(fullUrl, {
       method: 'PUT',
@@ -107,7 +118,7 @@ export async function PUT(request) {
             ? { 'Authorization': request.headers.get('authorization') } 
             : {})
       },
-      body: JSON.stringify(body)
+      ...(body ? { body: JSON.stringify(body) } : {})
     });
 
     const data = await response.json();
@@ -130,6 +141,19 @@ export async function DELETE(request) {
     
     console.log(`Proxying DELETE request to: ${fullUrl}`);
     
+    // DELETE requests typically don't have bodies, but handle it just in case
+    let body;
+    const contentType = request.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        const text = await request.text();
+        body = text ? JSON.parse(text) : undefined;
+      } catch (error) {
+        console.error('Error parsing request body:', error);
+        body = undefined;
+      }
+    }
+    
     const response = await fetch(fullUrl, {
       method: 'DELETE',
       headers: {
@@ -137,7 +161,8 @@ export async function DELETE(request) {
         ...(request.headers.get('authorization') 
             ? { 'Authorization': request.headers.get('authorization') } 
             : {})
-      }
+      },
+      ...(body ? { body: JSON.stringify(body) } : {})
     });
 
     const data = await response.json();
