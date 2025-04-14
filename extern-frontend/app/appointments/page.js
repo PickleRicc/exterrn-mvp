@@ -106,22 +106,72 @@ export default function AppointmentsPage() {
   const getFilteredAppointments = () => {
     const now = new Date();
     
+    // More detailed debug logs
+    console.log('Current filter:', filter);
+    console.log('Total appointments:', appointments.length);
+    console.log('All appointments data:', appointments.map(apt => ({
+      id: apt.id,
+      date: new Date(apt.scheduled_at).toISOString(),
+      isPast: new Date(apt.scheduled_at) <= now,
+      isFuture: new Date(apt.scheduled_at) > now,
+      status: apt.status,
+      approval_status: apt.approval_status
+    })));
+    
+    // Debug each appointment's eligibility for upcoming tab
+    console.log('Upcoming eligibility check:', appointments.map(apt => {
+      const isApproved = apt.approval_status === 'approved';
+      const hasNoApprovalStatus = apt.approval_status === undefined || apt.approval_status === null;
+      const isFuture = new Date(apt.scheduled_at) > now;
+      return {
+        id: apt.id,
+        date: new Date(apt.scheduled_at).toISOString(),
+        isFuture,
+        approval_status: apt.approval_status,
+        isApproved,
+        hasNoApprovalStatus,
+        meetsUpcomingCriteria: isFuture && (isApproved || hasNoApprovalStatus)
+      };
+    }));
+    
     if (filter === 'pending') {
-      return appointments
-        .filter(apt => apt.approval_status === 'pending')
-        .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
+      // Show only pending appointments
+      const pendingAppointments = appointments.filter(apt => apt.approval_status === 'pending');
+      console.log('Filtered pending appointments:', pendingAppointments.length);
+      return pendingAppointments.sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
     } else if (filter === 'upcoming') {
-      return appointments
-        .filter(apt => new Date(apt.scheduled_at) > now && apt.approval_status !== 'pending')
-        .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
+      // MODIFIED APPROACH: For upcoming, show future appointments that are NOT pending
+      // This includes approved appointments and those with no approval status
+      const upcomingAppointments = appointments.filter(apt => {
+        const isFuture = new Date(apt.scheduled_at) > now;
+        const isNotPending = apt.approval_status !== 'pending';
+        
+        // Debug this specific appointment
+        console.log(`Appointment ${apt.id} upcoming check:`, {
+          isFuture,
+          approval_status: apt.approval_status,
+          isNotPending,
+          result: isFuture && isNotPending
+        });
+        
+        return isFuture && isNotPending;
+      });
+      console.log('Filtered upcoming appointments:', upcomingAppointments.length);
+      return upcomingAppointments.sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
     } else if (filter === 'past') {
-      return appointments
-        .filter(apt => new Date(apt.scheduled_at) <= now && apt.approval_status !== 'pending')
-        .sort((a, b) => new Date(b.scheduled_at) - new Date(a.scheduled_at));
+      // For past, show past appointments that are not pending
+      const pastAppointments = appointments.filter(apt => {
+        const isPast = new Date(apt.scheduled_at) <= now;
+        const isNotPending = apt.approval_status !== 'pending';
+        
+        return isPast && isNotPending;
+      });
+      console.log('Filtered past appointments:', pastAppointments.length);
+      return pastAppointments.sort((a, b) => new Date(b.scheduled_at) - new Date(a.scheduled_at));
     } else {
-      return appointments
-        .filter(apt => apt.approval_status !== 'pending')
-        .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
+      // 'all' filter - show everything
+      console.log('Showing all appointments');
+      return appointments.sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
     }
   };
   
@@ -134,14 +184,19 @@ export default function AppointmentsPage() {
       
       // Call the API to approve the appointment
       const result = await appointmentsAPI.approve(appointmentId);
-      console.log('Approval successful:', result);
+      console.log('Approval successful, server response:', result);
       
       // Show success message
       setSuccess('Appointment approved successfully! An email has been sent to the customer.');
       
       // Refresh the data
       if (craftsmanId) {
+        console.log('Refreshing appointment data after approval');
         await fetchData(craftsmanId);
+        
+        // Debug: Check if the appointment status was updated correctly
+        const updatedAppointment = appointments.find(apt => apt.id === appointmentId);
+        console.log('Updated appointment after refresh:', updatedAppointment);
       }
       
       // Clear the success message after 5 seconds
