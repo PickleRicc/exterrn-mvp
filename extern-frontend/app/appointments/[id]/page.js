@@ -209,14 +209,25 @@ export default function AppointmentDetailPage() {
         });
       });
       
+      // Calculate total amount from items
+      const totalAmount = invoiceItems.reduce((sum, item) => {
+        return sum + (parseFloat(item.quantity) * parseFloat(item.unit_price));
+      }, 0);
+      
       // Create invoice data
       const invoiceData = {
-        items: invoiceItems,
-        notes: notes,
-        due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
         appointment_id: appointment.id,
-        customer_id: appointment.customer_id
+        customer_id: appointment.customer_id,
+        items: invoiceItems,
+        amount: totalAmount,
+        tax_amount: 0, // Add tax calculation if needed
+        status: 'pending',
+        invoice_number: `INV-${Date.now()}`,
+        notes: notes,
+        due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) // 14 days from now
       };
+      
+      console.log('Creating invoice with data:', invoiceData);
       
       // First, complete the appointment
       await appointmentsAPI.complete(appointment.id, { status: 'completed' });
