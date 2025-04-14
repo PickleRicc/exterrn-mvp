@@ -250,6 +250,61 @@ const sendAppointmentRejectionEmail = async (appointment, reason) => {
 };
 
 /**
+ * Send an email notification to a customer when their appointment is completed
+ * @param {Object} appointment - The appointment object with customer and craftsman details
+ * @returns {Promise<boolean>} - True if email was sent successfully, false otherwise
+ */
+const sendAppointmentCompletionEmail = async (appointment) => {
+  try {
+    // Format the date and time for the email
+    const appointmentDate = new Date(appointment.scheduled_at);
+    const formattedDate = appointmentDate.toLocaleDateString('de-DE', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    const formattedTime = appointmentDate.toLocaleTimeString('de-DE', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    // Send email to customer
+    const info = await transporter.sendMail({
+      from: `"Extern Service" <${process.env.EMAIL_FROM || 'test@example.com'}>`,
+      to: appointment.customer_email,
+      subject: 'Your Appointment Has Been Completed',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #4caf50;">Appointment Completed</h2>
+          <p>Hello ${appointment.customer_name},</p>
+          <p>Your appointment with ${appointment.craftsman_name} on ${formattedDate} at ${formattedTime} has been completed.</p>
+          
+          <p>An invoice for this service will be sent to you shortly.</p>
+          
+          <p>Thank you for choosing our service! If you have any questions about your service or invoice, please contact us at ${appointment.craftsman_phone || process.env.CONTACT_PHONE || '+49123456789'}.</p>
+          
+          <p>The Extern Team</p>
+        </div>
+      `
+    });
+    
+    if (isTestMode && info.messageId) {
+      console.log(`Completion email sent to customer: ${appointment.customer_email}`);
+      console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+    } else {
+      console.log(`Completion email sent to customer: ${appointment.customer_email}`);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending completion email:', error);
+    return false;
+  }
+};
+
+/**
  * Test the email connection and send a test email
  * @param {string} testEmail - Email address to send test email to
  * @returns {Promise<object>} - Result of the test
@@ -320,6 +375,7 @@ module.exports = {
   sendAppointmentApprovalEmail,
   sendNewAppointmentNotificationEmail,
   sendAppointmentRejectionEmail,
+  sendAppointmentCompletionEmail,
   testEmailConnection,
   sendTestEmail
 };

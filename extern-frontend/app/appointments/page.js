@@ -182,6 +182,10 @@ export default function AppointmentsPage() {
       // Debug log
       console.log(`Attempting to approve appointment ${appointmentId}`);
       
+      // Get the token to verify it's available
+      const token = localStorage.getItem('token');
+      console.log('Auth token available:', !!token);
+      
       // Call the API to approve the appointment
       const result = await appointmentsAPI.approve(appointmentId);
       console.log('Approval successful, server response:', result);
@@ -197,6 +201,9 @@ export default function AppointmentsPage() {
         // Debug: Check if the appointment status was updated correctly
         const updatedAppointment = appointments.find(apt => apt.id === appointmentId);
         console.log('Updated appointment after refresh:', updatedAppointment);
+        
+        // Force a re-render by updating a state variable
+        setAppointments([...appointments]);
       }
       
       // Clear the success message after 5 seconds

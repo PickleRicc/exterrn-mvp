@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { appointmentsAPI, customersAPI, materialsAPI, invoicesAPI } from '../../lib/api';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 
-export default function AppointmentDetailPage({ params }) {
+export default function AppointmentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -20,7 +20,8 @@ export default function AppointmentDetailPage({ params }) {
   const [servicePrice, setServicePrice] = useState('');
   
   const router = useRouter();
-  const { id } = params;
+  const params = useParams();
+  const id = params?.id;
 
   useEffect(() => {
     // Check if user is logged in
@@ -30,7 +31,9 @@ export default function AppointmentDetailPage({ params }) {
       return;
     }
 
-    fetchAppointment();
+    if (id) {
+      fetchAppointment();
+    }
   }, [id, router]);
 
   const fetchAppointment = async () => {
@@ -41,14 +44,26 @@ export default function AppointmentDetailPage({ params }) {
       
       // Fetch customer details
       if (appointmentData.customer_id) {
-        const customerData = await customersAPI.getById(appointmentData.customer_id);
-        setCustomer(customerData);
+        try {
+          const customerData = await customersAPI.getById(appointmentData.customer_id);
+          setCustomer(customerData);
+        } catch (customerErr) {
+          console.error('Error fetching customer details:', customerErr);
+          // Continue with the rest of the function even if customer fetch fails
+        }
       }
       
-      // Fetch craftsman's materials
+      // Fetch craftsman's materials - wrapped in try/catch to handle missing endpoint
       if (appointmentData.craftsman_id) {
-        const materialsData = await materialsAPI.getByCraftsmanId(appointmentData.craftsman_id);
-        setMaterials(Array.isArray(materialsData) ? materialsData : []);
+        try {
+          // Try to fetch materials, but don't let it break the page if it fails
+          const materialsData = await materialsAPI.getAll({ craftsman_id: appointmentData.craftsman_id });
+          setMaterials(Array.isArray(materialsData) ? materialsData : []);
+        } catch (materialsErr) {
+          console.error('Materials endpoint not available:', materialsErr);
+          // Set empty materials array to avoid UI errors
+          setMaterials([]);
+        }
       }
       
       // Set initial service price if available
@@ -194,12 +209,20 @@ export default function AppointmentDetailPage({ params }) {
         });
       });
       
-      // Create invoice
-      const response = await invoicesAPI.completeAppointment(appointment.id, {
+      // Create invoice data
+      const invoiceData = {
         items: invoiceItems,
         notes: notes,
-        due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) // 14 days from now
-      });
+        due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
+        appointment_id: appointment.id,
+        customer_id: appointment.customer_id
+      };
+      
+      // First, complete the appointment
+      await appointmentsAPI.complete(appointment.id, { status: 'completed' });
+      
+      // Then create the invoice
+      const invoiceResponse = await invoicesAPI.create(invoiceData);
       
       setSuccess('Appointment completed and invoice generated successfully!');
       
@@ -209,8 +232,8 @@ export default function AppointmentDetailPage({ params }) {
         fetchAppointment();
         
         // Redirect to the invoice page
-        if (response.invoice && response.invoice.id) {
-          router.push(`/invoices/${response.invoice.id}`);
+        if (invoiceResponse && invoiceResponse.id) {
+          router.push(`/invoices/${invoiceResponse.id}`);
         }
       }, 2000);
     } catch (err) {

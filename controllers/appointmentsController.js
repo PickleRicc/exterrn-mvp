@@ -251,50 +251,68 @@ const approveAppointment = async (req, res) => {
   try {
     const { id } = req.params;
     
+    console.log(`Attempting to approve appointment ${id}`);
+    console.log('User from request:', req.user);
+    
     // First, check if the appointment exists and get its details
-    const checkResult = await pool.query(`
-      SELECT a.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
-             cr.name as craftsman_name, cr.phone as craftsman_phone,
-             u.email as craftsman_email
-      FROM appointments a
-      JOIN customers c ON a.customer_id = c.id
-      JOIN craftsmen cr ON a.craftsman_id = cr.id
-      JOIN users u ON cr.user_id = u.id
-      WHERE a.id = $1
-    `, [id]);
-    
-    if (checkResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Appointment not found' });
-    }
-    
-    const appointment = checkResult.rows[0];
-    
-    // Check if the appointment is already approved
-    if (appointment.approval_status === 'approved') {
-      return res.status(400).json({ error: 'Appointment is already approved' });
-    }
-    
-    // Update the approval status
-    const result = await pool.query(`
-      UPDATE appointments
-      SET approval_status = 'approved', 
-          updated_at = NOW()
-      WHERE id = $1
-      RETURNING *
-    `, [id]);
-    
-    // Send approval email to customer
     try {
-      await emailService.sendAppointmentApprovalEmail(appointment);
-    } catch (emailError) {
-      console.error('Error sending customer approval email:', emailError);
-      // We don't want to fail the API call if email sending fails
+      const checkResult = await pool.query(`
+        SELECT a.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
+               cr.name as craftsman_name, cr.phone as craftsman_phone,
+               u.email as craftsman_email
+        FROM appointments a
+        JOIN customers c ON a.customer_id = c.id
+        JOIN craftsmen cr ON a.craftsman_id = cr.id
+        JOIN users u ON cr.user_id = u.id
+        WHERE a.id = $1
+      `, [id]);
+      
+      console.log(`Appointment check query returned ${checkResult.rows.length} rows`);
+      
+      if (checkResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Appointment not found' });
+      }
+      
+      const appointment = checkResult.rows[0];
+      console.log('Found appointment:', appointment);
+      
+      // Check if the appointment is already approved
+      if (appointment.approval_status === 'approved') {
+        return res.status(400).json({ error: 'Appointment is already approved' });
+      }
+      
+      // Update the approval status - simplified query to avoid potential issues
+      try {
+        const result = await pool.query(`
+          UPDATE appointments
+          SET approval_status = 'approved'
+          WHERE id = $1
+          RETURNING *
+        `, [id]);
+        
+        console.log('Update result:', result.rows[0]);
+        
+        // Send approval email to customer
+        try {
+          await emailService.sendAppointmentApprovalEmail(appointment);
+          console.log('Approval email sent successfully');
+        } catch (emailError) {
+          console.error('Error sending customer approval email:', emailError);
+          // We don't want to fail the API call if email sending fails
+        }
+        
+        res.json({
+          message: 'Appointment approved successfully',
+          appointment: result.rows[0]
+        });
+      } catch (updateError) {
+        console.error('Error updating appointment status:', updateError);
+        res.status(500).json({ error: `Error updating appointment: ${updateError.message}` });
+      }
+    } catch (checkError) {
+      console.error('Error checking appointment:', checkError);
+      res.status(500).json({ error: `Error checking appointment: ${checkError.message}` });
     }
-    
-    res.json({
-      message: 'Appointment approved successfully',
-      appointment: result.rows[0]
-    });
   } catch (error) {
     console.error('Error approving appointment:', error);
     res.status(500).json({ error: error.message });
@@ -362,6 +380,63 @@ const rejectAppointment = async (req, res) => {
   }
 };
 
+// Complete appointment
+const completeAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, notes } = req.body;
+    
+    console.log('Completing appointment:', id, 'with data:', req.body);
+    
+    // First, check if the appointment exists
+    const checkResult = await pool.query(`
+      SELECT a.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
+             cr.name as craftsman_name, cr.phone as craftsman_phone,
+             u.email as craftsman_email
+      FROM appointments a
+      JOIN customers c ON a.customer_id = c.id
+      JOIN craftsmen cr ON a.craftsman_id = cr.id
+      JOIN users u ON cr.user_id = u.id
+      WHERE a.id = $1
+    `, [id]);
+    
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+    
+    const appointment = checkResult.rows[0];
+    
+    // Update the appointment status
+    const result = await pool.query(`
+      UPDATE appointments
+      SET status = $2, 
+          notes = CASE 
+                    WHEN notes = '' OR notes IS NULL THEN $3
+                    ELSE notes || ' | Completion notes: ' || $3
+                  END,
+          updated_at = NOW()
+      WHERE id = $1
+      RETURNING *
+    `, [id, status || 'completed', notes || 'Appointment completed']);
+    
+    // Send completion email to customer
+    try {
+      await emailService.sendAppointmentCompletionEmail(appointment);
+    } catch (emailError) {
+      console.error('Error sending customer completion email:', emailError);
+      // We don't want to fail the API call if email sending fails
+    }
+    
+    res.json({
+      message: 'Appointment completed successfully',
+      appointment: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error completing appointment:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getAllAppointments,
   getAppointmentById,
@@ -369,5 +444,6 @@ module.exports = {
   updateAppointment,
   deleteAppointment,
   approveAppointment,
-  rejectAppointment
+  rejectAppointment,
+  completeAppointment
 };

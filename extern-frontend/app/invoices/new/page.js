@@ -70,8 +70,10 @@ export default function NewInvoicePage() {
         console.log('Fetched customers:', customersData.length);
         
         // Filter to only show completed or scheduled appointments
+        // AND exclude rejected appointments
         const filteredAppointments = appointmentsData.filter(
-          app => app.status === 'completed' || app.status === 'scheduled'
+          app => (app.status === 'completed' || app.status === 'scheduled') && 
+                 app.approval_status !== 'rejected'
         );
         
         setAppointments(filteredAppointments);

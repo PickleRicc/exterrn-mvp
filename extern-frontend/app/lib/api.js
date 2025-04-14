@@ -222,6 +222,10 @@ export const appointmentsAPI = {
   reject: async (id, reason) => {
     const response = await api.put(`/appointments/${id}/reject`, { reason });
     return response.data;
+  },
+  complete: async (id, data = {}) => {
+    const response = await api.put(`/appointments/${id}/complete`, data);
+    return response.data;
   }
 };
 
