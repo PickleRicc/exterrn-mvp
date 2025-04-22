@@ -361,4 +361,5 @@ export const materialsAPI = {
   }
 };
 
+// Export the api instance as default
 export default api;

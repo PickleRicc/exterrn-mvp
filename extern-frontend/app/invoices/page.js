@@ -39,6 +39,12 @@ export default function InvoicesPage() {
           extractedCraftsmanId = tokenData.user.craftsmanId;
         } else if (tokenData.user && tokenData.user.craftsman_id) {
           extractedCraftsmanId = tokenData.user.craftsman_id;
+        } else if (tokenData.id) {
+          // Some systems might use just 'id' for the craftsman
+          extractedCraftsmanId = tokenData.id;
+        } else if (tokenData.userId) {
+          // Last resort - use userId if no other ID is available
+          extractedCraftsmanId = tokenData.userId;
         }
         
         console.log('Extracted craftsman ID:', extractedCraftsmanId);
@@ -76,6 +82,8 @@ export default function InvoicesPage() {
       const filters = {
         craftsman_id: craftsmanId
       };
+      
+      console.log('Using craftsman ID for filter:', craftsmanId);
       
       // Set document type based on active tab
       if (activeTab === 'invoices') {
@@ -227,6 +235,11 @@ export default function InvoicesPage() {
     return invoice.type === 'quote' ? 'Quote' : 'Invoice';
   };
 
+  const handleRefresh = () => {
+    console.log('Manually refreshing invoices...');
+    setRefreshKey(prevKey => prevKey + 1);
+  };
+
   return (
     <>
       <Header />
@@ -240,11 +253,10 @@ export default function InvoicesPage() {
             </h1>
             <div className="flex space-x-2">
               <button
-                onClick={refreshInvoices}
+                onClick={handleRefresh}
                 className="bg-white/10 hover:bg-white/20 text-white font-medium py-2 px-4 rounded-xl transition-colors"
-                disabled={loading}
               >
-                {loading ? 'Refreshing...' : 'Refresh'}
+                Refresh
               </button>
               <Link
                 href={getCreateButtonLink()}
@@ -373,7 +385,7 @@ export default function InvoicesPage() {
                   Create your first {activeTab === 'quotes' ? 'quote' : activeTab === 'drafts' ? 'draft' : 'invoice'}
                 </Link>
                 <button
-                  onClick={refreshInvoices}
+                  onClick={handleRefresh}
                   className="text-white/70 hover:text-white font-medium"
                 >
                   or refresh the list

@@ -1,4 +1,4 @@
-import { axiosInstance } from '../api';
+import api from '../../app/lib/api';
 
 export const invoicesAPI = {
   // Get all invoices with optional filters
@@ -41,7 +41,7 @@ export const invoicesAPI = {
       const url = `/invoices${queryString ? `?${queryString}` : ''}`;
       
       console.log('Fetching invoices with URL:', url);
-      const response = await axiosInstance.get(url);
+      const response = await api.get(url);
       return response.data;
     } catch (error) {
       console.error('Error fetching invoices:', error);
@@ -62,7 +62,7 @@ export const invoicesAPI = {
       const url = `/invoices/${id}${queryString ? `?${queryString}` : ''}`;
       
       console.log('Fetching invoice with URL:', url);
-      const response = await axiosInstance.get(url);
+      const response = await api.get(url);
       return response.data;
     } catch (error) {
       console.error(`Error fetching invoice ${id}:`, error);
@@ -74,7 +74,7 @@ export const invoicesAPI = {
   create: async (invoiceData) => {
     try {
       console.log('Creating invoice with data:', JSON.stringify(invoiceData, null, 2));
-      const response = await axiosInstance.post('/invoices', invoiceData);
+      const response = await api.post('/invoices', invoiceData);
       console.log('Invoice created successfully:', response.data);
       return response.data;
     } catch (error) {
@@ -91,7 +91,7 @@ export const invoicesAPI = {
   update: async (id, invoiceData) => {
     try {
       console.log(`Updating invoice ${id} with data:`, JSON.stringify(invoiceData, null, 2));
-      const response = await axiosInstance.put(`/invoices/${id}`, invoiceData);
+      const response = await api.put(`/invoices/${id}`, invoiceData);
       console.log('Invoice updated successfully:', response.data);
       return response.data;
     } catch (error) {
@@ -117,7 +117,7 @@ export const invoicesAPI = {
       const url = `/invoices/${id}${queryString ? `?${queryString}` : ''}`;
       
       console.log(`Deleting invoice with URL: ${url}`);
-      const response = await axiosInstance.delete(url);
+      const response = await api.delete(url);
       return response.data;
     } catch (error) {
       console.error(`Error deleting invoice ${id}:`, error);
@@ -133,7 +133,7 @@ export const invoicesAPI = {
   convertQuoteToInvoice: async (id, craftsman_id) => {
     try {
       console.log(`Converting quote ${id} to invoice`);
-      const response = await axiosInstance.post(`/invoices/${id}/convert-to-invoice`, { craftsman_id });
+      const response = await api.post(`/invoices/${id}/convert-to-invoice`, { craftsman_id });
       console.log('Quote converted successfully:', response.data);
       return response.data;
     } catch (error) {
@@ -185,7 +185,7 @@ export const invoicesAPI = {
       const url = `/invoices/${id}/pdf-preview${queryString ? `?${queryString}` : ''}`;
       
       console.log(`Previewing PDF with URL: ${url}`);
-      const response = await axiosInstance.get(url);
+      const response = await api.get(url);
       return response.data;
     } catch (error) {
       console.error(`Error previewing PDF:`, error);
