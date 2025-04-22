@@ -15,8 +15,12 @@ const getAllInvoices = async (req, res) => {
       to_date
     } = req.query;
     
+    console.log('GET /invoices - Request query:', req.query);
+    console.log('Craftsman ID from request:', craftsman_id);
+    
     // Ensure craftsman_id is required for security
     if (!craftsman_id) {
+      console.log('Missing craftsman_id in request');
       return res.status(400).json({ error: 'craftsman_id is required' });
     }
     
@@ -71,7 +75,34 @@ const getAllInvoices = async (req, res) => {
     
     queryText += ` ORDER BY i.created_at DESC`;
     
+    console.log('Executing SQL query:', queryText);
+    console.log('Query parameters:', queryParams);
+    
     const result = await pool.query(queryText, queryParams);
+    console.log(`Found ${result.rows.length} invoices for craftsman_id ${craftsman_id}`);
+    
+    // For debugging, log the first few invoices if any
+    if (result.rows.length > 0) {
+      console.log('First invoice:', JSON.stringify(result.rows[0], null, 2));
+    } else {
+      // If no invoices found, let's check if the craftsman exists
+      const craftsmanCheck = await pool.query('SELECT * FROM craftsmen WHERE id = $1', [craftsman_id]);
+      if (craftsmanCheck.rows.length === 0) {
+        console.log(`Craftsman with ID ${craftsman_id} does not exist in the database`);
+      } else {
+        console.log(`Craftsman with ID ${craftsman_id} exists, but has no invoices`);
+      }
+      
+      // Let's also check if there are any invoices in the system at all
+      const allInvoices = await pool.query('SELECT COUNT(*) as count FROM invoices');
+      console.log(`Total invoices in the system: ${allInvoices.rows[0].count}`);
+      
+      // If there are invoices, let's check the distinct craftsman_ids
+      if (parseInt(allInvoices.rows[0].count) > 0) {
+        const distinctCraftsmen = await pool.query('SELECT DISTINCT craftsman_id FROM invoices');
+        console.log('Distinct craftsman_ids with invoices:', distinctCraftsmen.rows.map(row => row.craftsman_id));
+      }
+    }
     
     // Get invoice items for each invoice
     const invoicesWithItems = await Promise.all(

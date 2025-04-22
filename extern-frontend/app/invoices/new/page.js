@@ -61,28 +61,32 @@ export default function NewInvoicePage() {
     if (token) {
       try {
         const tokenData = JSON.parse(atob(token.split('.')[1]));
-        console.log('Token data:', tokenData);
+        console.log('Token data for invoice creation:', tokenData);
         
         // Check for craftsmanId in different possible formats
         let extractedCraftsmanId = null;
         if (tokenData.craftsmanId) {
-          extractedCraftsmanId = tokenData.craftsmanId;
+          extractedCraftsmanId = parseInt(tokenData.craftsmanId, 10);
         } else if (tokenData.craftsman_id) {
-          extractedCraftsmanId = tokenData.craftsman_id;
+          extractedCraftsmanId = parseInt(tokenData.craftsman_id, 10);
         } else if (tokenData.user && tokenData.user.craftsmanId) {
-          extractedCraftsmanId = tokenData.user.craftsmanId;
+          extractedCraftsmanId = parseInt(tokenData.user.craftsmanId, 10);
         } else if (tokenData.user && tokenData.user.craftsman_id) {
-          extractedCraftsmanId = tokenData.user.craftsman_id;
+          extractedCraftsmanId = parseInt(tokenData.user.craftsman_id, 10);
+        } else if (tokenData.id) {
+          extractedCraftsmanId = parseInt(tokenData.id, 10);
+        } else if (tokenData.userId) {
+          extractedCraftsmanId = parseInt(tokenData.userId, 10);
         }
         
-        console.log('Extracted craftsman ID:', extractedCraftsmanId);
+        console.log('Extracted craftsman ID for invoice creation:', extractedCraftsmanId);
         
-        if (extractedCraftsmanId) {
+        if (extractedCraftsmanId && !isNaN(extractedCraftsmanId)) {
           setCraftsmanId(extractedCraftsmanId);
           setFormData(prev => ({ ...prev, craftsman_id: extractedCraftsmanId }));
         } else {
-          console.error('No craftsman ID found in token:', tokenData);
-          setError('No craftsman ID found in your account. Please contact support.');
+          console.error('No valid craftsman ID found in token:', tokenData);
+          setError('No valid craftsman ID found in your account. Please contact support.');
         }
       } catch (err) {
         console.error('Error parsing token:', err);
@@ -290,6 +294,35 @@ export default function NewInvoicePage() {
         setSubmitting(false);
         return;
       }
+      
+      // Double-check that craftsman_id is set and is a number
+      if (!formData.craftsman_id || isNaN(parseInt(formData.craftsman_id, 10))) {
+        // Try to get it from the token again
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            const tokenData = JSON.parse(atob(token.split('.')[1]));
+            if (tokenData.craftsmanId) {
+              formData.craftsman_id = parseInt(tokenData.craftsmanId, 10);
+            } else if (tokenData.id) {
+              formData.craftsman_id = parseInt(tokenData.id, 10);
+            } else if (tokenData.userId) {
+              formData.craftsman_id = parseInt(tokenData.userId, 10);
+            }
+          } catch (err) {
+            console.error('Error re-parsing token:', err);
+          }
+        }
+        
+        if (!formData.craftsman_id || isNaN(parseInt(formData.craftsman_id, 10))) {
+          setError('Unable to determine a valid craftsman ID. Please contact support.');
+          setSubmitting(false);
+          return;
+        }
+      }
+      
+      // Ensure craftsman_id is an integer
+      formData.craftsman_id = parseInt(formData.craftsman_id, 10);
       
       // Prepare the invoice data
       const invoiceData = {
