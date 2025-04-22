@@ -1,9 +1,19 @@
 const pool = require('../db');
+const { generateInvoicePdf } = require('../services/invoiceGenerator');
+const fs = require('fs');
 
 // Get all invoices with filtering options
 const getAllInvoices = async (req, res) => {
   try {
-    const { craftsman_id, customer_id, status } = req.query;
+    const { 
+      craftsman_id, 
+      customer_id, 
+      status, 
+      type, 
+      search,
+      from_date,
+      to_date
+    } = req.query;
     
     // Ensure craftsman_id is required for security
     if (!craftsman_id) {
@@ -35,10 +45,49 @@ const getAllInvoices = async (req, res) => {
       queryText += ` AND i.status = $${paramIndex++}`;
     }
     
+    // Add filter for invoice type (invoice/quote)
+    if (type) {
+      queryParams.push(type);
+      queryText += ` AND i.type = $${paramIndex++}`;
+    }
+    
+    // Add search functionality for customer name or invoice number
+    if (search) {
+      queryParams.push(`%${search}%`);
+      queryParams.push(`%${search}%`);
+      queryText += ` AND (c.name ILIKE $${paramIndex++} OR i.invoice_number ILIKE $${paramIndex++})`;
+    }
+    
+    // Add date range filtering
+    if (from_date) {
+      queryParams.push(from_date);
+      queryText += ` AND i.created_at >= $${paramIndex++}`;
+    }
+    
+    if (to_date) {
+      queryParams.push(to_date);
+      queryText += ` AND i.created_at <= $${paramIndex++}`;
+    }
+    
     queryText += ` ORDER BY i.created_at DESC`;
     
     const result = await pool.query(queryText, queryParams);
-    res.json(result.rows);
+    
+    // Get invoice items for each invoice
+    const invoicesWithItems = await Promise.all(
+      result.rows.map(async (invoice) => {
+        const itemsResult = await pool.query(
+          `SELECT * FROM invoice_items WHERE invoice_id = $1`,
+          [invoice.id]
+        );
+        return {
+          ...invoice,
+          items: itemsResult.rows
+        };
+      })
+    );
+    
+    res.json(invoicesWithItems);
   } catch (error) {
     console.error('Error fetching invoices:', error);
     res.status(500).json({ error: error.message });
@@ -56,11 +105,12 @@ const getInvoiceById = async (req, res) => {
       return res.status(400).json({ error: 'craftsman_id is required' });
     }
     
-    const result = await pool.query(`
+    // Get invoice details
+    const invoiceResult = await pool.query(`
       SELECT i.*, 
              a.scheduled_at, a.notes as appointment_notes,
              c.name as customer_name, c.phone as customer_phone, c.email as customer_email, c.address as customer_address,
-             cr.name as craftsman_name
+             cr.name as craftsman_name, cr.tax_id, cr.vat_id, cr.address as craftsman_address, cr.contact_info
       FROM invoices i
       LEFT JOIN appointments a ON i.appointment_id = a.id
       LEFT JOIN customers c ON i.customer_id = c.id
@@ -68,11 +118,23 @@ const getInvoiceById = async (req, res) => {
       WHERE i.id = $1 AND i.craftsman_id = $2
     `, [id, craftsman_id]);
     
-    if (result.rows.length === 0) {
+    if (invoiceResult.rows.length === 0) {
       return res.status(404).json({ error: 'Invoice not found' });
     }
     
-    res.json(result.rows[0]);
+    // Get invoice items
+    const itemsResult = await pool.query(
+      `SELECT * FROM invoice_items WHERE invoice_id = $1`,
+      [id]
+    );
+    
+    // Combine invoice with its items
+    const invoice = {
+      ...invoiceResult.rows[0],
+      items: itemsResult.rows
+    };
+    
+    res.json(invoice);
   } catch (error) {
     console.error('Error fetching invoice:', error);
     res.status(500).json({ error: error.message });
@@ -81,47 +143,66 @@ const getInvoiceById = async (req, res) => {
 
 // Create new invoice
 const createInvoice = async (req, res) => {
+  const client = await pool.connect();
+  
   try {
+    await client.query('BEGIN');
+    
     const { 
       appointment_id, 
       craftsman_id, 
       customer_id, 
-      invoice_number, 
-      amount, 
+      amount,
       tax_amount, 
-      status, 
+      status,
+      type = 'invoice', // Default to invoice if not specified
       payment_link, 
       due_date, 
-      notes 
+      notes,
+      service_date,
+      location,
+      vat_exempt = false,
+      payment_deadline = '16 days',
+      items = [] // Line items
     } = req.body;
     
     // Validate required fields
-    if (!appointment_id) {
-      return res.status(400).json({ error: 'appointment_id is required' });
-    }
-    
     if (!craftsman_id) {
+      await client.query('ROLLBACK');
       return res.status(400).json({ error: 'craftsman_id is required' });
     }
     
     if (!customer_id) {
+      await client.query('ROLLBACK');
       return res.status(400).json({ error: 'customer_id is required' });
     }
     
-    if (!amount) {
-      return res.status(400).json({ error: 'amount is required' });
+    // Calculate amounts based on line items if provided
+    let calculatedAmount = 0;
+    let calculatedTaxAmount = 0;
+    
+    if (items && items.length > 0) {
+      // Calculate totals from line items
+      for (const item of items) {
+        const itemSubtotal = parseFloat(item.quantity) * parseFloat(item.unit_price);
+        calculatedAmount += itemSubtotal;
+        
+        if (!vat_exempt) {
+          const itemTaxRate = parseFloat(item.tax_rate || 19.00);
+          calculatedTaxAmount += (itemSubtotal * itemTaxRate) / 100;
+        }
+      }
+    } else {
+      // Use provided amounts if no line items
+      calculatedAmount = parseFloat(amount || 0);
+      calculatedTaxAmount = vat_exempt ? 0 : parseFloat(tax_amount || 0);
     }
     
-    // Generate invoice number if not provided
-    const generatedInvoiceNumber = invoice_number || `INV-${Date.now()}`;
+    // Calculate total amount
+    const totalAmount = calculatedAmount + calculatedTaxAmount;
     
-    // Calculate tax amount if not provided
-    const calculatedTaxAmount = tax_amount || 0;
-    
-    // Calculate total amount (amount + tax_amount)
-    const totalAmount = parseFloat(amount) + parseFloat(calculatedTaxAmount);
-    
-    const result = await pool.query(`
+    // Insert the invoice
+    const invoiceResult = await client.query(`
       INSERT INTO invoices (
         appointment_id, 
         craftsman_id, 
@@ -129,60 +210,168 @@ const createInvoice = async (req, res) => {
         invoice_number, 
         amount, 
         tax_amount,
-        total_amount,
         status, 
         payment_link, 
         due_date, 
-        notes
+        notes,
+        type,
+        service_date,
+        location,
+        vat_exempt,
+        payment_deadline
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       RETURNING *
     `, [
-      appointment_id, 
+      appointment_id || null, 
       craftsman_id, 
       customer_id, 
-      generatedInvoiceNumber, 
-      amount, 
+      null, // Invoice number will be generated by database trigger
+      calculatedAmount, 
       calculatedTaxAmount,
-      totalAmount,
-      status || 'pending', 
+      status || 'draft', // Default to draft status
       payment_link || null, 
       due_date || null, 
-      notes || null
+      notes || null,
+      type,
+      service_date || null,
+      location || null,
+      vat_exempt,
+      payment_deadline
     ]);
     
-    res.status(201).json(result.rows[0]);
+    const invoice = invoiceResult.rows[0];
+    
+    // Insert line items if provided
+    if (items && items.length > 0) {
+      for (const item of items) {
+        await client.query(`
+          INSERT INTO invoice_items (
+            invoice_id,
+            description,
+            quantity,
+            unit_price,
+            tax_rate,
+            material_id,
+            service_type,
+            amount
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `, [
+          invoice.id,
+          item.description,
+          item.quantity,
+          item.unit_price,
+          vat_exempt ? 0 : (item.tax_rate || 19.00),
+          item.material_id || null,
+          item.service_type || null,
+          parseFloat(item.quantity) * parseFloat(item.unit_price)
+        ]);
+      }
+    }
+    
+    // Get the complete invoice with items
+    const completeInvoiceResult = await client.query(`
+      SELECT i.*, 
+             a.scheduled_at, a.notes as appointment_notes,
+             c.name as customer_name, c.phone as customer_phone, c.email as customer_email, c.address as customer_address,
+             cr.name as craftsman_name
+      FROM invoices i
+      LEFT JOIN appointments a ON i.appointment_id = a.id
+      LEFT JOIN customers c ON i.customer_id = c.id
+      LEFT JOIN craftsmen cr ON i.craftsman_id = cr.id
+      WHERE i.id = $1
+    `, [invoice.id]);
+    
+    const itemsResult = await client.query(
+      `SELECT * FROM invoice_items WHERE invoice_id = $1`,
+      [invoice.id]
+    );
+    
+    await client.query('COMMIT');
+    
+    res.status(201).json({
+      ...completeInvoiceResult.rows[0],
+      items: itemsResult.rows
+    });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Error creating invoice:', error);
     res.status(500).json({ error: error.message });
+  } finally {
+    client.release();
   }
 };
 
 // Update invoice
 const updateInvoice = async (req, res) => {
+  const client = await pool.connect();
+  
   try {
+    await client.query('BEGIN');
+    
     const { id } = req.params;
     const { 
-      amount, 
-      tax_amount, 
-      status, 
-      payment_link, 
-      due_date, 
+      craftsman_id,
+      appointment_id,
+      customer_id,
+      amount,
+      tax_amount,
+      status,
+      type,
+      payment_link,
+      due_date,
       notes,
-      craftsman_id: requestCraftsmanId
+      service_date,
+      location,
+      vat_exempt,
+      payment_deadline,
+      items
     } = req.body;
-    
-    const { craftsman_id } = req.query;
     
     // Ensure craftsman_id is required for security
     if (!craftsman_id) {
+      await client.query('ROLLBACK');
       return res.status(400).json({ error: 'craftsman_id is required' });
     }
     
     // Check if invoice exists and belongs to the craftsman
-    const checkResult = await pool.query('SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2', [id, craftsman_id]);
+    const checkResult = await client.query('SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2', [id, craftsman_id]);
     if (checkResult.rows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Invoice not found or you do not have permission to update it' });
+    }
+    
+    const currentInvoice = checkResult.rows[0];
+    
+    // Calculate amounts based on line items if provided
+    let calculatedAmount = undefined;
+    let calculatedTaxAmount = undefined;
+    
+    if (items && items.length > 0) {
+      calculatedAmount = 0;
+      calculatedTaxAmount = 0;
+      
+      // Calculate totals from line items
+      for (const item of items) {
+        const itemSubtotal = parseFloat(item.quantity) * parseFloat(item.unit_price);
+        calculatedAmount += itemSubtotal;
+        
+        const isVatExempt = vat_exempt !== undefined ? vat_exempt : currentInvoice.vat_exempt;
+        
+        if (!isVatExempt) {
+          const itemTaxRate = parseFloat(item.tax_rate || 19.00);
+          calculatedTaxAmount += (itemSubtotal * itemTaxRate) / 100;
+        }
+      }
+    } else if (amount !== undefined) {
+      calculatedAmount = parseFloat(amount);
+      
+      const isVatExempt = vat_exempt !== undefined ? vat_exempt : currentInvoice.vat_exempt;
+      
+      if (tax_amount !== undefined) {
+        calculatedTaxAmount = isVatExempt ? 0 : parseFloat(tax_amount);
+      }
     }
     
     // Build dynamic update query
@@ -190,36 +379,34 @@ const updateInvoice = async (req, res) => {
     let queryParams = [];
     let paramIndex = 1;
     
-    // Track if we need to update total_amount
-    let newAmount = undefined;
-    let newTaxAmount = undefined;
+    if (appointment_id !== undefined) {
+      updateFields.push(`appointment_id = $${paramIndex++}`);
+      queryParams.push(appointment_id);
+    }
     
-    if (amount !== undefined) {
+    if (customer_id !== undefined) {
+      updateFields.push(`customer_id = $${paramIndex++}`);
+      queryParams.push(customer_id);
+    }
+    
+    if (calculatedAmount !== undefined) {
       updateFields.push(`amount = $${paramIndex++}`);
-      queryParams.push(amount);
-      newAmount = parseFloat(amount);
+      queryParams.push(calculatedAmount);
     }
     
-    if (tax_amount !== undefined) {
+    if (calculatedTaxAmount !== undefined) {
       updateFields.push(`tax_amount = $${paramIndex++}`);
-      queryParams.push(tax_amount);
-      newTaxAmount = parseFloat(tax_amount);
-    }
-    
-    // Calculate new total_amount if either amount or tax_amount changed
-    if (newAmount !== undefined || newTaxAmount !== undefined) {
-      const currentInvoice = checkResult.rows[0];
-      const updatedAmount = newAmount !== undefined ? newAmount : parseFloat(currentInvoice.amount);
-      const updatedTaxAmount = newTaxAmount !== undefined ? newTaxAmount : parseFloat(currentInvoice.tax_amount || 0);
-      const newTotalAmount = updatedAmount + updatedTaxAmount;
-      
-      updateFields.push(`total_amount = $${paramIndex++}`);
-      queryParams.push(newTotalAmount);
+      queryParams.push(calculatedTaxAmount);
     }
     
     if (status !== undefined) {
       updateFields.push(`status = $${paramIndex++}`);
       queryParams.push(status);
+    }
+    
+    if (type !== undefined) {
+      updateFields.push(`type = $${paramIndex++}`);
+      queryParams.push(type);
     }
     
     if (payment_link !== undefined) {
@@ -237,35 +424,261 @@ const updateInvoice = async (req, res) => {
       queryParams.push(notes);
     }
     
+    if (service_date !== undefined) {
+      updateFields.push(`service_date = $${paramIndex++}`);
+      queryParams.push(service_date);
+    }
+    
+    if (location !== undefined) {
+      updateFields.push(`location = $${paramIndex++}`);
+      queryParams.push(location);
+    }
+    
+    if (vat_exempt !== undefined) {
+      updateFields.push(`vat_exempt = $${paramIndex++}`);
+      queryParams.push(vat_exempt);
+    }
+    
+    if (payment_deadline !== undefined) {
+      updateFields.push(`payment_deadline = $${paramIndex++}`);
+      queryParams.push(payment_deadline);
+    }
+    
     // Add updated_at timestamp
     updateFields.push(`updated_at = NOW()`);
     
-    // If no fields to update, return the current invoice
-    if (updateFields.length === 1) {
-      return res.json(checkResult.rows[0]);
+    // If no fields to update, check if we need to update items
+    if (updateFields.length === 1 && !items) {
+      await client.query('ROLLBACK');
+      return res.json(currentInvoice);
     }
     
-    // Add the id and craftsman_id parameters
-    queryParams.push(id);
-    queryParams.push(craftsman_id);
+    // Update the invoice if there are fields to update
+    let updatedInvoice = currentInvoice;
+    if (updateFields.length > 1) {
+      // Add the id and craftsman_id parameters
+      queryParams.push(id);
+      queryParams.push(craftsman_id);
+      
+      // Execute the update query
+      const result = await client.query(`
+        UPDATE invoices
+        SET ${updateFields.join(', ')}
+        WHERE id = $${paramIndex++} AND craftsman_id = $${paramIndex}
+        RETURNING *
+      `, queryParams);
+      
+      updatedInvoice = result.rows[0];
+    }
     
-    // Execute the update query
-    const result = await pool.query(`
-      UPDATE invoices
-      SET ${updateFields.join(', ')}
-      WHERE id = $${paramIndex++} AND craftsman_id = $${paramIndex}
-      RETURNING *
-    `, queryParams);
+    // Update invoice items if provided
+    if (items && items.length > 0) {
+      // Delete existing items
+      await client.query('DELETE FROM invoice_items WHERE invoice_id = $1', [id]);
+      
+      // Insert new items
+      for (const item of items) {
+        await client.query(`
+          INSERT INTO invoice_items (
+            invoice_id,
+            description,
+            quantity,
+            unit_price,
+            tax_rate,
+            material_id,
+            service_type,
+            amount
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `, [
+          id,
+          item.description,
+          item.quantity,
+          item.unit_price,
+          updatedInvoice.vat_exempt ? 0 : (item.tax_rate || 19.00),
+          item.material_id || null,
+          item.service_type || null,
+          parseFloat(item.quantity) * parseFloat(item.unit_price)
+        ]);
+      }
+    }
     
-    res.json(result.rows[0]);
+    // Get the complete updated invoice with items
+    const completeInvoiceResult = await client.query(`
+      SELECT i.*, 
+             a.scheduled_at, a.notes as appointment_notes,
+             c.name as customer_name, c.phone as customer_phone, c.email as customer_email, c.address as customer_address,
+             cr.name as craftsman_name
+      FROM invoices i
+      LEFT JOIN appointments a ON i.appointment_id = a.id
+      LEFT JOIN customers c ON i.customer_id = c.id
+      LEFT JOIN craftsmen cr ON i.craftsman_id = cr.id
+      WHERE i.id = $1
+    `, [id]);
+    
+    const itemsResult = await client.query(
+      `SELECT * FROM invoice_items WHERE invoice_id = $1`,
+      [id]
+    );
+    
+    await client.query('COMMIT');
+    
+    res.json({
+      ...completeInvoiceResult.rows[0],
+      items: itemsResult.rows
+    });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Error updating invoice:', error);
     res.status(500).json({ error: error.message });
+  } finally {
+    client.release();
   }
 };
 
 // Delete invoice
 const deleteInvoice = async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    const { id } = req.params;
+    const { craftsman_id } = req.query;
+    
+    // Ensure craftsman_id is required for security
+    if (!craftsman_id) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'craftsman_id is required' });
+    }
+    
+    // Check if invoice exists and belongs to the craftsman
+    const checkResult = await client.query('SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2', [id, craftsman_id]);
+    if (checkResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Invoice not found or you do not have permission to delete it' });
+    }
+    
+    // Delete invoice items first (due to foreign key constraint)
+    await client.query('DELETE FROM invoice_items WHERE invoice_id = $1', [id]);
+    
+    // Delete the invoice
+    await client.query('DELETE FROM invoices WHERE id = $1 AND craftsman_id = $2', [id, craftsman_id]);
+    
+    await client.query('COMMIT');
+    
+    res.json({ message: 'Invoice deleted successfully' });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error deleting invoice:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    client.release();
+  }
+};
+
+// Get invoice items
+const getInvoiceItems = async (req, res) => {
+  try {
+    const { invoice_id } = req.params;
+    const { craftsman_id } = req.query;
+    
+    // Ensure craftsman_id is required for security
+    if (!craftsman_id) {
+      return res.status(400).json({ error: 'craftsman_id is required' });
+    }
+    
+    // Check if invoice exists and belongs to the craftsman
+    const checkResult = await pool.query('SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2', [invoice_id, craftsman_id]);
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Invoice not found or you do not have permission to view it' });
+    }
+    
+    // Get invoice items
+    const itemsResult = await pool.query(
+      `SELECT * FROM invoice_items WHERE invoice_id = $1`,
+      [invoice_id]
+    );
+    
+    res.json(itemsResult.rows);
+  } catch (error) {
+    console.error('Error fetching invoice items:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Convert quote to invoice
+const convertQuoteToInvoice = async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    const { id } = req.params;
+    const { craftsman_id } = req.body;
+    
+    // Ensure craftsman_id is required for security
+    if (!craftsman_id) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'craftsman_id is required' });
+    }
+    
+    // Check if quote exists and belongs to the craftsman
+    const checkResult = await client.query(
+      'SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2 AND type = $3', 
+      [id, craftsman_id, 'quote']
+    );
+    
+    if (checkResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Quote not found or you do not have permission to convert it' });
+    }
+    
+    // Update the quote to be an invoice
+    const result = await client.query(`
+      UPDATE invoices
+      SET type = 'invoice', 
+          status = 'pending',
+          updated_at = NOW()
+      WHERE id = $1 AND craftsman_id = $2
+      RETURNING *
+    `, [id, craftsman_id]);
+    
+    // Get the complete invoice with items
+    const completeInvoiceResult = await client.query(`
+      SELECT i.*, 
+             a.scheduled_at, a.notes as appointment_notes,
+             c.name as customer_name, c.phone as customer_phone, c.email as customer_email, c.address as customer_address,
+             cr.name as craftsman_name
+      FROM invoices i
+      LEFT JOIN appointments a ON i.appointment_id = a.id
+      LEFT JOIN customers c ON i.customer_id = c.id
+      LEFT JOIN craftsmen cr ON i.craftsman_id = cr.id
+      WHERE i.id = $1
+    `, [id]);
+    
+    const itemsResult = await client.query(
+      `SELECT * FROM invoice_items WHERE invoice_id = $1`,
+      [id]
+    );
+    
+    await client.query('COMMIT');
+    
+    res.json({
+      ...completeInvoiceResult.rows[0],
+      items: itemsResult.rows
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error converting quote to invoice:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    client.release();
+  }
+};
+
+// Generate PDF for invoice
+const generatePdf = async (req, res) => {
   try {
     const { id } = req.params;
     const { craftsman_id } = req.query;
@@ -278,15 +691,89 @@ const deleteInvoice = async (req, res) => {
     // Check if invoice exists and belongs to the craftsman
     const checkResult = await pool.query('SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2', [id, craftsman_id]);
     if (checkResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Invoice not found or you do not have permission to delete it' });
+      return res.status(404).json({ error: 'Invoice not found or you do not have permission to access it' });
     }
     
-    // Delete the invoice
-    await pool.query('DELETE FROM invoices WHERE id = $1 AND craftsman_id = $2', [id, craftsman_id]);
+    const invoice = checkResult.rows[0];
     
-    res.json({ message: 'Invoice deleted successfully' });
+    // Generate PDF
+    const pdfPath = await generateInvoicePdf({
+      invoiceId: id,
+      outputPath: null, // Use default path
+      stream: false
+    });
+    
+    // Set headers for download
+    const filename = `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'}_${invoice.invoice_number.replace(/\//g, '-')}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    // Stream the file to the response
+    const fileStream = fs.createReadStream(pdfPath);
+    fileStream.pipe(res);
+    
+    // Clean up the file after sending
+    fileStream.on('end', () => {
+      fs.unlink(pdfPath, (err) => {
+        if (err) console.error('Error deleting temporary PDF file:', err);
+      });
+    });
   } catch (error) {
-    console.error('Error deleting invoice:', error);
+    console.error('Error generating PDF:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Preview PDF for invoice (returns URL to view PDF)
+const previewPdf = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { craftsman_id } = req.query;
+    
+    // Ensure craftsman_id is required for security
+    if (!craftsman_id) {
+      return res.status(400).json({ error: 'craftsman_id is required' });
+    }
+    
+    // Check if invoice exists and belongs to the craftsman
+    const checkResult = await pool.query('SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2', [id, craftsman_id]);
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Invoice not found or you do not have permission to access it' });
+    }
+    
+    const invoice = checkResult.rows[0];
+    
+    // Create temp directory if it doesn't exist
+    const tempDir = 'public/temp';
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    
+    // Generate PDF in public directory
+    const filename = `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'}_${invoice.invoice_number.replace(/\//g, '-')}_${Date.now()}.pdf`;
+    const outputPath = `${tempDir}/${filename}`;
+    
+    await generateInvoicePdf({
+      invoiceId: id,
+      outputPath,
+      stream: false
+    });
+    
+    // Return URL to view the PDF
+    const pdfUrl = `/temp/${filename}`;
+    res.json({ 
+      url: pdfUrl,
+      filename
+    });
+    
+    // Set up cleanup after 5 minutes
+    setTimeout(() => {
+      fs.unlink(outputPath, (err) => {
+        if (err) console.error('Error deleting temporary preview PDF file:', err);
+      });
+    }, 5 * 60 * 1000); // 5 minutes
+  } catch (error) {
+    console.error('Error generating PDF preview:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -296,5 +783,9 @@ module.exports = {
   getInvoiceById,
   createInvoice,
   updateInvoice,
-  deleteInvoice
+  deleteInvoice,
+  getInvoiceItems,
+  convertQuoteToInvoice,
+  generatePdf,
+  previewPdf
 };

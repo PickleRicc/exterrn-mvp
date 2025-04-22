@@ -6,7 +6,11 @@ const {
   getInvoiceById,
   createInvoice,
   updateInvoice,
-  deleteInvoice
+  deleteInvoice,
+  getInvoiceItems,
+  convertQuoteToInvoice,
+  generatePdf,
+  previewPdf
 } = require('../controllers/invoicesController');
 
 // Apply authentication middleware to all routes
@@ -26,5 +30,17 @@ router.put('/:id', updateInvoice);
 
 // DELETE invoice
 router.delete('/:id', deleteInvoice);
+
+// GET invoice items
+router.get('/:invoice_id/items', getInvoiceItems);
+
+// POST convert quote to invoice
+router.post('/:id/convert-to-invoice', convertQuoteToInvoice);
+
+// GET generate PDF for invoice
+router.get('/:id/pdf', generatePdf);
+
+// GET preview PDF for invoice
+router.get('/:id/pdf-preview', previewPdf);
 
 module.exports = router;

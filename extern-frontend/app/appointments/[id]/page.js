@@ -15,9 +15,16 @@ export default function AppointmentDetailPage() {
   const [materials, setMaterials] = useState([]);
   const [selectedMaterials, setSelectedMaterials] = useState([]);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [processingAction, setProcessingAction] = useState(null);
   const [notes, setNotes] = useState('');
   const [servicePrice, setServicePrice] = useState('');
+  const [editForm, setEditForm] = useState({
+    scheduled_at: '',
+    notes: '',
+    duration: '',
+    location: ''
+  });
   
   const router = useRouter();
   const params = useParams();
@@ -174,6 +181,69 @@ export default function AppointmentDetailPage() {
     setShowCompleteModal(false);
   };
 
+  const openEditModal = () => {
+    if (appointment) {
+      // Format the date-time for the input field (YYYY-MM-DDThh:mm)
+      const scheduledDate = new Date(appointment.scheduled_at);
+      const formattedDate = scheduledDate.toISOString().slice(0, 16);
+      
+      setEditForm({
+        scheduled_at: formattedDate,
+        notes: appointment.notes || '',
+        duration: appointment.duration || 60,
+        location: appointment.location || ''
+      });
+      setShowEditModal(true);
+    }
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+  };
+
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSaveAppointment = async () => {
+    if (!appointment) return;
+    
+    setProcessingAction('edit');
+    setError('');
+    try {
+      const updatedData = {
+        ...editForm,
+        duration: parseInt(editForm.duration) || 60
+      };
+      
+      // Call the API to update the appointment
+      const result = await appointmentsAPI.update(id, updatedData);
+      
+      // The backend returns the updated appointment directly
+      if (result) {
+        // Update the appointment state with the result from the server
+        setAppointment(result);
+        
+        // Update the notes state if it's being used elsewhere in the UI
+        if (result.notes) {
+          setNotes(result.notes);
+        }
+        
+        setSuccess('Appointment updated successfully');
+        setShowEditModal(false);
+      }
+    } catch (err) {
+      console.error('Error updating appointment:', err);
+      setError('Failed to update appointment. Please try again.');
+    } finally {
+      setProcessingAction(null);
+    }
+  };
+
   const handleCompleteAppointment = async () => {
     setProcessingAction('complete');
     setError('');
@@ -325,17 +395,30 @@ export default function AppointmentDetailPage() {
             </div>
             
             {appointment.status !== 'completed' && appointment.approval_status !== 'rejected' && (
-              <button
-                onClick={openCompleteModal}
-                className="mt-4 md:mt-0 px-4 py-2 bg-gradient-to-r from-[#0070f3] to-[#0050d3] text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300"
-              >
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  Complete & Generate Invoice
-                </div>
-              </button>
+              <div className="flex space-x-3">
+                <button
+                  onClick={openCompleteModal}
+                  className="mt-4 md:mt-0 px-4 py-2 bg-gradient-to-r from-[#0070f3] to-[#0050d3] text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300"
+                >
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Complete & Generate Invoice
+                  </div>
+                </button>
+                <button
+                  onClick={openEditModal}
+                  className="mt-4 md:mt-0 px-4 py-2 bg-[#071a2b] hover:bg-[#0a2540] text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300"
+                >
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-1.073-5.73-6.568 6.569-4.725-4.725-1.073-1.073 5.768-5.768 4.725 4.725z"></path>
+                    </svg>
+                    Edit Appointment
+                  </div>
+                </button>
+              </div>
             )}
           </div>
           
@@ -605,6 +688,116 @@ export default function AppointmentDetailPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     Complete & Generate Invoice
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Edit Appointment Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#132f4c] rounded-xl shadow-2xl border border-white/10 p-6 max-w-3xl w-full animate-scale-in overflow-y-auto max-h-[90vh]">
+            <h3 className="text-xl font-bold text-white mb-4">Edit Appointment</h3>
+            
+            {error && (
+              <div className="bg-red-900/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6">
+                <p>{error}</p>
+              </div>
+            )}
+            
+            {success && (
+              <div className="bg-green-900/20 border border-green-500/50 text-green-200 px-4 py-3 rounded-lg mb-6">
+                <p>{success}</p>
+              </div>
+            )}
+            
+            <div className="mb-6">
+              <label htmlFor="scheduledAt" className="block text-sm font-medium text-white/80 mb-2">
+                Scheduled Date & Time
+              </label>
+              <input
+                id="scheduledAt"
+                type="datetime-local"
+                value={editForm.scheduled_at}
+                onChange={handleEditFormChange}
+                name="scheduled_at"
+                className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+              />
+            </div>
+            
+            <div className="mb-6">
+              <label htmlFor="notes" className="block text-sm font-medium text-white/80 mb-2">
+                Notes
+              </label>
+              <textarea
+                id="notes"
+                value={editForm.notes}
+                onChange={handleEditFormChange}
+                name="notes"
+                placeholder="Add any notes for the appointment..."
+                className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                rows="3"
+              ></textarea>
+            </div>
+            
+            <div className="mb-6">
+              <label htmlFor="duration" className="block text-sm font-medium text-white/80 mb-2">
+                Duration (minutes)
+              </label>
+              <input
+                id="duration"
+                type="number"
+                min="1"
+                value={editForm.duration}
+                onChange={handleEditFormChange}
+                name="duration"
+                className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+              />
+            </div>
+            
+            <div className="mb-6">
+              <label htmlFor="location" className="block text-sm font-medium text-white/80 mb-2">
+                Location
+              </label>
+              <input
+                id="location"
+                type="text"
+                value={editForm.location}
+                onChange={handleEditFormChange}
+                name="location"
+                className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+              />
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={closeEditModal}
+                className="px-4 py-2 border border-white/20 rounded-lg text-white hover:bg-white/5 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveAppointment}
+                disabled={processingAction === 'edit'}
+                className="px-4 py-2 bg-[#071a2b] hover:bg-[#0a2540] text-white rounded-lg shadow hover:shadow-lg transition-all flex items-center"
+              >
+                {processingAction === 'edit' ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-1.073-5.73-6.568 6.569-4.725-4.725-1.073-1.073 5.768-5.768 4.725 4.725z"></path>
+                    </svg>
+                    Save Changes
                   </>
                 )}
               </button>
