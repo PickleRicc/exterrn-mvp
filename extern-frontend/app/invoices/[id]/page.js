@@ -33,12 +33,37 @@ export default function InvoiceDetailPage({ params }) {
     if (token) {
       try {
         const tokenData = JSON.parse(atob(token.split('.')[1]));
+        console.log('Token data:', tokenData);
+        
+        // Check for craftsmanId in different possible formats
+        let extractedCraftsmanId = null;
         if (tokenData.craftsmanId) {
-          setCraftsmanId(tokenData.craftsmanId);
+          extractedCraftsmanId = tokenData.craftsmanId;
+        } else if (tokenData.craftsman_id) {
+          extractedCraftsmanId = tokenData.craftsman_id;
+        } else if (tokenData.user && tokenData.user.craftsmanId) {
+          extractedCraftsmanId = tokenData.user.craftsmanId;
+        } else if (tokenData.user && tokenData.user.craftsman_id) {
+          extractedCraftsmanId = tokenData.user.craftsman_id;
+        }
+        
+        console.log('Extracted craftsman ID:', extractedCraftsmanId);
+        
+        if (extractedCraftsmanId) {
+          setCraftsmanId(extractedCraftsmanId);
+        } else {
+          console.error('No craftsman ID found in token:', tokenData);
+          setError('No craftsman ID found in your account. Please contact support.');
         }
       } catch (err) {
         console.error('Error parsing token:', err);
+        setError('Error authenticating your account. Please try logging in again.');
       }
+    } else {
+      console.error('No token found in localStorage');
+      setError('You are not logged in. Please log in to view invoices.');
+      // Redirect to login page
+      router.push('/login');
     }
   }, []);
 
@@ -52,6 +77,7 @@ export default function InvoiceDetailPage({ params }) {
     try {
       setLoading(true);
       const data = await invoicesAPI.getById(id, craftsmanId);
+      console.log('Fetched invoice data:', data); // Debug log
       setInvoice(data);
       setError(null);
     } catch (err) {
@@ -257,9 +283,40 @@ export default function InvoiceDetailPage({ params }) {
     );
   }
 
+  if (!invoice) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-gradient-to-b from-[#0a1929] to-[#132f4c]">
+          <main className="container mx-auto px-5 py-8 max-w-7xl">
+            <h1 className="text-3xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-[#00c2ff] to-[#7928ca] bg-clip-text text-transparent">
+                Invoice Not Found
+              </span>
+            </h1>
+            <div className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 px-4 py-3 rounded-xl my-4" role="alert">
+              <span className="block sm:inline">The requested invoice could not be found.</span>
+            </div>
+            <div className="mt-4">
+              <Link
+                href="/invoices"
+                className="text-[#00c2ff] hover:text-[#0090ff] font-medium"
+              >
+                Back to Invoices
+              </Link>
+            </div>
+          </main>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
   // Calculate totals
   const totals = calculateTotals();
   const documentType = invoice.type === 'quote' ? 'Quote' : 'Invoice';
+  const status = invoice.status || 'pending';
+  const type = invoice.type || 'invoice';
 
   return (
     <>
@@ -323,18 +380,18 @@ export default function InvoiceDetailPage({ params }) {
               <div className="flex flex-wrap justify-between items-center">
                 <div>
                   <h2 className="text-xl font-bold text-white mb-1">
-                    {documentType} #{invoice.invoice_number || invoice.id}
+                    {documentType} #{invoice.invoice_number || invoice.id || 'N/A'}
                   </h2>
                   <p className="text-white/70">
-                    Created: {formatDate(invoice.created_at)}
+                    Created: {invoice.created_at ? formatDate(invoice.created_at) : 'N/A'}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
-                  <span className={`px-3 py-1 rounded-xl text-sm font-medium ${getStatusBadgeClass(invoice.status)}`}>
-                    {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                  <span className={`px-3 py-1 rounded-xl text-sm font-medium ${getStatusBadgeClass(status)}`}>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
                   </span>
-                  <span className={`px-3 py-1 rounded-xl text-sm font-medium ${getDocumentTypeBadgeClass(invoice.type)}`}>
-                    {invoice.type.charAt(0).toUpperCase() + invoice.type.slice(1)}
+                  <span className={`px-3 py-1 rounded-xl text-sm font-medium ${getDocumentTypeBadgeClass(type)}`}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
                   </span>
                 </div>
               </div>
@@ -343,13 +400,13 @@ export default function InvoiceDetailPage({ params }) {
             <div className="px-6 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h3 className="text-white/70 font-medium mb-2">Customer</h3>
-                <p className="text-white font-semibold">{invoice.customer_name}</p>
-                <p className="text-white">{invoice.customer_email}</p>
-                <p className="text-white">{invoice.customer_phone}</p>
+                <p className="text-white font-semibold">{invoice.customer_name || 'N/A'}</p>
+                <p className="text-white">{invoice.customer_email || 'N/A'}</p>
+                <p className="text-white">{invoice.customer_phone || 'N/A'}</p>
               </div>
               <div>
                 <h3 className="text-white/70 font-medium mb-2">Service Details</h3>
-                {invoice.appointment_id && (
+                {invoice.appointment_id && invoice.appointment_date && (
                   <p className="text-white">
                     Appointment: {formatDate(invoice.appointment_date)}
                   </p>
@@ -386,13 +443,13 @@ export default function InvoiceDetailPage({ params }) {
                     {invoice.items && invoice.items.length > 0 ? (
                       invoice.items.map((item, index) => (
                         <tr key={index} className="border-b border-white/10">
-                          <td className="py-2 px-2">{item.description}</td>
-                          <td className="py-2 px-2 text-right">{parseFloat(item.quantity).toFixed(2)}</td>
-                          <td className="py-2 px-2 text-right">€{parseFloat(item.unit_price).toFixed(2)}</td>
+                          <td className="py-2 px-2">{item.description || 'N/A'}</td>
+                          <td className="py-2 px-2 text-right">{parseFloat(item.quantity || 0).toFixed(2)}</td>
+                          <td className="py-2 px-2 text-right">€{parseFloat(item.unit_price || 0).toFixed(2)}</td>
                           <td className="py-2 px-2 text-right">
-                            {invoice.vat_exempt ? 'Exempt' : `${parseFloat(item.tax_rate).toFixed(2)}%`}
+                            {invoice.vat_exempt ? 'Exempt' : `${parseFloat(item.tax_rate || 0).toFixed(2)}%`}
                           </td>
-                          <td className="py-2 px-2 text-right">€{parseFloat(item.amount).toFixed(2)}</td>
+                          <td className="py-2 px-2 text-right">€{parseFloat(item.amount || 0).toFixed(2)}</td>
                         </tr>
                       ))
                     ) : (
@@ -466,13 +523,13 @@ export default function InvoiceDetailPage({ params }) {
               <div className="flex flex-wrap justify-between items-center">
                 <div className="flex flex-wrap gap-2 mb-4 sm:mb-0">
                   {/* Status change buttons */}
-                  {invoice.type === 'invoice' && (
+                  {type === 'invoice' && (
                     <>
                       <button
                         onClick={() => handleStatusChange('pending')}
-                        disabled={invoice.status === 'pending' || updating}
+                        disabled={status === 'pending' || updating}
                         className={`px-3 py-1 rounded-xl text-sm font-medium ${
-                          invoice.status === 'pending' 
+                          status === 'pending' 
                             ? 'bg-yellow-500/20 text-yellow-400 cursor-not-allowed' 
                             : 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30'
                         }`}
@@ -481,9 +538,9 @@ export default function InvoiceDetailPage({ params }) {
                       </button>
                       <button
                         onClick={() => handleStatusChange('paid')}
-                        disabled={invoice.status === 'paid' || updating}
+                        disabled={status === 'paid' || updating}
                         className={`px-3 py-1 rounded-xl text-sm font-medium ${
-                          invoice.status === 'paid' 
+                          status === 'paid' 
                             ? 'bg-green-500/20 text-green-400 cursor-not-allowed' 
                             : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
                         }`}
@@ -492,9 +549,9 @@ export default function InvoiceDetailPage({ params }) {
                       </button>
                       <button
                         onClick={() => handleStatusChange('overdue')}
-                        disabled={invoice.status === 'overdue' || updating}
+                        disabled={status === 'overdue' || updating}
                         className={`px-3 py-1 rounded-xl text-sm font-medium ${
-                          invoice.status === 'overdue' 
+                          status === 'overdue' 
                             ? 'bg-red-500/20 text-red-400 cursor-not-allowed' 
                             : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
                         }`}
@@ -505,7 +562,7 @@ export default function InvoiceDetailPage({ params }) {
                   )}
                   
                   {/* Quote-specific buttons */}
-                  {invoice.type === 'quote' && (
+                  {type === 'quote' && (
                     <button
                       onClick={handleConvertToInvoice}
                       disabled={convertingQuote}

@@ -61,13 +61,40 @@ export default function NewInvoicePage() {
     if (token) {
       try {
         const tokenData = JSON.parse(atob(token.split('.')[1]));
+        console.log('Token data:', tokenData);
+        
+        // Check for craftsmanId in different possible formats
+        let extractedCraftsmanId = null;
         if (tokenData.craftsmanId) {
-          setCraftsmanId(tokenData.craftsmanId);
-          setFormData(prev => ({ ...prev, craftsman_id: tokenData.craftsmanId }));
+          extractedCraftsmanId = tokenData.craftsmanId;
+        } else if (tokenData.craftsman_id) {
+          extractedCraftsmanId = tokenData.craftsman_id;
+        } else if (tokenData.user && tokenData.user.craftsmanId) {
+          extractedCraftsmanId = tokenData.user.craftsmanId;
+        } else if (tokenData.user && tokenData.user.craftsman_id) {
+          extractedCraftsmanId = tokenData.user.craftsman_id;
+        }
+        
+        console.log('Extracted craftsman ID:', extractedCraftsmanId);
+        
+        if (extractedCraftsmanId) {
+          setCraftsmanId(extractedCraftsmanId);
+          setFormData(prev => ({ ...prev, craftsman_id: extractedCraftsmanId }));
+        } else {
+          console.error('No craftsman ID found in token:', tokenData);
+          setError('No craftsman ID found in your account. Please contact support.');
         }
       } catch (err) {
         console.error('Error parsing token:', err);
+        setError('Error authenticating your account. Please try logging in again.');
       }
+    } else {
+      console.error('No token found in localStorage');
+      setError('You are not logged in. Please log in to create invoices.');
+      // Redirect to login page after a short delay
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
     }
   }, []);
 
@@ -276,14 +303,22 @@ export default function NewInvoicePage() {
         }))
       };
       
+      console.log('Submitting invoice data:', invoiceData);
+      
       // Create the invoice
       const result = await invoicesAPI.create(invoiceData);
+      console.log('Invoice created:', result);
       
       setSuccess(true);
       
-      // Redirect to the invoice detail page
+      // Redirect to the invoice detail page after a short delay
       setTimeout(() => {
-        router.push(`/invoices/${result.id}`);
+        if (result && result.id) {
+          router.push(`/invoices/${result.id}`);
+        } else {
+          // If no ID is returned, just go back to the invoices list
+          router.push('/invoices');
+        }
       }, 1500);
     } catch (err) {
       console.error('Error creating invoice:', err);

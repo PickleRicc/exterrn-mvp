@@ -40,6 +40,7 @@ export const invoicesAPI = {
       const queryString = queryParams.toString();
       const url = `/invoices${queryString ? `?${queryString}` : ''}`;
       
+      console.log('Fetching invoices with URL:', url);
       const response = await axiosInstance.get(url);
       return response.data;
     } catch (error) {
@@ -60,6 +61,7 @@ export const invoicesAPI = {
       const queryString = queryParams.toString();
       const url = `/invoices/${id}${queryString ? `?${queryString}` : ''}`;
       
+      console.log('Fetching invoice with URL:', url);
       const response = await axiosInstance.get(url);
       return response.data;
     } catch (error) {
@@ -71,10 +73,16 @@ export const invoicesAPI = {
   // Create new invoice
   create: async (invoiceData) => {
     try {
+      console.log('Creating invoice with data:', JSON.stringify(invoiceData, null, 2));
       const response = await axiosInstance.post('/invoices', invoiceData);
+      console.log('Invoice created successfully:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error creating invoice:', error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
       throw error;
     }
   },
@@ -82,10 +90,16 @@ export const invoicesAPI = {
   // Update invoice
   update: async (id, invoiceData) => {
     try {
+      console.log(`Updating invoice ${id} with data:`, JSON.stringify(invoiceData, null, 2));
       const response = await axiosInstance.put(`/invoices/${id}`, invoiceData);
+      console.log('Invoice updated successfully:', response.data);
       return response.data;
     } catch (error) {
       console.error(`Error updating invoice ${id}:`, error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
       throw error;
     }
   },
@@ -102,10 +116,15 @@ export const invoicesAPI = {
       const queryString = queryParams.toString();
       const url = `/invoices/${id}${queryString ? `?${queryString}` : ''}`;
       
+      console.log(`Deleting invoice with URL: ${url}`);
       const response = await axiosInstance.delete(url);
       return response.data;
     } catch (error) {
       console.error(`Error deleting invoice ${id}:`, error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
       throw error;
     }
   },
@@ -113,10 +132,16 @@ export const invoicesAPI = {
   // Convert quote to invoice
   convertQuoteToInvoice: async (id, craftsman_id) => {
     try {
+      console.log(`Converting quote ${id} to invoice`);
       const response = await axiosInstance.post(`/invoices/${id}/convert-to-invoice`, { craftsman_id });
+      console.log('Quote converted successfully:', response.data);
       return response.data;
     } catch (error) {
       console.error(`Error converting quote to invoice:`, error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
       throw error;
     }
   },
@@ -133,11 +158,16 @@ export const invoicesAPI = {
       const queryString = queryParams.toString();
       const url = `/invoices/${id}/pdf${queryString ? `?${queryString}` : ''}`;
       
+      console.log(`Generating PDF with URL: ${url}`);
       // This will trigger a file download
       window.open(url, '_blank');
       return true;
     } catch (error) {
       console.error(`Error generating PDF:`, error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
       throw error;
     }
   },
@@ -154,10 +184,15 @@ export const invoicesAPI = {
       const queryString = queryParams.toString();
       const url = `/invoices/${id}/pdf-preview${queryString ? `?${queryString}` : ''}`;
       
+      console.log(`Previewing PDF with URL: ${url}`);
       const response = await axiosInstance.get(url);
       return response.data;
     } catch (error) {
       console.error(`Error previewing PDF:`, error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
       throw error;
     }
   }
