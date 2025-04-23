@@ -2,19 +2,21 @@ import api from '../../app/lib/api';
 
 export const invoicesAPI = {
   // Get all invoices with optional filters
-  getAll: async (craftsman_id) => {
+  getAll: async (filters = {}) => {
     try {
-      const queryParams = new URLSearchParams();
+      // Convert filters to proper params object
+      const params = {};
       
-      if (craftsman_id) {
-        queryParams.append('craftsman_id', craftsman_id);
+      if (typeof filters === 'object') {
+        // If filters is an object, use it directly
+        Object.assign(params, filters);
+      } else if (filters) {
+        // If filters is just the craftsman_id (for backward compatibility)
+        params.craftsman_id = filters;
       }
       
-      const queryString = queryParams.toString();
-      const url = `/invoices${queryString ? `?${queryString}` : ''}`;
-      
-      console.log('Fetching invoices with URL:', url);
-      const response = await api.get(url);
+      console.log('Fetching invoices with params:', params);
+      const response = await api.get('/invoices', { params });
       return response.data;
     } catch (error) {
       console.error('Error fetching invoices:', error);
@@ -25,17 +27,15 @@ export const invoicesAPI = {
   // Get invoice by ID
   getById: async (id, craftsman_id) => {
     try {
-      const queryParams = new URLSearchParams();
+      // Create params object
+      const params = {};
       
       if (craftsman_id) {
-        queryParams.append('craftsman_id', craftsman_id);
+        params.craftsman_id = craftsman_id;
       }
       
-      const queryString = queryParams.toString();
-      const url = `/invoices/${id}${queryString ? `?${queryString}` : ''}`;
-      
-      console.log('Fetching invoice with URL:', url);
-      const response = await api.get(url);
+      console.log('Fetching invoice with ID:', id, 'and params:', params);
+      const response = await api.get(`/invoices/${id}`, { params });
       return response.data;
     } catch (error) {
       console.error(`Error fetching invoice ${id}:`, error);
@@ -71,10 +71,24 @@ export const invoicesAPI = {
         throw new Error('No authentication token found');
       }
       
-      // For PDF download, we'll open a new tab with the PDF URL
+      // Create params object
+      const params = {};
+      if (craftsman_id) {
+        params.craftsman_id = craftsman_id;
+      }
+      
+      // For PDF download, we'll use fetch to get the PDF as a blob
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE || '';
-      const url = `${baseUrl}/api/invoices/${id}/pdf?craftsman_id=${craftsman_id}`;
-      window.open(url, '_blank');
+      const apiUrl = `/api/invoices/${id}/pdf`;
+      
+      // Create URL with query parameters
+      const url = new URL(apiUrl, window.location.origin);
+      Object.keys(params).forEach(key => {
+        url.searchParams.append(key, params[key]);
+      });
+      
+      // Open the URL in a new tab
+      window.open(url.toString(), '_blank');
       
       return true;
     } catch (error) {
