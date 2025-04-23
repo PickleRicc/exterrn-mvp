@@ -127,6 +127,8 @@ const generatePdf = async (req, res) => {
     const { id } = req.params;
     const { craftsman_id } = req.query;
     
+    console.log(`Generating PDF for invoice ${id} with craftsman ID ${craftsman_id}`);
+    
     if (!id) {
       return res.status(400).json({ error: 'Invoice ID is required' });
     }
@@ -139,7 +141,7 @@ const generatePdf = async (req, res) => {
     const invoiceQuery = `
       SELECT i.*, c.name as customer_name, c.address as customer_address, 
              c.phone as customer_phone, c.email as customer_email,
-             cr.name as craftsman_name, cr.company_name, cr.address as craftsman_address
+             cr.name as craftsman_name
       FROM invoices i
       LEFT JOIN customers c ON i.customer_id = c.id
       LEFT JOIN craftsmen cr ON i.craftsman_id = cr.id
@@ -153,85 +155,46 @@ const generatePdf = async (req, res) => {
     }
     
     const invoice = invoiceResult.rows[0];
+    console.log('Invoice data for PDF:', invoice);
     
     // Set headers for PDF
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="invoice_${invoice.invoice_number || invoice.id}.pdf"`);
     
-    // Create a new PDF document
-    const doc = new PDFDocument({ margin: 50 });
+    // Create a new PDF document with a simple structure
+    const doc = new PDFDocument();
     
     // Pipe the PDF directly to the response
     doc.pipe(res);
     
-    // Add invoice content
-    doc.fontSize(20).text('INVOICE', { align: 'center' });
-    doc.moveDown();
-    
-    // Add company info
-    doc.fontSize(12).text(`${invoice.company_name || 'Company Name'}`, { align: 'left' });
-    doc.fontSize(10).text(`${invoice.craftsman_name || 'Craftsman Name'}`);
-    doc.text(`${invoice.craftsman_address || 'Address'}`);
+    // Add simple invoice content
+    doc.fontSize(25).text('INVOICE', { align: 'center' });
     doc.moveDown();
     
     // Add invoice details
-    doc.fontSize(12).text(`Invoice Number: ${invoice.invoice_number || invoice.id}`);
+    doc.fontSize(12);
+    doc.text(`Invoice Number: ${invoice.invoice_number || invoice.id}`);
     doc.text(`Date: ${new Date(invoice.created_at).toLocaleDateString()}`);
-    doc.text(`Due Date: ${invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : 'N/A'}`);
     doc.moveDown();
     
     // Add customer info
-    doc.fontSize(12).text('Bill To:');
-    doc.fontSize(10).text(`${invoice.customer_name || 'Customer'}`);
-    doc.text(`${invoice.customer_address || 'Address'}`);
-    doc.text(`Phone: ${invoice.customer_phone || 'N/A'}`);
+    doc.text(`Customer: ${invoice.customer_name || 'N/A'}`);
     doc.text(`Email: ${invoice.customer_email || 'N/A'}`);
     doc.moveDown();
     
-    // Add table headers
-    const startX = 50;
-    const startY = 300;
-    const rowHeight = 30;
-    const colWidth = 100;
-    
-    doc.font('Helvetica-Bold');
-    doc.text('Description', startX, startY, { width: 200 });
-    doc.text('Amount', startX + 300, startY, { width: 100, align: 'right' });
-    
-    // Add line
-    doc.moveTo(startX, startY + 20)
-       .lineTo(startX + 400, startY + 20)
-       .stroke();
-    
     // Add invoice amount
-    doc.font('Helvetica');
-    doc.text('Services', startX, startY + 30, { width: 200 });
-    doc.text(`€${parseFloat(invoice.amount).toFixed(2)}`, startX + 300, startY + 30, { width: 100, align: 'right' });
+    doc.text(`Amount: €${parseFloat(invoice.amount || 0).toFixed(2)}`);
+    doc.text(`Tax: €${parseFloat(invoice.tax_amount || 0).toFixed(2)}`);
+    doc.text(`Total: €${parseFloat(invoice.total_amount || 0).toFixed(2)}`);
     
-    // Add tax if applicable
-    if (invoice.tax_amount && parseFloat(invoice.tax_amount) > 0) {
-      doc.text('Tax', startX, startY + 60, { width: 200 });
-      doc.text(`€${parseFloat(invoice.tax_amount).toFixed(2)}`, startX + 300, startY + 60, { width: 100, align: 'right' });
-    }
-    
-    // Add total
-    doc.moveTo(startX, startY + 90)
-       .lineTo(startX + 400, startY + 90)
-       .stroke();
-    
-    doc.font('Helvetica-Bold');
-    doc.text('Total', startX, startY + 100, { width: 200 });
-    doc.text(`€${parseFloat(invoice.total_amount).toFixed(2)}`, startX + 300, startY + 100, { width: 100, align: 'right' });
-    
-    // Add notes if any
-    if (invoice.notes) {
-      doc.moveDown(2);
-      doc.font('Helvetica-Bold').text('Notes:');
-      doc.font('Helvetica').text(invoice.notes);
-    }
+    // Add a simple note
+    doc.moveDown();
+    doc.text('Thank you for your business!');
     
     // Finalize the PDF
     doc.end();
+    
+    console.log('PDF generation completed');
     
   } catch (error) {
     console.error('Error generating PDF:', error);

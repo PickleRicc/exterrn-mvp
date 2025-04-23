@@ -80,23 +80,13 @@ export const invoicesAPI = {
         throw new Error('No authentication token found');
       }
       
-      // Create params object
-      const queryParams = {};
-      if (craftsman_id) {
-        queryParams.craftsman_id = craftsman_id;
-      }
+      // Simple direct approach - open the PDF URL in a new tab
+      // The Next.js API routes will handle the proxy and authentication
+      const url = `/api/invoices/${id}/pdf?craftsman_id=${craftsman_id}`;
+      console.log('Opening PDF URL:', url);
       
-      // For PDF download, we'll use fetch to get the PDF as a blob
-      const apiUrl = `/api/invoices/${id}/pdf`;
-      
-      // Create URL with query parameters
-      const url = new URL(apiUrl, window.location.origin);
-      Object.keys(queryParams).forEach(key => {
-        url.searchParams.append(key, queryParams[key]);
-      });
-      
-      // Open the URL in a new tab
-      window.open(url.toString(), '_blank');
+      // Open in a new tab
+      window.open(url, '_blank');
       
       return true;
     } catch (error) {
