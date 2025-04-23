@@ -736,6 +736,8 @@ const generatePdf = async (req, res) => {
     const { id } = req.params;
     const { craftsman_id } = req.query;
     
+    console.log(`PDF download requested for invoice ${id} by craftsman ${craftsman_id}`);
+    
     // Ensure craftsman_id is required for security
     if (!craftsman_id) {
       return res.status(400).json({ error: 'craftsman_id is required' });
@@ -748,72 +750,46 @@ const generatePdf = async (req, res) => {
     }
     
     const invoice = checkResult.rows[0];
+    console.log(`Found invoice: ${invoice.id}, type: ${invoice.type}, number: ${invoice.invoice_number}`);
     
-    // Create temp directory if it doesn't exist
-    const tempDir = path.join(process.cwd(), 'temp');
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
-    
-    // Generate PDF with explicit output path
+    // Set headers for download
     const filename = `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'}_${invoice.invoice_number.replace(/\//g, '-')}_${Date.now()}.pdf`;
-    const pdfPath = path.join(tempDir, filename);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     
-    console.log(`Generating PDF for invoice ${id} to path: ${pdfPath}`);
-    
+    // Generate PDF directly to response stream
     try {
-      // Generate the PDF and wait for it to complete
-      await generateInvoicePdf({
+      // Use stream mode to pipe directly to response
+      const doc = await generateInvoicePdf({
         invoiceId: id,
-        outputPath: pdfPath,
-        stream: false
+        outputPath: null,
+        stream: true
       });
       
-      // Verify the file exists before sending
-      if (!fs.existsSync(pdfPath)) {
-        throw new Error(`PDF file was not created at path: ${pdfPath}`);
-      }
+      // Pipe the PDF document directly to the response
+      doc.pipe(res);
       
-      const stats = fs.statSync(pdfPath);
-      console.log(`PDF file size: ${stats.size} bytes`);
-      
-      if (stats.size === 0) {
-        throw new Error('PDF file was created but is empty');
-      }
-      
-      // Set headers for download
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Length', stats.size);
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      
-      // Stream the file to the response
-      const fileStream = fs.createReadStream(pdfPath);
-      
-      // Handle file stream errors
-      fileStream.on('error', (err) => {
-        console.error('Error streaming PDF file:', err);
-        // Only send error if headers haven't been sent yet
-        if (!res.headersSent) {
-          res.status(500).json({ error: 'Error streaming PDF file' });
-        }
-      });
-      
-      // Pipe the file to the response
-      fileStream.pipe(res);
-      
-      // Clean up the file after sending
-      fileStream.on('end', () => {
-        fs.unlink(pdfPath, (err) => {
-          if (err) console.error('Error deleting temporary PDF file:', err);
-        });
-      });
+      // No need to clean up temporary files since we're streaming directly
+      console.log(`PDF streaming started for invoice ${id}`);
     } catch (pdfError) {
-      console.error('Error in PDF generation or streaming:', pdfError);
-      return res.status(500).json({ error: pdfError.message });
+      console.error('Error in PDF generation:', pdfError);
+      // Only send error if headers haven't been sent yet
+      if (!res.headersSent) {
+        return res.status(500).json({ error: pdfError.message });
+      } else {
+        // If headers are already sent, we can only end the response
+        res.end();
+      }
     }
   } catch (error) {
     console.error('Error generating PDF:', error);
-    res.status(500).json({ error: error.message });
+    // Only send error if headers haven't been sent yet
+    if (!res.headersSent) {
+      res.status(500).json({ error: error.message });
+    } else {
+      // If headers are already sent, we can only end the response
+      res.end();
+    }
   }
 };
 
@@ -823,6 +799,8 @@ const previewPdf = async (req, res) => {
     const { id } = req.params;
     const { craftsman_id } = req.query;
     
+    console.log(`PDF preview requested for invoice ${id} by craftsman ${craftsman_id}`);
+    
     // Ensure craftsman_id is required for security
     if (!craftsman_id) {
       return res.status(400).json({ error: 'craftsman_id is required' });
@@ -835,12 +813,16 @@ const previewPdf = async (req, res) => {
     }
     
     const invoice = checkResult.rows[0];
+    console.log(`Found invoice for preview: ${invoice.id}, type: ${invoice.type}, number: ${invoice.invoice_number}`);
     
     // Create public/temp directory if it doesn't exist
-    const tempDir = 'public/temp';
-    if (!fs.existsSync('public')) {
-      fs.mkdirSync('public', { recursive: true });
+    const publicDir = path.join(process.cwd(), 'public');
+    const tempDir = path.join(publicDir, 'temp');
+    
+    if (!fs.existsSync(publicDir)) {
+      fs.mkdirSync(publicDir, { recursive: true });
     }
+    
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
@@ -852,14 +834,31 @@ const previewPdf = async (req, res) => {
     console.log(`Generating PDF preview for invoice ${id} to path: ${outputPath}`);
     
     try {
-      // Generate the PDF and wait for it to complete
-      await generateInvoicePdf({
+      // Create a write stream for the PDF
+      const writeStream = fs.createWriteStream(outputPath);
+      
+      // Generate the PDF and pipe it to the file
+      const doc = await generateInvoicePdf({
         invoiceId: id,
-        outputPath,
-        stream: false
+        stream: true
       });
       
-      // Verify the file exists before sending the URL
+      // Wait for the PDF to be fully written
+      await new Promise((resolve, reject) => {
+        doc.pipe(writeStream);
+        
+        writeStream.on('finish', () => {
+          console.log(`PDF preview file written to ${outputPath}`);
+          resolve();
+        });
+        
+        writeStream.on('error', (err) => {
+          console.error('Error writing PDF preview file:', err);
+          reject(err);
+        });
+      });
+      
+      // Verify the file exists and has content
       if (!fs.existsSync(outputPath)) {
         throw new Error(`PDF file was not created at path: ${outputPath}`);
       }

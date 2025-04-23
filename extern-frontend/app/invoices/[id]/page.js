@@ -140,19 +140,25 @@ export default function InvoiceDetailPage({ params }) {
   const handlePreviewPdf = async () => {
     try {
       setPdfLoading(true);
+      setError(null);
+      console.log(`Requesting PDF preview for invoice ${id} with craftsman ID ${craftsmanId}`);
+      
       const response = await invoicesAPI.previewPdf(id, craftsmanId);
+      console.log('PDF preview response:', response);
       
       if (response && response.url) {
         // Add the API proxy prefix to ensure the JWT token is included
         const fullUrl = `/api/proxy${response.url}?craftsman_id=${craftsmanId}`;
+        console.log('Setting PDF preview URL to:', fullUrl);
         setPdfPreviewUrl(fullUrl);
         setShowPdfPreview(true);
       } else {
-        setError('Failed to generate PDF preview.');
+        console.error('Invalid PDF preview response:', response);
+        setError('Failed to generate PDF preview. Invalid response from server.');
       }
     } catch (err) {
       console.error(`Error previewing PDF:`, err);
-      setError('Failed to preview PDF. Please try again.');
+      setError(`Failed to preview PDF: ${err.message || 'Unknown error'}`);
     } finally {
       setPdfLoading(false);
     }

@@ -317,13 +317,40 @@ export const invoicesAPI = {
     // Instead of opening a new window, use axios to get the PDF as a blob
     // This ensures the JWT token is included in the request
     try {
-      const response = await api.get(`/invoices/${id}/pdf`, {
-        params: { craftsman_id: craftsmanId },
-        responseType: 'blob' // Important: responseType must be 'blob' for binary data
+      console.log(`Requesting PDF download for invoice ${id} with craftsman ID ${craftsmanId}`);
+      
+      // Create a direct link to the PDF with authentication
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      
+      // Use fetch instead of axios for better blob handling
+      const response = await fetch(`/api/proxy/invoices/${id}/pdf?craftsman_id=${craftsmanId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      // Get the blob from the response
+      const blob = await response.blob();
+      
+      // Check if we got a valid PDF
+      if (blob.size === 0) {
+        throw new Error('Received empty PDF file');
+      }
+      
+      if (blob.type !== 'application/pdf' && blob.type !== 'application/octet-stream') {
+        console.warn(`Unexpected content type: ${blob.type}`);
+      }
+      
+      console.log(`Received PDF blob: type=${blob.type}, size=${blob.size} bytes`);
+      
       // Create a blob URL and trigger download
-      const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       
       // Create a temporary link element to trigger the download
@@ -334,8 +361,10 @@ export const invoicesAPI = {
       link.click();
       
       // Clean up
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(link);
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+      }, 100);
       
       return true;
     } catch (error) {

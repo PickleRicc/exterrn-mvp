@@ -326,12 +326,24 @@ const generateInvoicePdf = async (options) => {
 const formatDate = (dateString) => {
   if (!dateString) return '';
   
-  const date = new Date(dateString);
-  return date.toLocaleDateString('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
+  try {
+    const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.error(`Invalid date: ${dateString}`);
+      return 'Invalid date';
+    }
+    
+    return date.toLocaleDateString('de-DE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  } catch (error) {
+    console.error(`Error formatting date ${dateString}:`, error);
+    return 'Date error';
+  }
 };
 
 // Helper function to format payment deadline
