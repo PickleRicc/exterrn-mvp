@@ -157,26 +157,35 @@ export const invoicesAPI = {
         throw new Error('No authentication token found');
       }
       
-      // Create a direct download link with the token in the URL
-      const downloadUrl = `/api/proxy/invoices/${id}/pdf?craftsman_id=${craftsman_id}`;
+      // Create a blob URL for the PDF
+      const response = await fetch(`/api/proxy/invoices/${id}/pdf?craftsman_id=${craftsman_id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
-      // Create a form to submit a POST request with the token
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = downloadUrl;
-      form.target = '_blank';
+      if (!response.ok) {
+        throw new Error(`Failed to generate PDF: ${response.status} ${response.statusText}`);
+      }
       
-      // Add the token as a hidden field
-      const tokenField = document.createElement('input');
-      tokenField.type = 'hidden';
-      tokenField.name = 'token';
-      tokenField.value = token;
-      form.appendChild(tokenField);
+      // Get the blob from the response
+      const blob = await response.blob();
       
-      // Submit the form to download the PDF
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+      // Create a blob URL
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary link element to trigger the download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Invoice_${id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+      }, 100);
       
       return true;
     } catch (error) {
@@ -196,11 +205,30 @@ export const invoicesAPI = {
         throw new Error('No authentication token found');
       }
       
-      // Create a preview URL with the token embedded
-      const previewUrl = `/api/proxy/invoices/${id}/pdf-preview?craftsman_id=${craftsman_id}`;
+      // Fetch the PDF as a blob
+      const response = await fetch(`/api/proxy/invoices/${id}/pdf-preview?craftsman_id=${craftsman_id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
-      // Open the preview in a new tab
-      window.open(previewUrl, '_blank');
+      if (!response.ok) {
+        throw new Error(`Failed to preview PDF: ${response.status} ${response.statusText}`);
+      }
+      
+      // Get the blob from the response
+      const blob = await response.blob();
+      
+      // Create a blob URL
+      const url = window.URL.createObjectURL(blob);
+      
+      // Open the PDF in a new tab
+      window.open(url, '_blank');
+      
+      // Clean up after a delay
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 1000);
       
       return { success: true };
     } catch (error) {
