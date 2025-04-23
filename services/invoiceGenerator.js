@@ -333,12 +333,27 @@ const generateInvoicePdf = async (options) => {
     
     // For file mode, return a Promise that resolves when the PDF is fully written
     return new Promise((resolve, reject) => {
-      const pdfPath = outputPath || path.join(process.cwd(), 'temp', `${invoice.type}_${invoice.invoice_number.replace(/\//g, '-')}.pdf`);
-      
       // Set up event handlers on the document
       doc.on('end', () => {
         console.log(`PDF successfully generated and saved to: ${pdfPath}`);
-        resolve(pdfPath);
+        
+        // Verify the file exists and has content before resolving
+        try {
+          if (fs.existsSync(pdfPath)) {
+            const stats = fs.statSync(pdfPath);
+            if (stats.size > 0) {
+              console.log(`Verified PDF file: ${pdfPath}, size: ${stats.size} bytes`);
+              resolve(pdfPath);
+            } else {
+              reject(new Error(`PDF file was created but is empty: ${pdfPath}`));
+            }
+          } else {
+            reject(new Error(`PDF file was not created at path: ${pdfPath}`));
+          }
+        } catch (err) {
+          console.error('Error verifying PDF file:', err);
+          reject(err);
+        }
       });
       
       doc.on('error', (err) => {
