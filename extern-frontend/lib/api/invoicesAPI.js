@@ -149,32 +149,35 @@ export const invoicesAPI = {
   // Generate PDF for invoice
   generatePdf: async (id, craftsman_id) => {
     try {
-      const queryParams = new URLSearchParams();
+      console.log(`Generating PDF for invoice ${id} with craftsman ID ${craftsman_id}`);
       
-      if (craftsman_id) {
-        queryParams.append('craftsman_id', craftsman_id);
+      // Get the authentication token
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
       }
       
-      const queryString = queryParams.toString();
-      const url = `/invoices/${id}/pdf${queryString ? `?${queryString}` : ''}`;
+      // Create a direct download link with the token in the URL
+      const downloadUrl = `/api/proxy/invoices/${id}/pdf?craftsman_id=${craftsman_id}`;
       
-      console.log(`Generating PDF with URL: ${url}`);
+      // Create a form to submit a POST request with the token
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = downloadUrl;
+      form.target = '_blank';
       
-      // Instead of using window.open which doesn't provide error feedback,
-      // use fetch to check if the PDF generation is successful first
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      // Add the token as a hidden field
+      const tokenField = document.createElement('input');
+      tokenField.type = 'hidden';
+      tokenField.name = 'token';
+      tokenField.value = token;
+      form.appendChild(tokenField);
       
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
+      // Submit the form to download the PDF
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
       
-      // If successful, open in a new tab
-      window.open(url, '_blank');
       return true;
     } catch (error) {
       console.error(`Error generating PDF:`, error);
@@ -185,44 +188,26 @@ export const invoicesAPI = {
   // Preview PDF for invoice
   previewPdf: async (id, craftsman_id) => {
     try {
-      const queryParams = new URLSearchParams();
+      console.log(`Requesting PDF preview for invoice ${id} with craftsman ID ${craftsman_id}`);
       
-      if (craftsman_id) {
-        queryParams.append('craftsman_id', craftsman_id);
+      // Get the authentication token
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
       }
       
-      const queryString = queryParams.toString();
-      const url = `/invoices/${id}/pdf-preview${queryString ? `?${queryString}` : ''}`;
+      // Create a preview URL with the token embedded
+      const previewUrl = `/api/proxy/invoices/${id}/pdf-preview?craftsman_id=${craftsman_id}`;
       
-      console.log(`Requesting PDF preview with URL: ${url}`);
-      const response = await api.get(url);
+      // Open the preview in a new tab
+      window.open(previewUrl, '_blank');
       
-      // Validate the response
-      if (!response.data || !response.data.url) {
-        console.error('Invalid PDF preview response:', response.data);
-        throw new Error('Invalid PDF preview response');
-      }
-      
-      console.log('PDF preview response:', response.data);
-      
-      // The PDF URL should be used directly without the /api/proxy prefix
-      // since it's served from the public directory
-      const pdfUrl = response.data.url;
-      
-      // Return the response data with the correct URL
-      return {
-        ...response.data,
-        fullUrl: pdfUrl // This is the direct URL to the PDF file
-      };
+      return { success: true };
     } catch (error) {
       console.error(`Error previewing PDF:`, error);
-      if (error.response) {
-        console.error('Response data:', error.response.data);
-        console.error('Response status:', error.response.status);
-      }
       throw error;
     }
-  }
+  },
 };
 
 export default invoicesAPI;

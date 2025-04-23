@@ -130,6 +130,7 @@ export default function InvoiceDetailPage({ params }) {
 
   const handleGeneratePdf = async () => {
     try {
+      console.log(`Generating PDF for invoice ${id} with craftsman ID ${craftsmanId}`);
       await invoicesAPI.generatePdf(id, craftsmanId);
     } catch (err) {
       console.error(`Error generating PDF:`, err);
@@ -143,24 +144,13 @@ export default function InvoiceDetailPage({ params }) {
       setError(null);
       console.log(`Requesting PDF preview for invoice ${id} with craftsman ID ${craftsmanId}`);
       
-      const response = await invoicesAPI.previewPdf(id, craftsmanId);
-      console.log('PDF preview response:', response);
+      await invoicesAPI.previewPdf(id, craftsmanId);
       
-      if (response && response.url) {
-        // Use the direct URL to the PDF file without the API proxy prefix
-        // The PDF is served from the public directory on the server
-        const fullUrl = response.url;
-        console.log('Setting PDF preview URL to:', fullUrl);
-        setPdfPreviewUrl(fullUrl);
-        setShowPdfPreview(true);
-      } else {
-        console.error('Invalid PDF preview response:', response);
-        setError('Failed to generate PDF preview. Invalid response from server.');
-      }
+      // The preview will open in a new tab directly from the API call
+      setPdfLoading(false);
     } catch (err) {
       console.error(`Error previewing PDF:`, err);
       setError(`Failed to preview PDF: ${err.message || 'Unknown error'}`);
-    } finally {
       setPdfLoading(false);
     }
   };
