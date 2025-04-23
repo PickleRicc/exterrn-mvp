@@ -33,6 +33,11 @@ const publicDir = path.join(__dirname, 'public');
 app.use(express.static(publicDir));
 console.log(`Serving static files from: ${publicDir}`);
 
+// Serve /pdfs as static for invoice downloads
+const pdfDir = path.join(publicDir, 'pdfs');
+app.use('/pdfs', express.static(pdfDir));
+console.log(`Serving PDF files from: ${pdfDir}`);
+
 // Routes
 app.use('/appointments', appointmentRoutes);
 app.use('/customers', customerRoutes);

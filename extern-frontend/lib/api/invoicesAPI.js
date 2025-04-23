@@ -63,32 +63,25 @@ export const invoicesAPI = {
   // Generate PDF for invoice
   generatePdf: async (id, params = {}) => {
     try {
-      // Extract craftsman_id from params if it's an object, or use params directly if it's a primitive value
       let craftsman_id;
       if (typeof params === 'object' && params !== null) {
         craftsman_id = params.craftsman_id;
-        console.log(`Generating PDF for invoice ${id} with params:`, params);
       } else {
-        // For backward compatibility
         craftsman_id = params;
-        console.log(`Generating PDF for invoice ${id} with craftsman ID ${craftsman_id}`);
       }
-      
-      // Get the authentication token
       const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
+      if (!token) throw new Error('No authentication token found');
+      // Call backend API to generate PDF and get file URL
+      const response = await api.get(`/invoices/${id}/pdf`, {
+        params: { craftsman_id },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data && response.data.url) {
+        window.open(response.data.url, '_blank');
+        return true;
+      } else {
+        throw new Error('No PDF URL returned from backend');
       }
-      
-      // Simple direct approach - open the PDF URL in a new tab
-      // The Next.js API routes will handle the proxy and authentication
-      const url = `/api/invoices/${id}/pdf?craftsman_id=${craftsman_id}`;
-      console.log('Opening PDF URL:', url);
-      
-      // Open in a new tab
-      window.open(url, '_blank');
-      
-      return true;
     } catch (error) {
       console.error(`Error generating PDF:`, error);
       throw error;

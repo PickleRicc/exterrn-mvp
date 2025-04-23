@@ -126,18 +126,13 @@ const generatePdf = async (req, res) => {
   try {
     const { id } = req.params;
     const { craftsman_id } = req.query;
-    
     console.log(`Generating PDF for invoice ${id} with craftsman ID ${craftsman_id}`);
-    
     if (!id) {
       return res.status(400).json({ error: 'Invoice ID is required' });
     }
-    
     if (!craftsman_id) {
       return res.status(400).json({ error: 'Craftsman ID is required' });
     }
-    
-    // Check if invoice exists and belongs to craftsman
     const invoiceQuery = `
       SELECT i.*, c.name as customer_name, c.address as customer_address, 
              c.phone as customer_phone, c.email as customer_email,
@@ -147,59 +142,47 @@ const generatePdf = async (req, res) => {
       LEFT JOIN craftsmen cr ON i.craftsman_id = cr.id
       WHERE i.id = $1 AND i.craftsman_id = $2
     `;
-    
     const invoiceResult = await pool.query(invoiceQuery, [id, craftsman_id]);
-    
     if (invoiceResult.rows.length === 0) {
       return res.status(404).json({ error: 'Invoice not found or does not belong to craftsman' });
     }
-    
     const invoice = invoiceResult.rows[0];
-    console.log('Invoice data for PDF:', invoice);
-    
-    // Set headers for PDF
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="invoice_${invoice.invoice_number || invoice.id}.pdf"`);
-    
-    // Create a new PDF document with a simple structure
+    // Prepare directory for saving PDFs
+    const publicDir = path.join(__dirname, '..', 'public');
+    const pdfDir = path.join(publicDir, 'pdfs');
+    fs.mkdirSync(pdfDir, { recursive: true });
+    const fileName = `invoice_${invoice.invoice_number || invoice.id}_${Date.now()}.pdf`;
+    const filePath = path.join(pdfDir, fileName);
+    // Create and write PDF to file
     const doc = new PDFDocument();
-    
-    // Pipe the PDF directly to the response
-    doc.pipe(res);
-    
-    // Add simple invoice content
+    const writeStream = fs.createWriteStream(filePath);
+    doc.pipe(writeStream);
     doc.fontSize(25).text('INVOICE', { align: 'center' });
     doc.moveDown();
-    
-    // Add invoice details
-    doc.fontSize(12);
-    doc.text(`Invoice Number: ${invoice.invoice_number || invoice.id}`);
-    doc.text(`Date: ${new Date(invoice.created_at).toLocaleDateString()}`);
-    doc.moveDown();
-    
-    // Add customer info
-    doc.text(`Customer: ${invoice.customer_name || 'N/A'}`);
-    doc.text(`Email: ${invoice.customer_email || 'N/A'}`);
-    doc.moveDown();
-    
-    // Add invoice amount
-    doc.text(`Amount: €${parseFloat(invoice.amount || 0).toFixed(2)}`);
-    doc.text(`Tax: €${parseFloat(invoice.tax_amount || 0).toFixed(2)}`);
-    doc.text(`Total: €${parseFloat(invoice.total_amount || 0).toFixed(2)}`);
-    
-    // Add a simple note
-    doc.moveDown();
-    doc.text('Thank you for your business!');
-    
-    // Finalize the PDF
+    doc.fontSize(12)
+      .text(`Invoice Number: ${invoice.invoice_number || invoice.id}`)
+      .text(`Date: ${new Date(invoice.created_at).toLocaleDateString()}`)
+      .moveDown()
+      .text(`Customer: ${invoice.customer_name || 'N/A'}`)
+      .text(`Email: ${invoice.customer_email || 'N/A'}`)
+      .moveDown()
+      .text(`Amount: €${parseFloat(invoice.amount || 0).toFixed(2)}`)
+      .text(`Tax: €${parseFloat(invoice.tax_amount || 0).toFixed(2)}`)
+      .text(`Total: €${parseFloat(invoice.total_amount || 0).toFixed(2)}`);
+    doc.moveDown().text('Thank you for your business!');
     doc.end();
-    
-    console.log('PDF generation completed');
-    
+    writeStream.on('finish', () => {
+      const fileUrl = `${req.protocol}://${req.get('host')}/pdfs/${fileName}`;
+      res.json({ url: fileUrl });
+    });
+    writeStream.on('error', (err) => {
+      console.error('Error writing PDF file:', err);
+      res.status(500).json({ error: err.message });
+    });
   } catch (error) {
-    console.error('Error generating PDF:', error);
+    console.error('Error generating PDF file:', error);
     if (!res.headersSent) {
-      return res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error.message });
     }
   }
 };
