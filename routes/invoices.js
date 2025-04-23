@@ -37,10 +37,10 @@ router.get('/:invoice_id/items', getInvoiceItems);
 // POST convert quote to invoice
 router.post('/:id/convert-to-invoice', convertQuoteToInvoice);
 
-// GET generate PDF for invoice
+// GET generate PDF
 router.get('/:id/pdf', generatePdf);
 
-// GET preview PDF for invoice
+// GET preview PDF
 router.get('/:id/pdf-preview', previewPdf);
 
 module.exports = router;
