@@ -172,11 +172,13 @@ const generateInvoicePdf = async (options) => {
     doc.fontSize(10)
        .font('Helvetica')
        .fillColor('#444444')
-       .text(invoice.craftsman_name, 50, 90)
-       .text(invoice.craftsman_address || '', 50, 105);
+       .text(invoice.craftsman_name || 'ZIMMR', 50, 90)
+       .text(invoice.craftsman_address || 'Address not provided', 50, 105);
     
     if (invoice.contact_info) {
       doc.text(invoice.contact_info, 50, 120);
+    } else {
+      doc.text('Contact: Not provided', 50, 120);
     }
     
     // Tax information (legally required)
@@ -184,10 +186,15 @@ const generateInvoicePdf = async (options) => {
     if (invoice.tax_id) {
       doc.text(`Tax ID: ${invoice.tax_id}`, 50, taxInfoY);
       taxInfoY += 15;
+    } else {
+      doc.text('Tax ID: Not provided', 50, taxInfoY);
+      taxInfoY += 15;
     }
     
     if (invoice.vat_id) {
       doc.text(`VAT ID: ${invoice.vat_id}`, 50, taxInfoY);
+    } else {
+      doc.text('VAT ID: Not provided', 50, taxInfoY);
     }
     
     // Invoice details

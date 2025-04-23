@@ -887,8 +887,18 @@ const previewPdf = async (req, res) => {
       }
       
       // Return URL to view the PDF
+      // This URL is relative to the public directory and will be served by Express static middleware
       const pdfUrl = `/temp/${filename}`;
       console.log(`PDF preview URL: ${pdfUrl}`);
+      
+      // Make sure the file is readable
+      try {
+        fs.accessSync(outputPath, fs.constants.R_OK);
+        console.log(`PDF file is readable: ${outputPath}`);
+      } catch (accessError) {
+        console.error(`PDF file is not readable: ${outputPath}`, accessError);
+        throw new Error(`PDF file is not accessible: ${accessError.message}`);
+      }
       
       res.json({ 
         url: pdfUrl,

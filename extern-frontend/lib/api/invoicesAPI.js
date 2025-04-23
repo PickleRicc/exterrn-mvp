@@ -204,7 +204,16 @@ export const invoicesAPI = {
       }
       
       console.log('PDF preview response:', response.data);
-      return response.data;
+      
+      // The PDF URL should be used directly without the /api/proxy prefix
+      // since it's served from the public directory
+      const pdfUrl = response.data.url;
+      
+      // Return the response data with the correct URL
+      return {
+        ...response.data,
+        fullUrl: pdfUrl // This is the direct URL to the PDF file
+      };
     } catch (error) {
       console.error(`Error previewing PDF:`, error);
       if (error.response) {

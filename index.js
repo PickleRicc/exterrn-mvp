@@ -3,6 +3,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const pool = require('./db');
 const appointmentRoutes = require('./routes/appointments');
 const customerRoutes = require('./routes/customers');
@@ -25,6 +26,12 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+
+// Serve static files from the public directory
+// This is needed for PDF previews to work
+const publicDir = path.join(__dirname, 'public');
+app.use(express.static(publicDir));
+console.log(`Serving static files from: ${publicDir}`);
 
 // Routes
 app.use('/appointments', appointmentRoutes);

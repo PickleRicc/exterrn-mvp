@@ -147,8 +147,9 @@ export default function InvoiceDetailPage({ params }) {
       console.log('PDF preview response:', response);
       
       if (response && response.url) {
-        // Add the API proxy prefix to ensure the JWT token is included
-        const fullUrl = `/api/proxy${response.url}?craftsman_id=${craftsmanId}`;
+        // Use the direct URL to the PDF file without the API proxy prefix
+        // The PDF is served from the public directory on the server
+        const fullUrl = response.url;
         console.log('Setting PDF preview URL to:', fullUrl);
         setPdfPreviewUrl(fullUrl);
         setShowPdfPreview(true);
