@@ -730,43 +730,36 @@ const convertQuoteToInvoice = async (req, res) => {
   }
 };
 
-// Generate PDF for invoice
+// Generate PDF for download
 const generatePdf = async (req, res) => {
   try {
     const { id } = req.params;
     const { craftsman_id } = req.query;
     
-    console.log(`Generating PDF for invoice ${id} with craftsman ID ${craftsman_id}`);
-    
-    // Ensure craftsman_id is required for security
-    if (!craftsman_id) {
-      return res.status(400).json({ error: 'craftsman_id is required' });
+    if (!id) {
+      return res.status(400).json({ error: 'Invoice ID is required' });
     }
     
-    // Check if invoice exists and belongs to the craftsman
-    const checkResult = await pool.query('SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2', [id, craftsman_id]);
+    if (!craftsman_id) {
+      return res.status(400).json({ error: 'Craftsman ID is required' });
+    }
+    
+    // Check if invoice exists and belongs to craftsman
+    const checkResult = await pool.query(
+      `SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2`,
+      [id, craftsman_id]
+    );
+    
     if (checkResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Invoice not found or you do not have permission to access it' });
+      return res.status(404).json({ error: 'Invoice not found or does not belong to craftsman' });
     }
     
     const invoice = checkResult.rows[0];
     console.log(`Found invoice for PDF generation: ${invoice.id}, type: ${invoice.type}, number: ${invoice.invoice_number}`);
     
-    // Create temp directory if it doesn't exist
-    const tempDir = path.join(process.cwd(), 'temp');
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
-    
-    // Generate a unique filename
-    const filename = `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'}_${invoice.invoice_number.replace(/\//g, '-')}_${Date.now()}.pdf`;
-    const pdfPath = path.join(tempDir, filename);
-    
-    console.log(`Generating PDF for invoice ${id} to path: ${pdfPath}`);
-    
-    // Set headers for file download
+    // Set headers for PDF
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${invoice.type}_${invoice.invoice_number.replace(/\//g, '-')}.pdf"`);
     
     // Generate the PDF directly to the response stream
     const doc = await generateInvoicePdf({
@@ -789,112 +782,65 @@ const generatePdf = async (req, res) => {
   } catch (error) {
     console.error('Error generating PDF:', error);
     if (!res.headersSent) {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 };
 
-// Preview PDF for invoice (returns URL to view PDF)
+// Preview PDF
 const previewPdf = async (req, res) => {
   try {
     const { id } = req.params;
     const { craftsman_id } = req.query;
     
-    console.log(`PDF preview requested for invoice ${id} by craftsman ${craftsman_id}`);
-    
-    // Ensure craftsman_id is required for security
-    if (!craftsman_id) {
-      return res.status(400).json({ error: 'craftsman_id is required' });
+    if (!id) {
+      return res.status(400).json({ error: 'Invoice ID is required' });
     }
     
-    // Check if invoice exists and belongs to the craftsman
-    const checkResult = await pool.query('SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2', [id, craftsman_id]);
+    if (!craftsman_id) {
+      return res.status(400).json({ error: 'Craftsman ID is required' });
+    }
+    
+    // Check if invoice exists and belongs to craftsman
+    const checkResult = await pool.query(
+      `SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2`,
+      [id, craftsman_id]
+    );
+    
     if (checkResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Invoice not found or you do not have permission to access it' });
+      return res.status(404).json({ error: 'Invoice not found or does not belong to craftsman' });
     }
     
     const invoice = checkResult.rows[0];
     console.log(`Found invoice for preview: ${invoice.id}, type: ${invoice.type}, number: ${invoice.invoice_number}`);
     
-    // Create public/temp directory if it doesn't exist
-    const publicDir = path.join(process.cwd(), 'public');
-    const tempDir = path.join(publicDir, 'temp');
+    // Set headers for inline viewing
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${invoice.type}_${invoice.invoice_number.replace(/\//g, '-')}.pdf"`);
     
-    if (!fs.existsSync(publicDir)) {
-      fs.mkdirSync(publicDir, { recursive: true });
-      console.log(`Created public directory: ${publicDir}`);
-    }
-    
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-      console.log(`Created temp directory: ${tempDir}`);
-    }
-    
-    // Generate PDF in public directory
-    const filename = `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'}_${invoice.invoice_number.replace(/\//g, '-')}_${Date.now()}.pdf`;
-    const outputPath = path.join(tempDir, filename);
-    
-    console.log(`Generating PDF preview for invoice ${id} to path: ${outputPath}`);
-    
-    // Create a write stream for the PDF
-    const writeStream = fs.createWriteStream(outputPath);
-    
-    // Generate the PDF and pipe it to the file
+    // Generate the PDF directly to the response stream
     const doc = await generateInvoicePdf({
       invoiceId: id,
       stream: true
     });
     
-    doc.pipe(writeStream);
+    // Pipe the document directly to the response
+    doc.pipe(res);
     
-    // When the PDF is finished writing
-    writeStream.on('finish', () => {
-      console.log(`PDF preview file created: ${outputPath}`);
-      
-      // Verify the file exists and has content
-      if (fs.existsSync(outputPath)) {
-        const stats = fs.statSync(outputPath);
-        console.log(`PDF preview file size: ${stats.size} bytes`);
-        
-        if (stats.size > 0) {
-          // Return URL to view the PDF
-          const pdfUrl = `/temp/${filename}`;
-          console.log(`PDF preview URL: ${pdfUrl}`);
-          
-          res.json({ 
-            url: pdfUrl,
-            filename,
-            size: stats.size
-          });
-          
-          // Set up cleanup after 5 minutes
-          setTimeout(() => {
-            try {
-              if (fs.existsSync(outputPath)) {
-                fs.unlinkSync(outputPath);
-                console.log(`Deleted temporary preview PDF file: ${outputPath}`);
-              }
-            } catch (cleanupError) {
-              console.error('Error deleting temporary preview PDF file:', cleanupError);
-            }
-          }, 5 * 60 * 1000); // 5 minutes
-        } else {
-          res.status(500).json({ error: 'PDF preview file was created but is empty' });
-        }
-      } else {
-        res.status(500).json({ error: 'PDF preview file was not created' });
-      }
+    // Clean up function for when the response is finished
+    res.on('finish', () => {
+      console.log(`Finished streaming PDF preview for invoice ${id}`);
     });
     
-    // Handle write errors
-    writeStream.on('error', (err) => {
-      console.error('Error writing PDF preview file:', err);
-      res.status(500).json({ error: `Error writing PDF preview file: ${err.message}` });
+    res.on('error', (err) => {
+      console.error(`Error streaming PDF preview for invoice ${id}:`, err);
     });
     
   } catch (error) {
     console.error('Error generating PDF preview:', error);
-    res.status(500).json({ error: error.message });
+    if (!res.headersSent) {
+      return res.status(500).json({ error: error.message });
+    }
   }
 };
 

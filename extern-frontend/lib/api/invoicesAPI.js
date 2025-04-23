@@ -157,35 +157,10 @@ export const invoicesAPI = {
         throw new Error('No authentication token found');
       }
       
-      // Create a blob URL for the PDF
-      const response = await fetch(`/api/proxy/invoices/${id}/pdf?craftsman_id=${craftsman_id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to generate PDF: ${response.status} ${response.statusText}`);
-      }
-      
-      // Get the blob from the response
-      const blob = await response.blob();
-      
-      // Create a blob URL
-      const url = window.URL.createObjectURL(blob);
-      
-      // Create a temporary link element to trigger the download
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Invoice_${id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      
-      // Clean up
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(link);
-      }, 100);
+      // For PDF download, we'll open a new tab with the PDF URL
+      // This will trigger the browser's download behavior
+      const url = `/api/pdf-download?id=${id}&craftsman_id=${craftsman_id}`;
+      window.open(url, '_blank');
       
       return true;
     } catch (error) {
@@ -205,30 +180,9 @@ export const invoicesAPI = {
         throw new Error('No authentication token found');
       }
       
-      // Fetch the PDF as a blob
-      const response = await fetch(`/api/proxy/invoices/${id}/pdf-preview?craftsman_id=${craftsman_id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to preview PDF: ${response.status} ${response.statusText}`);
-      }
-      
-      // Get the blob from the response
-      const blob = await response.blob();
-      
-      // Create a blob URL
-      const url = window.URL.createObjectURL(blob);
-      
-      // Open the PDF in a new tab
+      // For PDF preview, we'll open a new tab with the PDF URL
+      const url = `/api/pdf-preview?id=${id}&craftsman_id=${craftsman_id}`;
       window.open(url, '_blank');
-      
-      // Clean up after a delay
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-      }, 1000);
       
       return { success: true };
     } catch (error) {
