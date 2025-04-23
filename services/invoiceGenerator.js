@@ -17,6 +17,10 @@ const generateInvoicePdf = async (options) => {
   try {
     console.log(`Starting PDF generation for invoice ${invoiceId}, stream mode: ${stream}`);
     
+    if (!invoiceId) {
+      throw new Error('Invoice ID is required for PDF generation');
+    }
+    
     // Get invoice data with all related information
     const invoiceResult = await pool.query(`
       SELECT i.*, 
@@ -37,6 +41,19 @@ const generateInvoicePdf = async (options) => {
     const invoice = invoiceResult.rows[0];
     console.log(`Found invoice: ${invoice.id}, type: ${invoice.type}, number: ${invoice.invoice_number}`);
     
+    // Validate required invoice data
+    if (!invoice.invoice_number) {
+      throw new Error('Invoice number is missing');
+    }
+    
+    if (!invoice.customer_id) {
+      throw new Error('Customer ID is missing');
+    }
+    
+    if (!invoice.craftsman_id) {
+      throw new Error('Craftsman ID is missing');
+    }
+    
     // Get invoice items
     const itemsResult = await pool.query(
       `SELECT * FROM invoice_items WHERE invoice_id = $1`,
@@ -52,9 +69,9 @@ const generateInvoicePdf = async (options) => {
       margin: 50,
       info: {
         Title: `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'} #${invoice.invoice_number}`,
-        Author: invoice.craftsman_name || 'Extern',
+        Author: invoice.craftsman_name || 'ZIMMR',
         Subject: `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'} for ${invoice.customer_name || 'Customer'}`,
-        Keywords: 'invoice, quote, extern',
+        Keywords: 'invoice, quote, zimmr',
         CreationDate: new Date()
       }
     });
@@ -62,17 +79,22 @@ const generateInvoicePdf = async (options) => {
     // Set up the document stream
     let pdfPath;
     if (!stream) {
-      pdfPath = outputPath || path.join(process.cwd(), 'temp', `${invoice.type}_${invoice.invoice_number.replace(/\//g, '-')}.pdf`);
-      
-      // Ensure directory exists
-      const dir = path.dirname(pdfPath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+      try {
+        pdfPath = outputPath || path.join(process.cwd(), 'temp', `${invoice.type}_${invoice.invoice_number.replace(/\//g, '-')}.pdf`);
+        
+        // Ensure directory exists
+        const dir = path.dirname(pdfPath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        
+        // Pipe the PDF to a file
+        doc.pipe(fs.createWriteStream(pdfPath));
+        console.log(`PDF will be saved to: ${pdfPath}`);
+      } catch (error) {
+        console.error('Error setting up PDF file stream:', error);
+        throw new Error(`Failed to set up PDF file: ${error.message}`);
       }
-      
-      // Pipe the PDF to a file
-      doc.pipe(fs.createWriteStream(pdfPath));
-      console.log(`PDF will be saved to: ${pdfPath}`);
     }
     
     // Helper function to add text with proper line breaks
@@ -358,13 +380,21 @@ const formatDate = (dateString) => {
 const formatPaymentDeadline = (deadline) => {
   if (!deadline) return '16 days';
   
-  // Extract days from interval string
-  const match = deadline.match(/(\d+) days/);
-  if (match && match[1]) {
-    return `${match[1]} days`;
+  try {
+    // Ensure deadline is a string
+    const deadlineStr = String(deadline);
+    
+    // Extract days from interval string
+    const match = deadlineStr.match(/(\d+) days/);
+    if (match && match[1]) {
+      return `${match[1]} days`;
+    }
+    
+    return deadlineStr;
+  } catch (error) {
+    console.error(`Error formatting payment deadline "${deadline}":`, error);
+    return '16 days'; // Default fallback
   }
-  
-  return deadline;
 };
 
 module.exports = {

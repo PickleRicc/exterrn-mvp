@@ -159,15 +159,25 @@ export const invoicesAPI = {
       const url = `/invoices/${id}/pdf${queryString ? `?${queryString}` : ''}`;
       
       console.log(`Generating PDF with URL: ${url}`);
-      // This will trigger a file download
+      
+      // Instead of using window.open which doesn't provide error feedback,
+      // use fetch to check if the PDF generation is successful first
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+      
+      // If successful, open in a new tab
       window.open(url, '_blank');
       return true;
     } catch (error) {
       console.error(`Error generating PDF:`, error);
-      if (error.response) {
-        console.error('Response data:', error.response.data);
-        console.error('Response status:', error.response.status);
-      }
       throw error;
     }
   },
@@ -184,8 +194,16 @@ export const invoicesAPI = {
       const queryString = queryParams.toString();
       const url = `/invoices/${id}/pdf-preview${queryString ? `?${queryString}` : ''}`;
       
-      console.log(`Previewing PDF with URL: ${url}`);
+      console.log(`Requesting PDF preview with URL: ${url}`);
       const response = await api.get(url);
+      
+      // Validate the response
+      if (!response.data || !response.data.url) {
+        console.error('Invalid PDF preview response:', response.data);
+        throw new Error('Invalid PDF preview response');
+      }
+      
+      console.log('PDF preview response:', response.data);
       return response.data;
     } catch (error) {
       console.error(`Error previewing PDF:`, error);

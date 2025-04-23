@@ -736,7 +736,7 @@ const generatePdf = async (req, res) => {
     const { id } = req.params;
     const { craftsman_id } = req.query;
     
-    console.log(`PDF download requested for invoice ${id} by craftsman ${craftsman_id}`);
+    console.log(`Generating PDF for invoice ${id} with craftsman ID ${craftsman_id}`);
     
     // Ensure craftsman_id is required for security
     if (!craftsman_id) {
@@ -750,22 +750,19 @@ const generatePdf = async (req, res) => {
     }
     
     const invoice = checkResult.rows[0];
-    console.log(`Found invoice: ${invoice.id}, type: ${invoice.type}, number: ${invoice.invoice_number}`);
+    console.log(`Found invoice for PDF generation: ${invoice.id}, type: ${invoice.type}, number: ${invoice.invoice_number}`);
     
     try {
-      // Set headers for download
-      const filename = `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'}_${invoice.invoice_number.replace(/\//g, '-')}_${Date.now()}.pdf`;
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      
       // Create temp directory if it doesn't exist
       const tempDir = path.join(process.cwd(), 'temp');
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
       }
       
-      // Generate PDF to a file first, then stream it to the response
+      // Generate a unique filename
+      const filename = `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'}_${invoice.invoice_number.replace(/\//g, '-')}_${Date.now()}.pdf`;
       const pdfPath = path.join(tempDir, filename);
+      
       console.log(`Generating PDF for invoice ${id} to path: ${pdfPath}`);
       
       // Generate the PDF to a file
@@ -775,7 +772,7 @@ const generatePdf = async (req, res) => {
         stream: false
       });
       
-      // Verify the file exists
+      // Verify the file exists and has content
       if (!fs.existsSync(pdfPath)) {
         throw new Error(`PDF file was not created at path: ${pdfPath}`);
       }
@@ -787,6 +784,11 @@ const generatePdf = async (req, res) => {
         throw new Error('PDF file was created but is empty');
       }
       
+      // Set headers for file download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', stats.size);
+      
       // Stream the file to the response
       const fileStream = fs.createReadStream(pdfPath);
       
@@ -794,7 +796,7 @@ const generatePdf = async (req, res) => {
       fileStream.on('error', (err) => {
         console.error('Error streaming PDF file:', err);
         if (!res.headersSent) {
-          res.status(500).json({ error: 'Error streaming PDF file' });
+          res.status(500).json({ error: `Error streaming PDF file: ${err.message}` });
         }
       });
       
@@ -851,10 +853,12 @@ const previewPdf = async (req, res) => {
       
       if (!fs.existsSync(publicDir)) {
         fs.mkdirSync(publicDir, { recursive: true });
+        console.log(`Created public directory: ${publicDir}`);
       }
       
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
+        console.log(`Created temp directory: ${tempDir}`);
       }
       
       // Generate PDF in public directory
@@ -884,16 +888,24 @@ const previewPdf = async (req, res) => {
       
       // Return URL to view the PDF
       const pdfUrl = `/temp/${filename}`;
+      console.log(`PDF preview URL: ${pdfUrl}`);
+      
       res.json({ 
         url: pdfUrl,
-        filename
+        filename,
+        size: stats.size
       });
       
       // Set up cleanup after 5 minutes
       setTimeout(() => {
-        fs.unlink(outputPath, (err) => {
-          if (err) console.error('Error deleting temporary preview PDF file:', err);
-        });
+        try {
+          if (fs.existsSync(outputPath)) {
+            fs.unlinkSync(outputPath);
+            console.log(`Deleted temporary preview PDF file: ${outputPath}`);
+          }
+        } catch (cleanupError) {
+          console.error('Error deleting temporary preview PDF file:', cleanupError);
+        }
       }, 5 * 60 * 1000); // 5 minutes
     } catch (pdfError) {
       console.error('Error in PDF preview generation:', pdfError);

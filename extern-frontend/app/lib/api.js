@@ -333,7 +333,13 @@ export const invoicesAPI = {
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Try to get error details if possible
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        } catch (jsonError) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
       }
       
       // Get the blob from the response
@@ -344,10 +350,7 @@ export const invoicesAPI = {
         throw new Error('Received empty PDF file');
       }
       
-      if (blob.type !== 'application/pdf' && blob.type !== 'application/octet-stream') {
-        console.warn(`Unexpected content type: ${blob.type}`);
-      }
-      
+      // Log content type for debugging
       console.log(`Received PDF blob: type=${blob.type}, size=${blob.size} bytes`);
       
       // Create a blob URL and trigger download
