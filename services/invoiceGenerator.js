@@ -15,6 +15,8 @@ const generateInvoicePdf = async (options) => {
   const { invoiceId, outputPath, stream = false } = options;
   
   try {
+    console.log(`Starting PDF generation for invoice ${invoiceId}, stream mode: ${stream}`);
+    
     // Get invoice data with all related information
     const invoiceResult = await pool.query(`
       SELECT i.*, 
@@ -33,6 +35,7 @@ const generateInvoicePdf = async (options) => {
     }
     
     const invoice = invoiceResult.rows[0];
+    console.log(`Found invoice: ${invoice.id}, type: ${invoice.type}, number: ${invoice.invoice_number}`);
     
     // Get invoice items
     const itemsResult = await pool.query(
@@ -41,6 +44,7 @@ const generateInvoicePdf = async (options) => {
     );
     
     const items = itemsResult.rows;
+    console.log(`Found ${items.length} items for invoice ${invoiceId}`);
     
     // Create a PDF document
     const doc = new PDFDocument({ 
@@ -48,9 +52,9 @@ const generateInvoicePdf = async (options) => {
       margin: 50,
       info: {
         Title: `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'} #${invoice.invoice_number}`,
-        Author: invoice.craftsman_name,
-        Subject: `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'} for ${invoice.customer_name}`,
-        Keywords: 'invoice, quote, zimmr',
+        Author: invoice.craftsman_name || 'Extern',
+        Subject: `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'} for ${invoice.customer_name || 'Customer'}`,
+        Keywords: 'invoice, quote, extern',
         CreationDate: new Date()
       }
     });
@@ -68,6 +72,7 @@ const generateInvoicePdf = async (options) => {
       
       // Pipe the PDF to a file
       doc.pipe(fs.createWriteStream(pdfPath));
+      console.log(`PDF will be saved to: ${pdfPath}`);
     }
     
     // Helper function to add text with proper line breaks
@@ -296,25 +301,28 @@ const generateInvoicePdf = async (options) => {
     
     // Finalize the PDF
     doc.end();
+    console.log(`PDF document finalized`);
     
-    // Return a Promise that resolves when the PDF is fully written
+    // In stream mode, just return the document
+    if (stream) {
+      console.log(`Returning PDF document in stream mode`);
+      return doc;
+    }
+    
+    // For file mode, return a Promise that resolves when the PDF is fully written
     return new Promise((resolve, reject) => {
-      if (stream) {
-        // If streaming, return the document
-        resolve(doc);
-      } else {
-        // If writing to file, wait for the 'end' event
-        doc.on('end', () => {
-          console.log(`PDF successfully generated and saved to: ${pdfPath}`);
-          resolve(pdfPath);
-        });
-        
-        // Handle errors
-        doc.on('error', (err) => {
-          console.error('Error generating PDF:', err);
-          reject(err);
-        });
-      }
+      const pdfPath = outputPath || path.join(process.cwd(), 'temp', `${invoice.type}_${invoice.invoice_number.replace(/\//g, '-')}.pdf`);
+      
+      // Set up event handlers on the document
+      doc.on('end', () => {
+        console.log(`PDF successfully generated and saved to: ${pdfPath}`);
+        resolve(pdfPath);
+      });
+      
+      doc.on('error', (err) => {
+        console.error('Error generating PDF:', err);
+        reject(err);
+      });
     });
   } catch (error) {
     console.error('Error generating PDF:', error);

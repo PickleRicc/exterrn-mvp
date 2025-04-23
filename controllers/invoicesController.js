@@ -752,43 +752,72 @@ const generatePdf = async (req, res) => {
     const invoice = checkResult.rows[0];
     console.log(`Found invoice: ${invoice.id}, type: ${invoice.type}, number: ${invoice.invoice_number}`);
     
-    // Set headers for download
-    const filename = `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'}_${invoice.invoice_number.replace(/\//g, '-')}_${Date.now()}.pdf`;
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    
-    // Generate PDF directly to response stream
     try {
-      // Use stream mode to pipe directly to response
-      const doc = await generateInvoicePdf({
+      // Set headers for download
+      const filename = `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'}_${invoice.invoice_number.replace(/\//g, '-')}_${Date.now()}.pdf`;
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      
+      // Create temp directory if it doesn't exist
+      const tempDir = path.join(process.cwd(), 'temp');
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+      }
+      
+      // Generate PDF to a file first, then stream it to the response
+      const pdfPath = path.join(tempDir, filename);
+      console.log(`Generating PDF for invoice ${id} to path: ${pdfPath}`);
+      
+      // Generate the PDF to a file
+      await generateInvoicePdf({
         invoiceId: id,
-        outputPath: null,
-        stream: true
+        outputPath: pdfPath,
+        stream: false
       });
       
-      // Pipe the PDF document directly to the response
-      doc.pipe(res);
+      // Verify the file exists
+      if (!fs.existsSync(pdfPath)) {
+        throw new Error(`PDF file was not created at path: ${pdfPath}`);
+      }
       
-      // No need to clean up temporary files since we're streaming directly
-      console.log(`PDF streaming started for invoice ${id}`);
+      const stats = fs.statSync(pdfPath);
+      console.log(`PDF file size: ${stats.size} bytes`);
+      
+      if (stats.size === 0) {
+        throw new Error('PDF file was created but is empty');
+      }
+      
+      // Stream the file to the response
+      const fileStream = fs.createReadStream(pdfPath);
+      
+      // Handle file stream errors
+      fileStream.on('error', (err) => {
+        console.error('Error streaming PDF file:', err);
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Error streaming PDF file' });
+        }
+      });
+      
+      // Pipe the file to the response
+      fileStream.pipe(res);
+      
+      // Clean up the file after sending
+      fileStream.on('close', () => {
+        console.log(`Finished streaming PDF file: ${pdfPath}`);
+        fs.unlink(pdfPath, (err) => {
+          if (err) console.error('Error deleting temporary PDF file:', err);
+        });
+      });
     } catch (pdfError) {
       console.error('Error in PDF generation:', pdfError);
-      // Only send error if headers haven't been sent yet
       if (!res.headersSent) {
         return res.status(500).json({ error: pdfError.message });
-      } else {
-        // If headers are already sent, we can only end the response
-        res.end();
       }
     }
   } catch (error) {
     console.error('Error generating PDF:', error);
-    // Only send error if headers haven't been sent yet
     if (!res.headersSent) {
       res.status(500).json({ error: error.message });
-    } else {
-      // If headers are already sent, we can only end the response
-      res.end();
     }
   }
 };
@@ -815,47 +844,30 @@ const previewPdf = async (req, res) => {
     const invoice = checkResult.rows[0];
     console.log(`Found invoice for preview: ${invoice.id}, type: ${invoice.type}, number: ${invoice.invoice_number}`);
     
-    // Create public/temp directory if it doesn't exist
-    const publicDir = path.join(process.cwd(), 'public');
-    const tempDir = path.join(publicDir, 'temp');
-    
-    if (!fs.existsSync(publicDir)) {
-      fs.mkdirSync(publicDir, { recursive: true });
-    }
-    
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
-    
-    // Generate PDF in public directory
-    const filename = `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'}_${invoice.invoice_number.replace(/\//g, '-')}_${Date.now()}.pdf`;
-    const outputPath = path.join(tempDir, filename);
-    
-    console.log(`Generating PDF preview for invoice ${id} to path: ${outputPath}`);
-    
     try {
-      // Create a write stream for the PDF
-      const writeStream = fs.createWriteStream(outputPath);
+      // Create public/temp directory if it doesn't exist
+      const publicDir = path.join(process.cwd(), 'public');
+      const tempDir = path.join(publicDir, 'temp');
       
-      // Generate the PDF and pipe it to the file
-      const doc = await generateInvoicePdf({
+      if (!fs.existsSync(publicDir)) {
+        fs.mkdirSync(publicDir, { recursive: true });
+      }
+      
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+      }
+      
+      // Generate PDF in public directory
+      const filename = `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'}_${invoice.invoice_number.replace(/\//g, '-')}_${Date.now()}.pdf`;
+      const outputPath = path.join(tempDir, filename);
+      
+      console.log(`Generating PDF preview for invoice ${id} to path: ${outputPath}`);
+      
+      // Generate the PDF to a file
+      await generateInvoicePdf({
         invoiceId: id,
-        stream: true
-      });
-      
-      // Wait for the PDF to be fully written
-      await new Promise((resolve, reject) => {
-        doc.pipe(writeStream);
-        
-        writeStream.on('finish', () => {
-          console.log(`PDF preview file written to ${outputPath}`);
-          resolve();
-        });
-        
-        writeStream.on('error', (err) => {
-          console.error('Error writing PDF preview file:', err);
-          reject(err);
-        });
+        outputPath,
+        stream: false
       });
       
       // Verify the file exists and has content
