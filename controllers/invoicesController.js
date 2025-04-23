@@ -759,26 +759,58 @@ const generatePdf = async (req, res) => {
     const filename = `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'}_${invoice.invoice_number.replace(/\//g, '-')}_${Date.now()}.pdf`;
     const pdfPath = path.join(tempDir, filename);
     
-    await generateInvoicePdf({
-      invoiceId: id,
-      outputPath: pdfPath,
-      stream: false
-    });
+    console.log(`Generating PDF for invoice ${id} to path: ${pdfPath}`);
     
-    // Set headers for download
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    
-    // Stream the file to the response
-    const fileStream = fs.createReadStream(pdfPath);
-    fileStream.pipe(res);
-    
-    // Clean up the file after sending
-    fileStream.on('end', () => {
-      fs.unlink(pdfPath, (err) => {
-        if (err) console.error('Error deleting temporary PDF file:', err);
+    try {
+      // Generate the PDF and wait for it to complete
+      await generateInvoicePdf({
+        invoiceId: id,
+        outputPath: pdfPath,
+        stream: false
       });
-    });
+      
+      // Verify the file exists before sending
+      if (!fs.existsSync(pdfPath)) {
+        throw new Error(`PDF file was not created at path: ${pdfPath}`);
+      }
+      
+      const stats = fs.statSync(pdfPath);
+      console.log(`PDF file size: ${stats.size} bytes`);
+      
+      if (stats.size === 0) {
+        throw new Error('PDF file was created but is empty');
+      }
+      
+      // Set headers for download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Length', stats.size);
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      
+      // Stream the file to the response
+      const fileStream = fs.createReadStream(pdfPath);
+      
+      // Handle file stream errors
+      fileStream.on('error', (err) => {
+        console.error('Error streaming PDF file:', err);
+        // Only send error if headers haven't been sent yet
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Error streaming PDF file' });
+        }
+      });
+      
+      // Pipe the file to the response
+      fileStream.pipe(res);
+      
+      // Clean up the file after sending
+      fileStream.on('end', () => {
+        fs.unlink(pdfPath, (err) => {
+          if (err) console.error('Error deleting temporary PDF file:', err);
+        });
+      });
+    } catch (pdfError) {
+      console.error('Error in PDF generation or streaming:', pdfError);
+      return res.status(500).json({ error: pdfError.message });
+    }
   } catch (error) {
     console.error('Error generating PDF:', error);
     res.status(500).json({ error: error.message });
@@ -815,27 +847,47 @@ const previewPdf = async (req, res) => {
     
     // Generate PDF in public directory
     const filename = `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'}_${invoice.invoice_number.replace(/\//g, '-')}_${Date.now()}.pdf`;
-    const outputPath = `${tempDir}/${filename}`;
+    const outputPath = path.join(tempDir, filename);
     
-    await generateInvoicePdf({
-      invoiceId: id,
-      outputPath,
-      stream: false
-    });
+    console.log(`Generating PDF preview for invoice ${id} to path: ${outputPath}`);
     
-    // Return URL to view the PDF
-    const pdfUrl = `/temp/${filename}`;
-    res.json({ 
-      url: pdfUrl,
-      filename
-    });
-    
-    // Set up cleanup after 5 minutes
-    setTimeout(() => {
-      fs.unlink(outputPath, (err) => {
-        if (err) console.error('Error deleting temporary preview PDF file:', err);
+    try {
+      // Generate the PDF and wait for it to complete
+      await generateInvoicePdf({
+        invoiceId: id,
+        outputPath,
+        stream: false
       });
-    }, 5 * 60 * 1000); // 5 minutes
+      
+      // Verify the file exists before sending the URL
+      if (!fs.existsSync(outputPath)) {
+        throw new Error(`PDF file was not created at path: ${outputPath}`);
+      }
+      
+      const stats = fs.statSync(outputPath);
+      console.log(`PDF preview file size: ${stats.size} bytes`);
+      
+      if (stats.size === 0) {
+        throw new Error('PDF preview file was created but is empty');
+      }
+      
+      // Return URL to view the PDF
+      const pdfUrl = `/temp/${filename}`;
+      res.json({ 
+        url: pdfUrl,
+        filename
+      });
+      
+      // Set up cleanup after 5 minutes
+      setTimeout(() => {
+        fs.unlink(outputPath, (err) => {
+          if (err) console.error('Error deleting temporary preview PDF file:', err);
+        });
+      }, 5 * 60 * 1000); // 5 minutes
+    } catch (pdfError) {
+      console.error('Error in PDF preview generation:', pdfError);
+      return res.status(500).json({ error: pdfError.message });
+    }
   } catch (error) {
     console.error('Error generating PDF preview:', error);
     res.status(500).json({ error: error.message });

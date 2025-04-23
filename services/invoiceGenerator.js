@@ -297,11 +297,25 @@ const generateInvoicePdf = async (options) => {
     // Finalize the PDF
     doc.end();
     
-    if (stream) {
-      return doc;
-    } else {
-      return pdfPath;
-    }
+    // Return a Promise that resolves when the PDF is fully written
+    return new Promise((resolve, reject) => {
+      if (stream) {
+        // If streaming, return the document
+        resolve(doc);
+      } else {
+        // If writing to file, wait for the 'end' event
+        doc.on('end', () => {
+          console.log(`PDF successfully generated and saved to: ${pdfPath}`);
+          resolve(pdfPath);
+        });
+        
+        // Handle errors
+        doc.on('error', (err) => {
+          console.error('Error generating PDF:', err);
+          reject(err);
+        });
+      }
+    });
   } catch (error) {
     console.error('Error generating PDF:', error);
     throw error;
