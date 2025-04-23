@@ -310,6 +310,54 @@ export const invoicesAPI = {
       params: { craftsman_id: craftsmanId }
     });
     return response.data;
+  },
+  
+  // Generate PDF for download
+  generatePdf: async (id, craftsmanId) => {
+    // Instead of opening a new window, use axios to get the PDF as a blob
+    // This ensures the JWT token is included in the request
+    try {
+      const response = await api.get(`/invoices/${id}/pdf`, {
+        params: { craftsman_id: craftsmanId },
+        responseType: 'blob' // Important: responseType must be 'blob' for binary data
+      });
+      
+      // Create a blob URL and trigger download
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary link element to trigger the download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Invoice_${id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+      
+      return true;
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      throw error;
+    }
+  },
+  
+  // Preview PDF (returns URL to view)
+  previewPdf: async (id, craftsmanId) => {
+    const response = await api.get(`/invoices/${id}/pdf-preview`, {
+      params: { craftsman_id: craftsmanId }
+    });
+    return response.data;
+  },
+  
+  // Convert quote to invoice
+  convertQuoteToInvoice: async (id, craftsmanId) => {
+    const response = await api.post(`/invoices/${id}/convert-to-invoice`, {
+      craftsman_id: craftsmanId
+    });
+    return response.data;
   }
 };
 

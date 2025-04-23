@@ -142,8 +142,10 @@ export default function InvoiceDetailPage({ params }) {
       setPdfLoading(true);
       const response = await invoicesAPI.previewPdf(id, craftsmanId);
       
-      if (response && response.pdfUrl) {
-        setPdfPreviewUrl(response.pdfUrl);
+      if (response && response.url) {
+        // Add the API proxy prefix to ensure the JWT token is included
+        const fullUrl = `/api/proxy${response.url}?craftsman_id=${craftsmanId}`;
+        setPdfPreviewUrl(fullUrl);
         setShowPdfPreview(true);
       } else {
         setError('Failed to generate PDF preview.');

@@ -1,6 +1,7 @@
 const pool = require('../db');
 const { generateInvoicePdf } = require('../services/invoiceGenerator');
 const fs = require('fs');
+const path = require('path');
 
 // Get all invoices with filtering options
 const getAllInvoices = async (req, res) => {
@@ -748,15 +749,23 @@ const generatePdf = async (req, res) => {
     
     const invoice = checkResult.rows[0];
     
-    // Generate PDF
-    const pdfPath = await generateInvoicePdf({
+    // Create temp directory if it doesn't exist
+    const tempDir = path.join(process.cwd(), 'temp');
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    
+    // Generate PDF with explicit output path
+    const filename = `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'}_${invoice.invoice_number.replace(/\//g, '-')}_${Date.now()}.pdf`;
+    const pdfPath = path.join(tempDir, filename);
+    
+    await generateInvoicePdf({
       invoiceId: id,
-      outputPath: null, // Use default path
+      outputPath: pdfPath,
       stream: false
     });
     
     // Set headers for download
-    const filename = `${invoice.type === 'invoice' ? 'Invoice' : 'Quote'}_${invoice.invoice_number.replace(/\//g, '-')}.pdf`;
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     
@@ -795,8 +804,11 @@ const previewPdf = async (req, res) => {
     
     const invoice = checkResult.rows[0];
     
-    // Create temp directory if it doesn't exist
+    // Create public/temp directory if it doesn't exist
     const tempDir = 'public/temp';
+    if (!fs.existsSync('public')) {
+      fs.mkdirSync('public', { recursive: true });
+    }
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
