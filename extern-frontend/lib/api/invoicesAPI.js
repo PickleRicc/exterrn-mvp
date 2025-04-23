@@ -61,9 +61,18 @@ export const invoicesAPI = {
   },
   
   // Generate PDF for invoice
-  generatePdf: async (id, craftsman_id) => {
+  generatePdf: async (id, params = {}) => {
     try {
-      console.log(`Generating PDF for invoice ${id} with craftsman ID ${craftsman_id}`);
+      // Extract craftsman_id from params if it's an object, or use params directly if it's a primitive value
+      let craftsman_id;
+      if (typeof params === 'object' && params !== null) {
+        craftsman_id = params.craftsman_id;
+        console.log(`Generating PDF for invoice ${id} with params:`, params);
+      } else {
+        // For backward compatibility
+        craftsman_id = params;
+        console.log(`Generating PDF for invoice ${id} with craftsman ID ${craftsman_id}`);
+      }
       
       // Get the authentication token
       const token = localStorage.getItem('token');
@@ -72,19 +81,18 @@ export const invoicesAPI = {
       }
       
       // Create params object
-      const params = {};
+      const queryParams = {};
       if (craftsman_id) {
-        params.craftsman_id = craftsman_id;
+        queryParams.craftsman_id = craftsman_id;
       }
       
       // For PDF download, we'll use fetch to get the PDF as a blob
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE || '';
       const apiUrl = `/api/invoices/${id}/pdf`;
       
       // Create URL with query parameters
       const url = new URL(apiUrl, window.location.origin);
-      Object.keys(params).forEach(key => {
-        url.searchParams.append(key, params[key]);
+      Object.keys(queryParams).forEach(key => {
+        url.searchParams.append(key, queryParams[key]);
       });
       
       // Open the URL in a new tab

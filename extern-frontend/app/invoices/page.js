@@ -59,7 +59,8 @@ export default function InvoicesPage() {
   const fetchInvoices = async () => {
     try {
       setLoading(true);
-      const data = await invoicesAPI.getAll(craftsmanId);
+      // Pass craftsman_id as an object parameter
+      const data = await invoicesAPI.getAll({ craftsman_id: craftsmanId });
       console.log('Fetched invoices:', data);
       setInvoices(data);
       setError(null);
@@ -73,7 +74,8 @@ export default function InvoicesPage() {
 
   const handleGeneratePdf = async (id) => {
     try {
-      await invoicesAPI.generatePdf(id, craftsmanId);
+      // Pass craftsman_id as an object parameter
+      await invoicesAPI.generatePdf(id, { craftsman_id: craftsmanId });
     } catch (err) {
       console.error('Error generating PDF:', err);
       alert('Failed to generate PDF. Please try again later.');
