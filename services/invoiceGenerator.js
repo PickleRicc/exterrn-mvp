@@ -76,26 +76,74 @@ const generateInvoicePdf = async (options) => {
       }
     });
     
-    // Set up the document stream
+    // Set up the document stream and promise
     let pdfPath;
-    if (!stream) {
-      try {
-        pdfPath = outputPath || path.join(process.cwd(), 'temp', `${invoice.type}_${invoice.invoice_number.replace(/\//g, '-')}.pdf`);
-        
-        // Ensure directory exists
-        const dir = path.dirname(pdfPath);
-        if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir, { recursive: true });
+    let fileStream;
+    
+    // Create a promise that resolves when the PDF is fully written
+    const pdfPromise = new Promise((resolve, reject) => {
+      if (!stream) {
+        try {
+          pdfPath = outputPath || path.join(process.cwd(), 'temp', `${invoice.type}_${invoice.invoice_number.replace(/\//g, '-')}.pdf`);
+          
+          // Ensure directory exists
+          const dir = path.dirname(pdfPath);
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+          
+          console.log(`Creating PDF file at: ${pdfPath}`);
+          
+          // Create a write stream
+          fileStream = fs.createWriteStream(pdfPath);
+          
+          // Set up event handlers for the file stream
+          fileStream.on('finish', () => {
+            console.log(`File stream finished for: ${pdfPath}`);
+            
+            // Verify the file exists and has content
+            try {
+              if (fs.existsSync(pdfPath)) {
+                const stats = fs.statSync(pdfPath);
+                console.log(`PDF file stats: ${JSON.stringify(stats)}`);
+                
+                if (stats.size > 0) {
+                  console.log(`Verified PDF file: ${pdfPath}, size: ${stats.size} bytes`);
+                  resolve(pdfPath);
+                } else {
+                  reject(new Error(`PDF file was created but is empty: ${pdfPath}`));
+                }
+              } else {
+                reject(new Error(`PDF file was not created at path: ${pdfPath}`));
+              }
+            } catch (err) {
+              console.error('Error verifying PDF file:', err);
+              reject(err);
+            }
+          });
+          
+          fileStream.on('error', (err) => {
+            console.error(`File stream error for ${pdfPath}:`, err);
+            reject(err);
+          });
+          
+          // Pipe the PDF to the file stream
+          doc.pipe(fileStream);
+        } catch (error) {
+          console.error('Error setting up PDF file stream:', error);
+          reject(error);
         }
-        
-        // Pipe the PDF to a file
-        doc.pipe(fs.createWriteStream(pdfPath));
-        console.log(`PDF will be saved to: ${pdfPath}`);
-      } catch (error) {
-        console.error('Error setting up PDF file stream:', error);
-        throw new Error(`Failed to set up PDF file: ${error.message}`);
+      } else {
+        // In stream mode, resolve with the document
+        resolve(doc);
       }
-    }
+      
+      // Handle document errors
+      doc.on('error', (err) => {
+        console.error('PDF document error:', err);
+        reject(err);
+      });
+    });
     
     // Helper function to add text with proper line breaks
     const addFormattedText = (text, x, y, options = {}) => {
@@ -325,42 +373,8 @@ const generateInvoicePdf = async (options) => {
     doc.end();
     console.log(`PDF document finalized`);
     
-    // In stream mode, just return the document
-    if (stream) {
-      console.log(`Returning PDF document in stream mode`);
-      return doc;
-    }
-    
-    // For file mode, return a Promise that resolves when the PDF is fully written
-    return new Promise((resolve, reject) => {
-      // Set up event handlers on the document
-      doc.on('end', () => {
-        console.log(`PDF successfully generated and saved to: ${pdfPath}`);
-        
-        // Verify the file exists and has content before resolving
-        try {
-          if (fs.existsSync(pdfPath)) {
-            const stats = fs.statSync(pdfPath);
-            if (stats.size > 0) {
-              console.log(`Verified PDF file: ${pdfPath}, size: ${stats.size} bytes`);
-              resolve(pdfPath);
-            } else {
-              reject(new Error(`PDF file was created but is empty: ${pdfPath}`));
-            }
-          } else {
-            reject(new Error(`PDF file was not created at path: ${pdfPath}`));
-          }
-        } catch (err) {
-          console.error('Error verifying PDF file:', err);
-          reject(err);
-        }
-      });
-      
-      doc.on('error', (err) => {
-        console.error('Error generating PDF:', err);
-        reject(err);
-      });
-    });
+    // Return the promise
+    return pdfPromise;
   } catch (error) {
     console.error('Error generating PDF:', error);
     throw error;
