@@ -318,6 +318,8 @@ const deleteInvoice = async (req, res) => {
     const { id } = req.params;
     const { craftsman_id } = req.query;
     
+    console.log(`Attempting to delete invoice ${id} for craftsman ${craftsman_id}`);
+    
     // Validate required fields
     if (!craftsman_id) {
       return res.status(400).json({ error: 'craftsman_id is required' });
@@ -327,7 +329,9 @@ const deleteInvoice = async (req, res) => {
     const checkQuery = `
       SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2
     `;
+    console.log('Executing check query:', checkQuery, 'with params:', [id, craftsman_id]);
     const checkResult = await pool.query(checkQuery, [id, craftsman_id]);
+    console.log('Check result rows:', checkResult.rows.length);
     
     if (checkResult.rows.length === 0) {
       return res.status(404).json({ error: 'Invoice not found or you do not have permission to delete it' });
@@ -335,17 +339,21 @@ const deleteInvoice = async (req, res) => {
     
     // Get the appointment_id if it exists
     const { appointment_id } = checkResult.rows[0];
+    console.log(`Found invoice ${id} with appointment_id ${appointment_id || 'none'}`);
     
     // Delete the invoice
-    await pool.query('DELETE FROM invoices WHERE id = $1 AND craftsman_id = $2', [id, craftsman_id]);
+    const deleteQuery = 'DELETE FROM invoices WHERE id = $1 AND craftsman_id = $2';
+    console.log('Executing delete query:', deleteQuery, 'with params:', [id, craftsman_id]);
+    const deleteResult = await pool.query(deleteQuery, [id, craftsman_id]);
+    console.log('Delete result:', deleteResult.rowCount, 'rows affected');
     
     // If there was an appointment linked, update its has_invoice status
     if (appointment_id) {
       try {
-        await pool.query(
-          `UPDATE appointments SET has_invoice = false WHERE id = $1 AND craftsman_id = $2`,
-          [appointment_id, craftsman_id]
-        );
+        const updateQuery = `UPDATE appointments SET has_invoice = false WHERE id = $1 AND craftsman_id = $2`;
+        console.log('Executing update query:', updateQuery, 'with params:', [appointment_id, craftsman_id]);
+        const updateResult = await pool.query(updateQuery, [appointment_id, craftsman_id]);
+        console.log('Update result:', updateResult.rowCount, 'rows affected');
         console.log(`Updated appointment ${appointment_id} to mark it as no longer having an invoice`);
       } catch (appointmentError) {
         console.error('Error updating appointment has_invoice status:', appointmentError);
@@ -353,7 +361,11 @@ const deleteInvoice = async (req, res) => {
       }
     }
     
-    res.json({ message: 'Invoice deleted successfully' });
+    res.json({ 
+      message: 'Invoice deleted successfully',
+      success: true,
+      deleted_id: id
+    });
   } catch (error) {
     console.error(`Error deleting invoice ${req.params.id}:`, error);
     res.status(500).json({ error: error.message });

@@ -236,14 +236,29 @@ export default function InvoiceDetailPage({ params }) {
     
     try {
       setDeleting(true);
-      await invoicesAPI.delete(invoiceId, craftsmanId);
+      console.log(`Attempting to delete invoice ${invoiceId} for craftsman ${craftsmanId}`);
+      
+      const response = await invoicesAPI.delete(invoiceId, craftsmanId);
+      console.log('Delete response:', response);
+      
       setSuccess(true);
+      
+      // Show success message
+      alert('Invoice deleted successfully!');
       
       // Force a hard redirect to invoices list to ensure a full page reload
       window.location.href = '/invoices';
     } catch (err) {
       console.error('Error deleting invoice:', err);
-      setError('Failed to delete invoice. Please try again later.');
+      
+      // Show more detailed error information
+      let errorMessage = 'Failed to delete invoice. Please try again later.';
+      if (err.response && err.response.data && err.response.data.error) {
+        errorMessage = `Error: ${err.response.data.error}`;
+      }
+      
+      setError(errorMessage);
+      alert(errorMessage);
     } finally {
       setDeleting(false);
     }
