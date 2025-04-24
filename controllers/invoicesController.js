@@ -316,12 +316,16 @@ const updateInvoice = async (req, res) => {
 const deleteInvoice = async (req, res) => {
   try {
     const { id } = req.params;
-    const { craftsman_id } = req.query;
+    const craftsman_id = req.query.craftsman_id;
     
+    console.log('Request params:', req.params);
+    console.log('Request query:', req.query);
+    console.log('Request body:', req.body);
     console.log(`Attempting to delete invoice ${id} for craftsman ${craftsman_id}`);
     
     // Validate required fields
     if (!craftsman_id) {
+      console.error('Missing craftsman_id in request');
       return res.status(400).json({ error: 'craftsman_id is required' });
     }
     

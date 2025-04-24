@@ -294,16 +294,23 @@ export const invoicesAPI = {
   delete: async (id, craftsmanId) => {
     console.log(`API delete call for invoice ${id} with craftsman_id:`, craftsmanId);
     
-    // Ensure craftsman_id is a string
-    const craftsmanIdStr = String(craftsmanId);
+    // Check if we have a craftsman ID
+    if (!craftsmanId) {
+      console.error('No craftsman ID provided for delete operation');
+      throw new Error('Craftsman ID is required');
+    }
     
-    // Log the URL and params for debugging
-    const url = `/invoices/${id}`;
-    const params = { craftsman_id: craftsmanIdStr };
-    console.log('DELETE request to:', url, 'with params:', params);
-    
-    const response = await api.delete(url, { params });
-    return response.data;
+    try {
+      // Use the same format as the getById method which is known to work
+      const response = await api.delete(`/invoices/${id}`, { 
+        params: { craftsman_id: craftsmanId }
+      });
+      console.log('Delete response received:', response.status);
+      return response.data;
+    } catch (error) {
+      console.error('Error in delete API call:', error.response?.data || error.message);
+      throw error;
+    }
   },
   
   // Generate PDF for download

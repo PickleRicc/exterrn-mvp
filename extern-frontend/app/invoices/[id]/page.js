@@ -237,11 +237,24 @@ export default function InvoiceDetailPage({ params }) {
     try {
       setDeleting(true);
       
-      // Make sure craftsmanId is a string
-      const craftsmanIdString = String(craftsmanId);
-      console.log(`Attempting to delete invoice ${invoiceId} for craftsman ${craftsmanIdString}`);
+      // Get craftsman ID from token (same approach as in the getById method)
+      let craftsmanIdFromToken = null;
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const tokenData = JSON.parse(atob(token.split('.')[1]));
+          craftsmanIdFromToken = tokenData.craftsmanId;
+          console.log('Craftsman ID from token:', craftsmanIdFromToken);
+        } catch (err) {
+          console.error('Error parsing token:', err);
+        }
+      }
       
-      const response = await invoicesAPI.delete(invoiceId, craftsmanIdString);
+      // Use the craftsman ID from token or fallback to the one from props
+      const finalCraftsmanId = craftsmanIdFromToken || craftsmanId;
+      console.log(`Attempting to delete invoice ${invoiceId} for craftsman ${finalCraftsmanId}`);
+      
+      const response = await invoicesAPI.delete(invoiceId, finalCraftsmanId);
       console.log('Delete response:', response);
       
       setSuccess(true);
