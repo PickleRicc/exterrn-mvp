@@ -236,9 +236,12 @@ export default function InvoiceDetailPage({ params }) {
     
     try {
       setDeleting(true);
-      console.log(`Attempting to delete invoice ${invoiceId} for craftsman ${craftsmanId}`);
       
-      const response = await invoicesAPI.delete(invoiceId, craftsmanId);
+      // Make sure craftsmanId is a string
+      const craftsmanIdString = String(craftsmanId);
+      console.log(`Attempting to delete invoice ${invoiceId} for craftsman ${craftsmanIdString}`);
+      
+      const response = await invoicesAPI.delete(invoiceId, craftsmanIdString);
       console.log('Delete response:', response);
       
       setSuccess(true);

@@ -292,9 +292,17 @@ export const invoicesAPI = {
     return response.data;
   },
   delete: async (id, craftsmanId) => {
-    const response = await api.delete(`/invoices/${id}`, {
-      params: { craftsman_id: craftsmanId }
-    });
+    console.log(`API delete call for invoice ${id} with craftsman_id:`, craftsmanId);
+    
+    // Ensure craftsman_id is a string
+    const craftsmanIdStr = String(craftsmanId);
+    
+    // Log the URL and params for debugging
+    const url = `/invoices/${id}`;
+    const params = { craftsman_id: craftsmanIdStr };
+    console.log('DELETE request to:', url, 'with params:', params);
+    
+    const response = await api.delete(url, { params });
     return response.data;
   },
   
