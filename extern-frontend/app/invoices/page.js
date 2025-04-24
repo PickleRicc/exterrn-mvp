@@ -6,6 +6,7 @@ import { invoicesAPI } from '../lib/api';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { generateInvoicePdf } from '../../lib/utils/pdfGenerator';
+import { useRouter } from 'next/navigation';
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState([]);
@@ -18,6 +19,9 @@ export default function InvoicesPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredInvoices, setFilteredInvoices] = useState([]);
+  const [lastRefresh, setLastRefresh] = useState(Date.now());
+
+  const router = useRouter();
 
   useEffect(() => {
     // Get craftsman ID from token
@@ -61,7 +65,7 @@ export default function InvoicesPage() {
     if (craftsmanId) {
       fetchInvoices();
     }
-  }, [craftsmanId]);
+  }, [craftsmanId, lastRefresh]);
 
   useEffect(() => {
     if (invoices.length > 0) {
@@ -108,6 +112,11 @@ export default function InvoicesPage() {
     }
   };
 
+  // Function to manually refresh the invoices list
+  const refreshInvoices = () => {
+    setLastRefresh(Date.now());
+  };
+
   // Direct client-side PDF generation without server request
   const handleGeneratePdf = async (invoice) => {
     try {
@@ -151,19 +160,56 @@ export default function InvoicesPage() {
     return new Date(dateString).toLocaleDateString();
   };
 
+  useEffect(() => {
+    // Add event listener for focus to refresh data when returning to the page
+    const handleFocus = () => {
+      if (craftsmanId) {
+        refreshInvoices();
+      }
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    // Add event listener for visibility change to refresh data when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && craftsmanId) {
+        refreshInvoices();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [craftsmanId]);
+
   return (
     <>
       <Header />
       <div className="min-h-screen bg-[#0a1929] text-white">
         <main className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Invoices & Quotes</h1>
-            <Link 
-              href="/invoices/new" 
-              className="px-4 py-2 bg-[#e91e63] hover:bg-[#d81b60] text-white font-medium rounded-xl transition-colors flex items-center"
-            >
-              <span className="mr-2">+</span> Create New
-            </Link>
+            <div className="flex space-x-2">
+              <button
+                onClick={refreshInvoices}
+                className="p-2 bg-[#1e3a5f] hover:bg-[#2a4d76] rounded-xl transition-colors"
+                title="Refresh invoices"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+              <Link
+                href="/invoices/new"
+                className="px-4 py-2 bg-[#e91e63] hover:bg-[#d81b60] text-white font-medium rounded-xl transition-colors"
+              >
+                New Invoice
+              </Link>
+            </div>
           </div>
           
           {error && (

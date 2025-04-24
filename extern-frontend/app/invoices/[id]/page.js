@@ -239,10 +239,8 @@ export default function InvoiceDetailPage({ params }) {
       await invoicesAPI.delete(invoiceId, craftsmanId);
       setSuccess(true);
       
-      // Redirect to invoices list after a short delay
-      setTimeout(() => {
-        router.push('/invoices');
-      }, 1500);
+      // Force a hard redirect to invoices list to ensure a full page reload
+      window.location.href = '/invoices';
     } catch (err) {
       console.error('Error deleting invoice:', err);
       setError('Failed to delete invoice. Please try again later.');
