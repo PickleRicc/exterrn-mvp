@@ -61,19 +61,13 @@ export const invoicesAPI = {
   },
   
   // Generate PDF for invoice
-  generatePdf: async (id, params = {}) => {
+  generatePdf: async (id, craftsmanId) => {
     try {
-      let craftsman_id;
-      if (typeof params === 'object' && params !== null) {
-        craftsman_id = params.craftsman_id;
-      } else {
-        craftsman_id = params;
-      }
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found');
-      // Call backend API to generate PDF and get file URL
+      // Call backend API directly
       const response = await api.get(`/invoices/${id}/pdf`, {
-        params: { craftsman_id },
+        params: { craftsman_id: craftsmanId },
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data && response.data.url) {
