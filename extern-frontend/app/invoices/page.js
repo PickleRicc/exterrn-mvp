@@ -14,6 +14,10 @@ export default function InvoicesPage() {
   const [craftsmanId, setCraftsmanId] = useState(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [processingInvoiceId, setProcessingInvoiceId] = useState(null);
+  const [activeTab, setActiveTab] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredInvoices, setFilteredInvoices] = useState([]);
 
   useEffect(() => {
     // Get craftsman ID from token
@@ -58,6 +62,35 @@ export default function InvoicesPage() {
       fetchInvoices();
     }
   }, [craftsmanId]);
+
+  useEffect(() => {
+    if (invoices.length > 0) {
+      let filtered = [...invoices];
+      
+      // Filter by type (tab)
+      if (activeTab !== 'all') {
+        filtered = filtered.filter(invoice => invoice.type === activeTab);
+      }
+      
+      // Filter by status
+      if (statusFilter !== 'all') {
+        filtered = filtered.filter(invoice => invoice.status === statusFilter);
+      }
+      
+      // Filter by search term (customer name or invoice number)
+      if (searchTerm.trim() !== '') {
+        const term = searchTerm.toLowerCase();
+        filtered = filtered.filter(invoice => 
+          (invoice.customer_name && invoice.customer_name.toLowerCase().includes(term)) || 
+          (invoice.invoice_number && invoice.invoice_number.toLowerCase().includes(term))
+        );
+      }
+      
+      setFilteredInvoices(filtered);
+    } else {
+      setFilteredInvoices([]);
+    }
+  }, [invoices, activeTab, statusFilter, searchTerm]);
 
   const fetchInvoices = async () => {
     try {
@@ -123,13 +156,13 @@ export default function InvoicesPage() {
       <Header />
       <div className="min-h-screen bg-[#0a1929] text-white">
         <main className="container mx-auto px-4 py-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Invoices</h1>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <h1 className="text-2xl font-bold">Invoices & Quotes</h1>
             <Link 
               href="/invoices/new" 
-              className="px-4 py-2 bg-[#e91e63] hover:bg-[#d81b60] text-white font-medium rounded-xl transition-colors"
+              className="px-4 py-2 bg-[#e91e63] hover:bg-[#d81b60] text-white font-medium rounded-xl transition-colors flex items-center"
             >
-              Create New Invoice
+              <span className="mr-2">+</span> Create New
             </Link>
           </div>
           
@@ -139,11 +172,95 @@ export default function InvoicesPage() {
             </div>
           )}
           
+          {/* Filters and Search */}
+          <div className="bg-[#132f4c] rounded-xl p-4 mb-6">
+            <div className="flex flex-col md:flex-row gap-4 mb-4">
+              {/* Tabs for document types */}
+              <div className="flex bg-[#0a1929] rounded-lg p-1 flex-wrap">
+                <button
+                  onClick={() => setActiveTab('all')}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                    activeTab === 'all' 
+                      ? 'bg-[#e91e63] text-white' 
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setActiveTab('invoice')}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                    activeTab === 'invoice' 
+                      ? 'bg-[#e91e63] text-white' 
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  Invoices
+                </button>
+                <button
+                  onClick={() => setActiveTab('quote')}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                    activeTab === 'quote' 
+                      ? 'bg-[#e91e63] text-white' 
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  Quotes
+                </button>
+                <button
+                  onClick={() => setActiveTab('draft')}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                    activeTab === 'draft' 
+                      ? 'bg-[#e91e63] text-white' 
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  Drafts
+                </button>
+              </div>
+              
+              {/* Status filter */}
+              <div className="flex-1">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full bg-[#0a1929] border border-[#2a4d76] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                  <option value="overdue">Overdue</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+            
+            {/* Search */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by customer name or invoice number..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-[#0a1929] border border-[#2a4d76] rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+              />
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+          
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#e91e63]"></div>
             </div>
-          ) : invoices.length === 0 ? (
+          ) : filteredInvoices.length === 0 ? (
             <div className="bg-[#132f4c] rounded-xl p-6 text-center">
               <p className="text-lg mb-4">No invoices found</p>
               <Link 
@@ -155,7 +272,7 @@ export default function InvoicesPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {invoices.map((invoice) => (
+              {filteredInvoices.map((invoice) => (
                 <div key={invoice.id} className="bg-[#132f4c] rounded-xl p-4 shadow-lg">
                   <div className="flex justify-between items-start mb-2">
                     <div>

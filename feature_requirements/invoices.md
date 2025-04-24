@@ -27,6 +27,5 @@ Functions in the MVP:
  - VAT exemption notice (if applicable)
  - Sender info (name, address, email, tax ID or VAT ID)
 4. **PDF Export**
- - Preview in system (PDF viewer)
  - Download as PDF
  - Send via email (if customer email exists)

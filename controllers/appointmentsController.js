@@ -4,7 +4,7 @@ const emailService = require('../services/emailService');
 // Get all appointments with customer data
 const getAllAppointments = async (req, res) => {
   try {
-    const { date, approval_status, craftsman_id } = req.query;
+    const { date, approval_status, craftsman_id, has_invoice, status } = req.query;
     
     console.log('Request query params for appointments:', req.query);
     console.log('Craftsman ID from query:', craftsman_id);
@@ -36,6 +36,22 @@ const getAllAppointments = async (req, res) => {
     if (approval_status) {
       queryParams.push(approval_status);
       queryText += whereClauseAdded ? ` AND approval_status = $${paramIndex++}` : ` WHERE approval_status = $${paramIndex++}`;
+      whereClauseAdded = true;
+    }
+    
+    if (status) {
+      queryParams.push(status);
+      queryText += whereClauseAdded ? ` AND status = $${paramIndex++}` : ` WHERE status = $${paramIndex++}`;
+      whereClauseAdded = true;
+    }
+    
+    // Filter by has_invoice if provided
+    if (has_invoice !== undefined) {
+      const hasInvoiceValue = has_invoice === 'true' || has_invoice === true;
+      queryParams.push(hasInvoiceValue);
+      queryText += whereClauseAdded ? ` AND has_invoice = $${paramIndex++}` : ` WHERE has_invoice = $${paramIndex++}`;
+      whereClauseAdded = true;
+      console.log('Filtering appointments by has_invoice:', hasInvoiceValue);
     }
     
     queryText += ` ORDER BY a.scheduled_at DESC`;

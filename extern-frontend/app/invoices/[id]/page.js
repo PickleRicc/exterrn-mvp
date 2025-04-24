@@ -1,16 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { invoicesAPI, customersAPI } from '../../lib/api';
+import { invoicesAPI, customersAPI, appointmentsAPI } from '../../lib/api';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { generateInvoicePdf } from '../../../lib/utils/pdfGenerator';
 
 export default function InvoiceDetailPage({ params }) {
+  const invoiceId = use(params).id;
+  
   const [invoice, setInvoice] = useState(null);
   const [customers, setCustomers] = useState([]);
+  const [appointment, setAppointment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -18,6 +21,7 @@ export default function InvoiceDetailPage({ params }) {
   const [craftsmanId, setCraftsmanId] = useState(null);
   const [editing, setEditing] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [formData, setFormData] = useState({
     craftsman_id: '',
     customer_id: '',
@@ -26,11 +30,15 @@ export default function InvoiceDetailPage({ params }) {
     total_amount: '',
     notes: '',
     due_date: '',
-    status: ''
+    status: '',
+    service_date: '',
+    location: '',
+    vat_exempt: false,
+    type: 'invoice',
+    appointment_id: ''
   });
   
   const router = useRouter();
-  const invoiceId = params.id;
 
   useEffect(() => {
     // Get craftsman ID from token
@@ -89,8 +97,18 @@ export default function InvoiceDetailPage({ params }) {
         total_amount: data.total_amount,
         notes: data.notes || '',
         due_date: data.due_date ? new Date(data.due_date).toISOString().split('T')[0] : '',
-        status: data.status || 'pending'
+        status: data.status || 'pending',
+        service_date: data.service_date ? new Date(data.service_date).toISOString().split('T')[0] : '',
+        location: data.location || '',
+        vat_exempt: data.vat_exempt || false,
+        type: data.type || 'invoice',
+        appointment_id: data.appointment_id || ''
       });
+      
+      // If there's an appointment_id, fetch the appointment details
+      if (data.appointment_id) {
+        fetchAppointment(data.appointment_id);
+      }
       
       setError(null);
     } catch (err) {
@@ -98,6 +116,17 @@ export default function InvoiceDetailPage({ params }) {
       setError('Failed to load invoice. Please try again later.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAppointment = async (appointmentId) => {
+    try {
+      const data = await appointmentsAPI.getById(appointmentId);
+      console.log('Fetched appointment:', data);
+      setAppointment(data);
+    } catch (err) {
+      console.error('Error fetching appointment:', err);
+      // Don't set error here
     }
   };
 
@@ -197,6 +226,28 @@ export default function InvoiceDetailPage({ params }) {
       alert('Failed to generate PDF. Please try again later.');
     } finally {
       setPdfLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      setDeleting(true);
+      await invoicesAPI.delete(invoiceId, craftsmanId);
+      setSuccess(true);
+      
+      // Redirect to invoices list after a short delay
+      setTimeout(() => {
+        router.push('/invoices');
+      }, 1500);
+    } catch (err) {
+      console.error('Error deleting invoice:', err);
+      setError('Failed to delete invoice. Please try again later.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -427,6 +478,18 @@ export default function InvoiceDetailPage({ params }) {
                           </>
                         ) : 'Download PDF'}
                       </button>
+                      <button
+                        onClick={handleDelete}
+                        disabled={deleting}
+                        className={`px-3 py-1 ${deleting ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed' : 'bg-red-500/20 hover:bg-red-500/30 text-red-400 cursor-pointer'} text-sm font-medium rounded-xl transition-colors flex items-center`}
+                      >
+                        {deleting ? (
+                          <>
+                            <span className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
+                            Deleting...
+                          </>
+                        ) : 'Delete'}
+                      </button>
                     </div>
                   </div>
                   
@@ -473,6 +536,55 @@ export default function InvoiceDetailPage({ params }) {
                       <h3 className="text-lg font-medium mb-3">Notes</h3>
                       <div className="bg-[#1e3a5f] rounded-xl p-4">
                         <p className="whitespace-pre-wrap">{invoice.notes}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Linked Appointment Section */}
+                  {appointment && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-medium mb-3">Linked Appointment</h3>
+                      <div className="bg-[#1e3a5f] rounded-xl p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <span className="text-gray-300">Date:</span>{' '}
+                            {formatDate(appointment.scheduled_at)}
+                          </div>
+                          <div>
+                            <span className="text-gray-300">Time:</span>{' '}
+                            {new Date(appointment.scheduled_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          </div>
+                          <div>
+                            <span className="text-gray-300">Status:</span>{' '}
+                            <span className={`px-2 py-0.5 text-xs rounded-full ${
+                              appointment.status === 'completed' ? 'bg-green-900/30 text-green-400' :
+                              appointment.status === 'cancelled' ? 'bg-red-900/30 text-red-400' :
+                              'bg-blue-900/30 text-blue-400'
+                            }`}>
+                              {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                            </span>
+                          </div>
+                          {appointment.service_type && (
+                            <div>
+                              <span className="text-gray-300">Service:</span>{' '}
+                              {appointment.service_type}
+                            </div>
+                          )}
+                          {appointment.location && (
+                            <div className="col-span-1 md:col-span-2">
+                              <span className="text-gray-300">Location:</span>{' '}
+                              {appointment.location}
+                            </div>
+                          )}
+                          <div className="col-span-1 md:col-span-2 mt-2">
+                            <Link
+                              href={`/appointments/${appointment.id}`}
+                              className="text-sm text-[#e91e63] hover:text-[#f06292] transition-colors"
+                            >
+                              View Appointment Details →
+                            </Link>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}

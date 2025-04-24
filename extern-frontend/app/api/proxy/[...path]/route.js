@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+// Configure this route as dynamic to fix the static export error
+export const dynamic = 'force-dynamic';
+
 // This is a simple API proxy that forwards requests to the backend
 export async function GET(request) {
   try {
@@ -77,8 +80,27 @@ export async function POST(request) {
       body: JSON.stringify(body)
     });
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    // Handle different response types
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        const data = await response.json();
+        return NextResponse.json(data);
+      } catch (error) {
+        console.error('Error parsing JSON response:', error);
+        return NextResponse.json({ error: 'Invalid JSON response from server' }, { status: response.status });
+      }
+    } else {
+      // Handle non-JSON responses (like HTML error pages)
+      const text = await response.text();
+      console.error('Received non-JSON response:', text.substring(0, 200) + '...');
+      return new NextResponse(text, {
+        status: response.status,
+        headers: {
+          'Content-Type': contentType || 'text/plain'
+        }
+      });
+    }
   } catch (error) {
     console.error('Proxy error:', error);
     return NextResponse.json({ error: 'Proxy error' }, { status: 500 });
@@ -121,8 +143,27 @@ export async function PUT(request) {
       ...(body ? { body: JSON.stringify(body) } : {})
     });
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    // Handle different response types
+    const responseContentType = response.headers.get('content-type');
+    if (responseContentType && responseContentType.includes('application/json')) {
+      try {
+        const data = await response.json();
+        return NextResponse.json(data);
+      } catch (error) {
+        console.error('Error parsing JSON response:', error);
+        return NextResponse.json({ error: 'Invalid JSON response from server' }, { status: response.status });
+      }
+    } else {
+      // Handle non-JSON responses (like HTML error pages)
+      const text = await response.text();
+      console.error('Received non-JSON response:', text.substring(0, 200) + '...');
+      return new NextResponse(text, {
+        status: response.status,
+        headers: {
+          'Content-Type': responseContentType || 'text/plain'
+        }
+      });
+    }
   } catch (error) {
     console.error('Proxy error:', error);
     return NextResponse.json({ error: 'Proxy error' }, { status: 500 });
@@ -165,8 +206,27 @@ export async function DELETE(request) {
       ...(body ? { body: JSON.stringify(body) } : {})
     });
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    // Handle different response types
+    const responseContentType = response.headers.get('content-type');
+    if (responseContentType && responseContentType.includes('application/json')) {
+      try {
+        const data = await response.json();
+        return NextResponse.json(data);
+      } catch (error) {
+        console.error('Error parsing JSON response:', error);
+        return NextResponse.json({ error: 'Invalid JSON response from server' }, { status: response.status });
+      }
+    } else {
+      // Handle non-JSON responses (like HTML error pages)
+      const text = await response.text();
+      console.error('Received non-JSON response:', text.substring(0, 200) + '...');
+      return new NextResponse(text, {
+        status: response.status,
+        headers: {
+          'Content-Type': responseContentType || 'text/plain'
+        }
+      });
+    }
   } catch (error) {
     console.error('Proxy error:', error);
     return NextResponse.json({ error: 'Proxy error' }, { status: 500 });

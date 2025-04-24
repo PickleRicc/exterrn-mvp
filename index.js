@@ -12,7 +12,7 @@ const craftsmenRoutes = require('./routes/craftsmen');
 const invoiceRoutes = require('./routes/invoices');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({

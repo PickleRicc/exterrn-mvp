@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { invoicesAPI, customersAPI } from '../../lib/api';
+import { invoicesAPI, customersAPI, appointmentsAPI } from '../../lib/api';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { generateInvoicePdf, generateSimpleInvoicePdf } from '../../../lib/utils/pdfGenerator';
@@ -16,11 +16,19 @@ export default function NewInvoicePage() {
     tax_amount: '0',
     total_amount: '',
     notes: '',
-    due_date: ''
+    due_date: '',
+    service_date: '',
+    location: '',
+    vat_exempt: false,
+    type: 'invoice',
+    appointment_id: ''
   });
   
   const [customers, setCustomers] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingAppointments, setLoadingAppointments] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -53,6 +61,7 @@ export default function NewInvoicePage() {
         if (extractedCraftsmanId) {
           setFormData(prev => ({ ...prev, craftsman_id: extractedCraftsmanId }));
           fetchCustomers(extractedCraftsmanId);
+          fetchAppointments(extractedCraftsmanId);
         } else {
           console.error('No craftsman ID found in token:', tokenData);
           setError('No craftsman ID found in your account. Please contact support.');
@@ -82,11 +91,43 @@ export default function NewInvoicePage() {
     }
   };
 
+  const fetchAppointments = async (craftsmanId) => {
+    try {
+      setLoadingAppointments(true);
+      console.log('Fetching appointments for craftsman ID:', craftsmanId);
+      const data = await appointmentsAPI.getAll({ 
+        craftsman_id: craftsmanId,
+        // Only get completed appointments that don't have invoices yet
+        status: 'completed',
+        has_invoice: false
+      });
+      console.log('Fetched appointments:', data);
+      setAppointments(data);
+    } catch (err) {
+      console.error('Error fetching appointments:', err);
+      // Don't set error here to avoid overriding customer fetch errors
+    } finally {
+      setLoadingAppointments(false);
+    }
+  };
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     
     setFormData(prev => {
-      const newData = { ...prev, [name]: value };
+      const newData = { ...prev };
+      
+      // Handle checkbox inputs
+      if (type === 'checkbox') {
+        newData[name] = checked;
+        
+        // If VAT exempt is checked, set tax_amount to 0
+        if (name === 'vat_exempt' && checked) {
+          newData.tax_amount = '0';
+        }
+      } else {
+        newData[name] = value;
+      }
       
       // Auto-calculate total amount when amount or tax_amount changes
       if (name === 'amount' || name === 'tax_amount') {
@@ -97,6 +138,40 @@ export default function NewInvoicePage() {
       
       return newData;
     });
+  };
+
+  const handleAppointmentChange = (e) => {
+    const appointmentId = e.target.value;
+    
+    if (!appointmentId) {
+      setSelectedAppointment(null);
+      return; // No appointment selected
+    }
+    
+    // Find the selected appointment
+    const selectedAppointment = appointments.find(
+      appointment => appointment.id.toString() === appointmentId
+    );
+    
+    if (!selectedAppointment) {
+      setSelectedAppointment(null);
+      return;
+    }
+    
+    console.log('Selected appointment:', selectedAppointment);
+    setSelectedAppointment(selectedAppointment);
+    
+    // Auto-populate invoice data from appointment
+    setFormData(prev => ({
+      ...prev,
+      appointment_id: appointmentId,
+      customer_id: selectedAppointment.customer_id.toString(),
+      service_date: selectedAppointment.scheduled_at ? new Date(selectedAppointment.scheduled_at).toISOString().split('T')[0] : '',
+      location: selectedAppointment.location || '',
+      notes: selectedAppointment.notes || '',
+      // Set default amount if needed
+      // amount: '0', // You might want to set a default amount or leave it blank
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -250,10 +325,129 @@ export default function NewInvoicePage() {
                     <option value="">Select a customer</option>
                     {customers.map(customer => (
                       <option key={customer.id} value={customer.id}>
-                        {customer.name} {customer.email ? `(${customer.email})` : ''}
+                        {customer.name}
                       </option>
                     ))}
                   </select>
+                </div>
+                
+                {/* Appointment Selection */}
+                <div className="col-span-1 md:col-span-2">
+                  <label className="block text-sm font-medium mb-1">
+                    Create from Appointment
+                  </label>
+                  <select
+                    name="appointment_id"
+                    value={formData.appointment_id}
+                    onChange={handleAppointmentChange}
+                    className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                    disabled={success || loadingAppointments}
+                  >
+                    <option value="">Select an appointment (optional)</option>
+                    {loadingAppointments ? (
+                      <option disabled>Loading appointments...</option>
+                    ) : appointments.length === 0 ? (
+                      <option disabled>No completed appointments found</option>
+                    ) : (
+                      appointments.map((appointment) => (
+                        <option key={appointment.id} value={appointment.id}>
+                          {new Date(appointment.scheduled_at).toLocaleDateString()} - {appointment.customer_name} - {appointment.service_type || 'Service'}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Selecting an appointment will auto-fill customer and service details
+                  </p>
+                </div>
+                
+                {/* Selected Appointment Details */}
+                {selectedAppointment && (
+                  <div className="col-span-1 md:col-span-2 bg-[#132f4c] rounded-xl p-4 mb-4">
+                    <h3 className="text-lg font-medium mb-2 text-[#e91e63]">
+                      Selected Appointment Details
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="font-medium">Customer:</span>{' '}
+                        {selectedAppointment.customer_name}
+                      </div>
+                      <div>
+                        <span className="font-medium">Date:</span>{' '}
+                        {new Date(selectedAppointment.scheduled_at).toLocaleDateString()}
+                      </div>
+                      <div>
+                        <span className="font-medium">Time:</span>{' '}
+                        {new Date(selectedAppointment.scheduled_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </div>
+                      <div>
+                        <span className="font-medium">Service:</span>{' '}
+                        {selectedAppointment.service_type || 'General Service'}
+                      </div>
+                      {selectedAppointment.location && (
+                        <div>
+                          <span className="font-medium">Location:</span>{' '}
+                          {selectedAppointment.location}
+                        </div>
+                      )}
+                      {selectedAppointment.notes && (
+                        <div className="col-span-1 md:col-span-2">
+                          <span className="font-medium">Notes:</span>{' '}
+                          {selectedAppointment.notes}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Invoice Type */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Document Type *
+                  </label>
+                  <select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleChange}
+                    className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                    required
+                    disabled={success}
+                  >
+                    <option value="invoice">Invoice</option>
+                    <option value="quote">Quote</option>
+                    <option value="draft">Draft</option>
+                  </select>
+                </div>
+                
+                {/* Service Date */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Service Date
+                  </label>
+                  <input
+                    type="date"
+                    name="service_date"
+                    value={formData.service_date}
+                    onChange={handleChange}
+                    className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                    disabled={success}
+                  />
+                </div>
+                
+                {/* Service Location */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Service Location
+                  </label>
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                    disabled={success}
+                    placeholder="Where was the service performed?"
+                  />
                 </div>
                 
                 {/* Amount */}
@@ -274,22 +468,42 @@ export default function NewInvoicePage() {
                   />
                 </div>
                 
-                {/* Tax Amount */}
+                {/* VAT Exempt Toggle */}
                 <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Tax Amount (€)
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="vat_exempt"
+                      checked={formData.vat_exempt}
+                      onChange={handleChange}
+                      className="w-4 h-4 accent-[#e91e63]"
+                      disabled={success}
+                    />
+                    <span className="text-sm font-medium">VAT Exempt</span>
                   </label>
-                  <input
-                    type="number"
-                    name="tax_amount"
-                    value={formData.tax_amount}
-                    onChange={handleChange}
-                    step="0.01"
-                    min="0"
-                    className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
-                    disabled={success}
-                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Check this if the service is exempt from VAT
+                  </p>
                 </div>
+                
+                {/* Tax Amount - Hidden if VAT exempt */}
+                {!formData.vat_exempt && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Tax Amount (€)
+                    </label>
+                    <input
+                      type="number"
+                      name="tax_amount"
+                      value={formData.tax_amount}
+                      onChange={handleChange}
+                      step="0.01"
+                      min="0"
+                      className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                      disabled={success || formData.vat_exempt}
+                    />
+                  </div>
+                )}
                 
                 {/* Total Amount (calculated) */}
                 <div>

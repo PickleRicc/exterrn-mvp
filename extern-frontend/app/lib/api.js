@@ -291,21 +291,7 @@ export const invoicesAPI = {
     const response = await api.put(`/invoices/${id}`, { ...invoiceData, craftsman_id: craftsmanId });
     return response.data;
   },
-  delete: async (id) => {
-    // Get craftsman ID from token
-    let craftsmanId = null;
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const tokenData = JSON.parse(atob(token.split('.')[1]));
-          craftsmanId = tokenData.craftsmanId;
-        } catch (err) {
-          console.error('Error parsing token:', err);
-        }
-      }
-    }
-    
+  delete: async (id, craftsmanId) => {
     const response = await api.delete(`/invoices/${id}`, {
       params: { craftsman_id: craftsmanId }
     });

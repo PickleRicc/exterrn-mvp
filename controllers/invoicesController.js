@@ -75,7 +75,12 @@ const createInvoice = async (req, res) => {
       tax_amount,
       total_amount,
       notes,
-      due_date
+      due_date,
+      service_date,
+      location,
+      vat_exempt,
+      type,
+      appointment_id
     } = req.body;
     
     // Validate required fields
@@ -94,8 +99,9 @@ const createInvoice = async (req, res) => {
     // Create invoice
     const query = `
       INSERT INTO invoices (
-        craftsman_id, customer_id, amount, tax_amount, total_amount, notes, due_date
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        craftsman_id, customer_id, amount, tax_amount, total_amount, notes, due_date,
+        service_date, location, vat_exempt, type, appointment_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *
     `;
     
@@ -106,10 +112,29 @@ const createInvoice = async (req, res) => {
       tax_amount || 0,
       total_amount,
       notes || '',
-      due_date || null
+      due_date || null,
+      service_date || null,
+      location || '',
+      vat_exempt || false,
+      type || 'invoice',
+      appointment_id || null
     ];
     
     const result = await pool.query(query, values);
+    
+    // If an appointment was linked, update its status to indicate it has an invoice
+    if (appointment_id) {
+      try {
+        await pool.query(
+          `UPDATE appointments SET has_invoice = true WHERE id = $1 AND craftsman_id = $2`,
+          [appointment_id, craftsman_id]
+        );
+        console.log(`Updated appointment ${appointment_id} to mark it as having an invoice`);
+      } catch (appointmentError) {
+        console.error('Error updating appointment has_invoice status:', appointmentError);
+        // Don't fail the invoice creation if this update fails
+      }
+    }
     
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -130,7 +155,12 @@ const updateInvoice = async (req, res) => {
       total_amount,
       notes,
       due_date,
-      status
+      status,
+      service_date,
+      location,
+      vat_exempt,
+      type,
+      appointment_id
     } = req.body;
     
     // Validate required fields
@@ -147,6 +177,9 @@ const updateInvoice = async (req, res) => {
     if (checkResult.rows.length === 0) {
       return res.status(404).json({ error: 'Invoice not found or you do not have permission to update it' });
     }
+    
+    // Get the current appointment_id if it exists
+    const currentAppointmentId = checkResult.rows[0].appointment_id;
     
     // Build dynamic update query
     const updateFields = [];
@@ -195,6 +228,36 @@ const updateInvoice = async (req, res) => {
       paramIndex++;
     }
     
+    if (service_date !== undefined) {
+      updateFields.push(`service_date = $${paramIndex}`);
+      values.push(service_date || null);
+      paramIndex++;
+    }
+    
+    if (location !== undefined) {
+      updateFields.push(`location = $${paramIndex}`);
+      values.push(location || '');
+      paramIndex++;
+    }
+    
+    if (vat_exempt !== undefined) {
+      updateFields.push(`vat_exempt = $${paramIndex}`);
+      values.push(vat_exempt);
+      paramIndex++;
+    }
+    
+    if (type !== undefined) {
+      updateFields.push(`type = $${paramIndex}`);
+      values.push(type);
+      paramIndex++;
+    }
+    
+    if (appointment_id !== undefined) {
+      updateFields.push(`appointment_id = $${paramIndex}`);
+      values.push(appointment_id || null);
+      paramIndex++;
+    }
+    
     // Add updated_at timestamp
     updateFields.push(`updated_at = NOW()`);
     
@@ -213,9 +276,86 @@ const updateInvoice = async (req, res) => {
     
     const result = await pool.query(updateQuery, values);
     
+    // Handle appointment relationship updates
+    if (appointment_id !== undefined && appointment_id !== currentAppointmentId) {
+      // If a new appointment was linked, update its status
+      if (appointment_id) {
+        try {
+          await pool.query(
+            `UPDATE appointments SET has_invoice = true WHERE id = $1 AND craftsman_id = $2`,
+            [appointment_id, craftsman_id]
+          );
+          console.log(`Updated appointment ${appointment_id} to mark it as having an invoice`);
+        } catch (appointmentError) {
+          console.error('Error updating new appointment has_invoice status:', appointmentError);
+        }
+      }
+      
+      // If an old appointment was unlinked, update its status
+      if (currentAppointmentId) {
+        try {
+          await pool.query(
+            `UPDATE appointments SET has_invoice = false WHERE id = $1 AND craftsman_id = $2`,
+            [currentAppointmentId, craftsman_id]
+          );
+          console.log(`Updated appointment ${currentAppointmentId} to mark it as no longer having an invoice`);
+        } catch (appointmentError) {
+          console.error('Error updating old appointment has_invoice status:', appointmentError);
+        }
+      }
+    }
+    
     res.json(result.rows[0]);
   } catch (error) {
     console.error(`Error updating invoice ${req.params.id}:`, error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Delete invoice
+const deleteInvoice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { craftsman_id } = req.query;
+    
+    // Validate required fields
+    if (!craftsman_id) {
+      return res.status(400).json({ error: 'craftsman_id is required' });
+    }
+    
+    // Check if invoice exists and get appointment_id if it exists
+    const checkQuery = `
+      SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2
+    `;
+    const checkResult = await pool.query(checkQuery, [id, craftsman_id]);
+    
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Invoice not found or you do not have permission to delete it' });
+    }
+    
+    // Get the appointment_id if it exists
+    const { appointment_id } = checkResult.rows[0];
+    
+    // Delete the invoice
+    await pool.query('DELETE FROM invoices WHERE id = $1 AND craftsman_id = $2', [id, craftsman_id]);
+    
+    // If there was an appointment linked, update its has_invoice status
+    if (appointment_id) {
+      try {
+        await pool.query(
+          `UPDATE appointments SET has_invoice = false WHERE id = $1 AND craftsman_id = $2`,
+          [appointment_id, craftsman_id]
+        );
+        console.log(`Updated appointment ${appointment_id} to mark it as no longer having an invoice`);
+      } catch (appointmentError) {
+        console.error('Error updating appointment has_invoice status:', appointmentError);
+        // Don't fail the invoice deletion if this update fails
+      }
+    }
+    
+    res.json({ message: 'Invoice deleted successfully' });
+  } catch (error) {
+    console.error(`Error deleting invoice ${req.params.id}:`, error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -224,5 +364,6 @@ module.exports = {
   getAllInvoices,
   getInvoiceById,
   createInvoice,
-  updateInvoice
+  updateInvoice,
+  deleteInvoice
 };
