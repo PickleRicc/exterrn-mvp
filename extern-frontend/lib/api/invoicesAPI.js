@@ -1,4 +1,5 @@
 import api from '../../app/lib/api';
+import { generateInvoicePdf, generateSimpleInvoicePdf } from '../utils/pdfGenerator';
 
 export const invoicesAPI = {
   // Get all invoices with optional filters
@@ -60,30 +61,19 @@ export const invoicesAPI = {
     }
   },
   
-  // Generate PDF for invoice
-  generatePdf: async (id, params = {}) => {
+  // Update existing invoice
+  update: async (id, invoiceData) => {
     try {
-      let craftsman_id;
-      if (typeof params === 'object' && params !== null) {
-        craftsman_id = params.craftsman_id;
-      } else {
-        craftsman_id = params;
-      }
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token found');
-      // Call backend API to generate PDF and get file URL
-      const response = await api.get(`/invoices/${id}/pdf`, {
-        params: { craftsman_id },
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (response.data && response.data.url) {
-        window.open(response.data.url, '_blank');
-        return true;
-      } else {
-        throw new Error('No PDF URL returned from backend');
-      }
+      console.log(`Updating invoice ${id} with data:`, JSON.stringify(invoiceData, null, 2));
+      const response = await api.put(`/invoices/${id}`, invoiceData);
+      console.log('Invoice updated successfully:', response.data);
+      return response.data;
     } catch (error) {
-      console.error(`Error generating PDF:`, error);
+      console.error(`Error updating invoice ${id}:`, error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
       throw error;
     }
   }

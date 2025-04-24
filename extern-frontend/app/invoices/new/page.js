@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { invoicesAPI, customersAPI } from '../../lib/api';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import { generateInvoicePdf, generateSimpleInvoicePdf } from '../../../lib/utils/pdfGenerator';
 
 export default function NewInvoicePage() {
   const [formData, setFormData] = useState({
@@ -23,6 +24,8 @@ export default function NewInvoicePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [createdInvoice, setCreatedInvoice] = useState(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -128,11 +131,9 @@ export default function NewInvoicePage() {
       console.log('Invoice created:', result);
       
       setSuccess(true);
+      setCreatedInvoice(result);
       
-      // Redirect to invoice list after short delay
-      setTimeout(() => {
-        router.push('/invoices');
-      }, 1500);
+      // Don't redirect immediately to allow PDF generation
       
     } catch (err) {
       console.error('Error creating invoice:', err);
@@ -140,6 +141,47 @@ export default function NewInvoicePage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleGeneratePdf = async () => {
+    try {
+      setPdfLoading(true);
+      
+      // Find the selected customer's details
+      const selectedCustomer = customers.find(c => c.id === parseInt(formData.customer_id));
+      
+      // Create a temporary invoice object with form data
+      const invoiceData = {
+        ...createdInvoice,
+        customer_name: selectedCustomer?.name || 'Customer',
+        customer_email: selectedCustomer?.email || '',
+        customer_phone: selectedCustomer?.phone || '',
+        customer_address: selectedCustomer?.address || '',
+        created_at: new Date().toISOString(),
+        status: 'pending'
+      };
+      
+      // Get craftsman data from localStorage if available
+      const craftsmanData = {
+        name: localStorage.getItem('userName') || 'ZIMMR Craftsman',
+        email: localStorage.getItem('userEmail') || '',
+        phone: '',
+        address: ''
+      };
+      
+      // Generate PDF directly
+      await generateInvoicePdf(invoiceData, craftsmanData);
+      
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      alert('Failed to generate PDF. Please try again later.');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const handleRedirectToInvoices = () => {
+    router.push('/invoices');
   };
 
   return (
@@ -165,11 +207,31 @@ export default function NewInvoicePage() {
           
           {success && (
             <div className="bg-green-500/20 text-green-400 p-4 rounded-xl mb-6">
-              Invoice created successfully! Redirecting...
+              <p className="mb-4">Invoice created successfully!</p>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={handleGeneratePdf}
+                  disabled={pdfLoading}
+                  className={`px-4 py-2 ${pdfLoading ? 'bg-gray-500 cursor-not-allowed' : 'bg-[#e91e63] hover:bg-[#d81b60] cursor-pointer'} text-white font-medium rounded-xl transition-colors flex items-center`}
+                >
+                  {pdfLoading ? (
+                    <>
+                      <span className="mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                      Generating PDF...
+                    </>
+                  ) : 'Download PDF'}
+                </button>
+                <button
+                  onClick={handleRedirectToInvoices}
+                  className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white font-medium rounded-xl transition-colors"
+                >
+                  View All Invoices
+                </button>
+              </div>
             </div>
           )}
           
-          <div className="bg-[#132f4c] rounded-xl p-6 shadow-lg">
+          <div className={`bg-[#132f4c] rounded-xl p-6 shadow-lg ${success ? 'opacity-50' : ''}`}>
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Customer Selection */}
@@ -183,6 +245,7 @@ export default function NewInvoicePage() {
                     onChange={handleChange}
                     className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
                     required
+                    disabled={success}
                   >
                     <option value="">Select a customer</option>
                     {customers.map(customer => (
@@ -207,6 +270,7 @@ export default function NewInvoicePage() {
                     min="0"
                     className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
                     required
+                    disabled={success}
                   />
                 </div>
                 
@@ -223,6 +287,7 @@ export default function NewInvoicePage() {
                     step="0.01"
                     min="0"
                     className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                    disabled={success}
                   />
                 </div>
                 
@@ -241,6 +306,7 @@ export default function NewInvoicePage() {
                     className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63] bg-opacity-50"
                     required
                     readOnly
+                    disabled={success}
                   />
                   <p className="text-xs text-gray-400 mt-1">
                     Automatically calculated from amount + tax
@@ -258,6 +324,7 @@ export default function NewInvoicePage() {
                     value={formData.due_date}
                     onChange={handleChange}
                     className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                    disabled={success}
                   />
                 </div>
                 
@@ -272,6 +339,7 @@ export default function NewInvoicePage() {
                     onChange={handleChange}
                     rows="4"
                     className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                    disabled={success}
                   ></textarea>
                 </div>
               </div>

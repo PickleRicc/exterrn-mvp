@@ -5,12 +5,15 @@ import Link from 'next/link';
 import { invoicesAPI } from '../lib/api';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { generateInvoicePdf } from '../../lib/utils/pdfGenerator';
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [craftsmanId, setCraftsmanId] = useState(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [processingInvoiceId, setProcessingInvoiceId] = useState(null);
 
   useEffect(() => {
     // Get craftsman ID from token
@@ -72,13 +75,29 @@ export default function InvoicesPage() {
     }
   };
 
-  const handleGeneratePdf = async (id) => {
+  // Direct client-side PDF generation without server request
+  const handleGeneratePdf = async (invoice) => {
     try {
-      // Pass craftsman_id as an object parameter
-      await invoicesAPI.generatePdf(id, { craftsman_id: craftsmanId });
+      setPdfLoading(true);
+      setProcessingInvoiceId(invoice.id);
+      
+      // Get craftsman data from localStorage if available
+      const craftsmanData = {
+        name: localStorage.getItem('userName') || 'ZIMMR Craftsman',
+        email: localStorage.getItem('userEmail') || '',
+        phone: '',
+        address: ''
+      };
+      
+      // Generate PDF directly using our client-side utility
+      await generateInvoicePdf(invoice, craftsmanData);
+      
     } catch (err) {
       console.error('Error generating PDF:', err);
       alert('Failed to generate PDF. Please try again later.');
+    } finally {
+      setPdfLoading(false);
+      setProcessingInvoiceId(null);
     }
   };
 
@@ -175,10 +194,16 @@ export default function InvoicesPage() {
                       View Details
                     </Link>
                     <button
-                      onClick={() => handleGeneratePdf(invoice.id)}
-                      className="px-3 py-1 bg-[#e91e63]/20 hover:bg-[#e91e63]/30 text-[#e91e63] text-sm font-medium rounded-xl transition-colors"
+                      onClick={() => handleGeneratePdf(invoice)}
+                      disabled={pdfLoading && processingInvoiceId === invoice.id}
+                      className={`px-3 py-1 ${pdfLoading && processingInvoiceId === invoice.id ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed' : 'bg-[#e91e63]/20 hover:bg-[#e91e63]/30 text-[#e91e63] cursor-pointer'} text-sm font-medium rounded-xl transition-colors flex items-center`}
                     >
-                      Download PDF
+                      {pdfLoading && processingInvoiceId === invoice.id ? (
+                        <>
+                          <span className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
+                          Processing...
+                        </>
+                      ) : 'Download PDF'}
                     </button>
                   </div>
                 </div>

@@ -5,7 +5,7 @@ const {
   getAllInvoices,
   getInvoiceById,
   createInvoice,
-  generatePdf
+  updateInvoice
 } = require('../controllers/invoicesController');
 
 // Apply authentication middleware to all routes
@@ -20,7 +20,7 @@ router.get('/:id', getInvoiceById);
 // POST new invoice
 router.post('/', createInvoice);
 
-// GET generate PDF
-router.get('/:id/pdf', generatePdf);
+// PUT update invoice
+router.put('/:id', updateInvoice);
 
 module.exports = router;
