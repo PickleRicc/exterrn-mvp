@@ -76,7 +76,7 @@ export default function InvoiceDetailPage({ params }) {
   const fetchInvoice = async () => {
     try {
       setLoading(true);
-      const data = await invoicesAPI.getById(invoiceId, { craftsman_id: craftsmanId });
+      const data = await invoicesAPI.getById(invoiceId, craftsmanId);
       console.log('Fetched invoice:', data);
       setInvoice(data);
       

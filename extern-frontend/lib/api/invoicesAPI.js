@@ -32,7 +32,12 @@ export const invoicesAPI = {
       const params = {};
       
       if (craftsman_id) {
-        params.craftsman_id = craftsman_id;
+        // Handle both formats: direct value or object with craftsman_id property
+        if (typeof craftsman_id === 'object' && craftsman_id.craftsman_id) {
+          params.craftsman_id = craftsman_id.craftsman_id;
+        } else {
+          params.craftsman_id = craftsman_id;
+        }
       }
       
       console.log('Fetching invoice with ID:', id, 'and params:', params);
