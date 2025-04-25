@@ -47,7 +47,8 @@ export default function InvoicesPage() {
         console.log('Extracted craftsman ID:', extractedCraftsmanId);
         
         if (extractedCraftsmanId) {
-          setCraftsmanId(extractedCraftsmanId);
+          // Ensure craftsman ID is stored as a string
+          setCraftsmanId(String(extractedCraftsmanId));
         } else {
           console.error('No craftsman ID found in token:', tokenData);
           setError('No craftsman ID found in your account. Please contact support.');
@@ -100,6 +101,7 @@ export default function InvoicesPage() {
   const fetchInvoices = async () => {
     try {
       setLoading(true);
+      console.log('Fetching invoices with craftsman_id:', craftsmanId);
       // Pass craftsman_id as an object parameter
       const data = await invoicesAPI.getAll({ craftsman_id: craftsmanId });
       console.log('Fetched invoices:', data);

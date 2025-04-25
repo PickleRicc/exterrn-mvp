@@ -232,7 +232,9 @@ export const appointmentsAPI = {
 // Invoices API calls
 export const invoicesAPI = {
   getAll: async (filters = {}) => {
+    console.log('invoicesAPI.getAll called with filters:', filters);
     const response = await api.get('/invoices', { params: filters });
+    console.log('invoicesAPI.getAll response:', response.status);
     return response.data;
   },
   getById: async (id) => {

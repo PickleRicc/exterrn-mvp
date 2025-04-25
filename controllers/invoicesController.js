@@ -3,27 +3,44 @@ const pool = require('../db');
 // Get all invoices with optional filters
 const getAllInvoices = async (req, res) => {
   try {
-    const { craftsman_id } = req.query;
+    // Get craftsman_id from either query params or from the authenticated user
+    let craftsman_id = req.query.craftsman_id;
+    
+    // If no craftsman_id in query, use the one from the authenticated user
+    if (!craftsman_id && req.user && req.user.craftsmanId) {
+      craftsman_id = req.user.craftsmanId;
+      console.log('Using craftsman_id from authenticated user:', craftsman_id);
+    }
+    
+    console.log('GET /invoices request received');
+    console.log('Request query params:', req.query);
+    console.log('Craftsman ID to use:', craftsman_id);
+    
+    // Require craftsman_id for security
+    if (!craftsman_id) {
+      console.log('ERROR: No craftsman_id provided, rejecting request');
+      return res.status(400).json({ error: 'craftsman_id is required' });
+    }
     
     let query = `
       SELECT i.*, c.name as customer_name
       FROM invoices i
       LEFT JOIN customers c ON i.customer_id = c.id
-      WHERE 1=1
+      WHERE i.craftsman_id = $1
     `;
     
-    const queryParams = [];
-    let paramIndex = 1;
+    const queryParams = [craftsman_id];
+    let paramIndex = 2;
     
-    if (craftsman_id) {
-      query += ` AND i.craftsman_id = $${paramIndex}`;
-      queryParams.push(craftsman_id);
-      paramIndex++;
-    }
+    // Add any additional filters here if needed
     
     query += ` ORDER BY i.created_at DESC`;
     
+    console.log('Executing query:', query);
+    console.log('Query params:', queryParams);
+    
     const result = await pool.query(query, queryParams);
+    console.log(`Query returned ${result.rows.length} invoices`);
     
     res.json(result.rows);
   } catch (error) {
