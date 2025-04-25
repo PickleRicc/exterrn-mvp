@@ -21,7 +21,6 @@ export default function InvoiceDetailPage({ params }) {
   const [craftsmanId, setCraftsmanId] = useState(null);
   const [editing, setEditing] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [formData, setFormData] = useState({
     craftsman_id: '',
     customer_id: '',
@@ -226,57 +225,6 @@ export default function InvoiceDetailPage({ params }) {
       alert('Failed to generate PDF. Please try again later.');
     } finally {
       setPdfLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
-      return;
-    }
-    
-    try {
-      setDeleting(true);
-      
-      // Get craftsman ID from token (same approach as in the getById method)
-      let craftsmanIdFromToken = null;
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const tokenData = JSON.parse(atob(token.split('.')[1]));
-          craftsmanIdFromToken = tokenData.craftsmanId;
-          console.log('Craftsman ID from token:', craftsmanIdFromToken);
-        } catch (err) {
-          console.error('Error parsing token:', err);
-        }
-      }
-      
-      // Use the craftsman ID from token or fallback to the one from props
-      const finalCraftsmanId = craftsmanIdFromToken || craftsmanId;
-      console.log(`Attempting to delete invoice ${invoiceId} for craftsman ${finalCraftsmanId}`);
-      
-      const response = await invoicesAPI.delete(invoiceId, finalCraftsmanId);
-      console.log('Delete response:', response);
-      
-      setSuccess(true);
-      
-      // Show success message
-      alert('Invoice deleted successfully!');
-      
-      // Force a hard redirect to invoices list to ensure a full page reload
-      window.location.href = '/invoices';
-    } catch (err) {
-      console.error('Error deleting invoice:', err);
-      
-      // Show more detailed error information
-      let errorMessage = 'Failed to delete invoice. Please try again later.';
-      if (err.response && err.response.data && err.response.data.error) {
-        errorMessage = `Error: ${err.response.data.error}`;
-      }
-      
-      setError(errorMessage);
-      alert(errorMessage);
-    } finally {
-      setDeleting(false);
     }
   };
 
@@ -506,18 +454,6 @@ export default function InvoiceDetailPage({ params }) {
                             Processing...
                           </>
                         ) : 'Download PDF'}
-                      </button>
-                      <button
-                        onClick={handleDelete}
-                        disabled={deleting}
-                        className={`px-3 py-1 ${deleting ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed' : 'bg-red-500/20 hover:bg-red-500/30 text-red-400 cursor-pointer'} text-sm font-medium rounded-xl transition-colors flex items-center`}
-                      >
-                        {deleting ? (
-                          <>
-                            <span className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
-                            Deleting...
-                          </>
-                        ) : 'Delete'}
                       </button>
                     </div>
                   </div>

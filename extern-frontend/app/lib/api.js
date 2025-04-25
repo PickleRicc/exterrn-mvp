@@ -274,43 +274,8 @@ export const invoicesAPI = {
     return response.data;
   },
   update: async (id, invoiceData) => {
-    // Get craftsman ID from token
-    let craftsmanId = null;
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const tokenData = JSON.parse(atob(token.split('.')[1]));
-          craftsmanId = tokenData.craftsmanId;
-        } catch (err) {
-          console.error('Error parsing token:', err);
-        }
-      }
-    }
-    
-    const response = await api.put(`/invoices/${id}`, { ...invoiceData, craftsman_id: craftsmanId });
+    const response = await api.put(`/invoices/${id}`, invoiceData);
     return response.data;
-  },
-  delete: async (id, craftsmanId) => {
-    console.log(`API delete call for invoice ${id} with craftsman_id:`, craftsmanId);
-    
-    // Check if we have a craftsman ID
-    if (!craftsmanId) {
-      console.error('No craftsman ID provided for delete operation');
-      throw new Error('Craftsman ID is required');
-    }
-    
-    try {
-      // Use the same format as the getById method which is known to work
-      const response = await api.delete(`/invoices/${id}`, { 
-        params: { craftsman_id: craftsmanId }
-      });
-      console.log('Delete response received:', response.status);
-      return response.data;
-    } catch (error) {
-      console.error('Error in delete API call:', error.response?.data || error.message);
-      throw error;
-    }
   },
   
   // Generate PDF for download

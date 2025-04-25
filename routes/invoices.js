@@ -5,8 +5,7 @@ const {
   getAllInvoices,
   getInvoiceById,
   createInvoice,
-  updateInvoice,
-  deleteInvoice
+  updateInvoice
 } = require('../controllers/invoicesController');
 
 // Apply authentication middleware to all routes
@@ -28,9 +27,6 @@ router.post('/', createInvoice);
 
 // PUT update invoice
 router.put('/:id', updateInvoice);
-
-// DELETE invoice
-router.delete('/:id', deleteInvoice);
 
 // Export the router
 module.exports = router;

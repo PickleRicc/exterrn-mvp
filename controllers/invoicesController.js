@@ -313,6 +313,7 @@ const updateInvoice = async (req, res) => {
 };
 
 // Delete invoice
+/*
 const deleteInvoice = async (req, res) => {
   try {
     const { id } = req.params;
@@ -342,8 +343,8 @@ const deleteInvoice = async (req, res) => {
     }
     
     // Get the appointment_id if it exists
-    const { appointment_id } = checkResult.rows[0];
-    console.log(`Found invoice ${id} with appointment_id ${appointment_id || 'none'}`);
+    const appointment_id = checkResult.rows[0].appointment_id;
+    console.log(`Invoice has appointment_id: ${appointment_id}`);
     
     // Delete the invoice
     const deleteQuery = 'DELETE FROM invoices WHERE id = $1 AND craftsman_id = $2';
@@ -359,27 +360,24 @@ const deleteInvoice = async (req, res) => {
         const updateResult = await pool.query(updateQuery, [appointment_id, craftsman_id]);
         console.log('Update result:', updateResult.rowCount, 'rows affected');
         console.log(`Updated appointment ${appointment_id} to mark it as no longer having an invoice`);
-      } catch (appointmentError) {
-        console.error('Error updating appointment has_invoice status:', appointmentError);
-        // Don't fail the invoice deletion if this update fails
+      } catch (updateErr) {
+        console.error('Error updating appointment has_invoice status:', updateErr);
+        // Continue with the response even if this fails
       }
     }
     
-    res.json({ 
-      message: 'Invoice deleted successfully',
-      success: true,
-      deleted_id: id
-    });
-  } catch (error) {
-    console.error(`Error deleting invoice ${req.params.id}:`, error);
-    res.status(500).json({ error: error.message });
+    return res.status(200).json({ message: 'Invoice deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting invoice:', err);
+    return res.status(500).json({ error: 'Server error while deleting invoice' });
   }
 };
+*/
 
 module.exports = {
   getAllInvoices,
   getInvoiceById,
   createInvoice,
   updateInvoice,
-  deleteInvoice
+  // deleteInvoice - removed temporarily
 };
