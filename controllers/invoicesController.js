@@ -312,6 +312,39 @@ const updateInvoice = async (req, res) => {
   }
 };
 
+// Check and update invoice statuses based on due dates
+const updateInvoiceStatuses = async () => {
+  try {
+    console.log('Checking for overdue invoices...');
+    
+    // Find all pending invoices with due dates in the past
+    const query = `
+      UPDATE invoices 
+      SET 
+        status = 'overdue',
+        updated_at = CURRENT_TIMESTAMP
+      WHERE 
+        status = 'pending' 
+        AND due_date < CURRENT_TIMESTAMP
+      RETURNING id, invoice_number, due_date
+    `;
+    
+    const result = await pool.query(query);
+    
+    if (result.rows.length > 0) {
+      console.log(`Updated ${result.rows.length} invoices to overdue status`);
+      console.log('Updated invoices:', result.rows);
+    } else {
+      console.log('No invoices needed to be updated to overdue status');
+    }
+    
+    return result.rows;
+  } catch (error) {
+    console.error('Error updating invoice statuses:', error);
+    return [];
+  }
+};
+
 // Delete invoice
 /*
 const deleteInvoice = async (req, res) => {
@@ -379,5 +412,6 @@ module.exports = {
   getInvoiceById,
   createInvoice,
   updateInvoice,
+  updateInvoiceStatuses,
   // deleteInvoice - removed temporarily
 };

@@ -146,12 +146,17 @@ export default function InvoicesPage() {
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case 'paid':
-        return 'bg-green-500/20 text-green-400';
+        return 'bg-green-900/30 text-green-400';
       case 'overdue':
-        return 'bg-red-500/20 text-red-400';
+        return 'bg-red-900/30 text-red-400 animate-pulse';
       case 'pending':
+        return 'bg-blue-900/30 text-blue-400';
+      case 'cancelled':
+        return 'bg-gray-900/30 text-gray-400';
+      case 'draft':
+        return 'bg-yellow-900/30 text-yellow-400';
       default:
-        return 'bg-yellow-500/20 text-yellow-400';
+        return 'bg-blue-900/30 text-blue-400';
     }
   };
 

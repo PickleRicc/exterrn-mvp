@@ -10,6 +10,7 @@ const customerRoutes = require('./routes/customers');
 const authRoutes = require('./routes/auth');
 const craftsmenRoutes = require('./routes/craftsmen');
 const invoiceRoutes = require('./routes/invoices');
+const { updateInvoiceStatuses } = require('./controllers/invoicesController');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -102,4 +103,35 @@ app.get('/db-test', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Invoice status check interval (in milliseconds)
+const INVOICE_CHECK_INTERVAL = 60 * 60 * 1000; // Check every hour
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  
+  // Run invoice status check immediately on startup
+  updateInvoiceStatuses()
+    .then(updatedInvoices => {
+      if (updatedInvoices.length > 0) {
+        console.log(`Initial check: Updated ${updatedInvoices.length} invoices to overdue status`);
+      } else {
+        console.log('Initial check: No invoices needed to be updated to overdue status');
+      }
+    })
+    .catch(err => {
+      console.error('Error during initial invoice status check:', err);
+    });
+  
+  // Schedule regular invoice status checks
+  setInterval(() => {
+    updateInvoiceStatuses()
+      .then(updatedInvoices => {
+        if (updatedInvoices.length > 0) {
+          console.log(`Scheduled check: Updated ${updatedInvoices.length} invoices to overdue status`);
+        }
+      })
+      .catch(err => {
+        console.error('Error during scheduled invoice status check:', err);
+      });
+  }, INVOICE_CHECK_INTERVAL);
+});
