@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { appointmentsAPI, customersAPI, materialsAPI, invoicesAPI } from '../../lib/api';
+import { appointmentsAPI, customersAPI } from '../../lib/api';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 
@@ -12,8 +12,6 @@ export default function AppointmentDetailPage() {
   const [success, setSuccess] = useState('');
   const [appointment, setAppointment] = useState(null);
   const [customer, setCustomer] = useState(null);
-  const [materials, setMaterials] = useState([]);
-  const [selectedMaterials, setSelectedMaterials] = useState([]);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [processingAction, setProcessingAction] = useState(null);
@@ -46,30 +44,21 @@ export default function AppointmentDetailPage() {
   const fetchAppointment = async () => {
     try {
       // Fetch appointment details
+      console.log(`Fetching appointment with ID: ${id}`);
       const appointmentData = await appointmentsAPI.getById(id);
+      console.log('Appointment data received:', appointmentData);
       setAppointment(appointmentData);
       
       // Fetch customer details
       if (appointmentData.customer_id) {
         try {
+          console.log(`Fetching customer with ID: ${appointmentData.customer_id}`);
           const customerData = await customersAPI.getById(appointmentData.customer_id);
+          console.log('Customer data received:', customerData);
           setCustomer(customerData);
         } catch (customerErr) {
           console.error('Error fetching customer details:', customerErr);
           // Continue with the rest of the function even if customer fetch fails
-        }
-      }
-      
-      // Fetch craftsman's materials - wrapped in try/catch to handle missing endpoint
-      if (appointmentData.craftsman_id) {
-        try {
-          // Try to fetch materials, but don't let it break the page if it fails
-          const materialsData = await materialsAPI.getAll({ craftsman_id: appointmentData.craftsman_id });
-          setMaterials(Array.isArray(materialsData) ? materialsData : []);
-        } catch (materialsErr) {
-          console.error('Materials endpoint not available:', materialsErr);
-          // Set empty materials array to avoid UI errors
-          setMaterials([]);
         }
       }
       
@@ -81,7 +70,14 @@ export default function AppointmentDetailPage() {
       setLoading(false);
     } catch (err) {
       console.error('Error fetching appointment:', err);
-      setError('Failed to load appointment. Please try again.');
+      
+      // Check if it's a 404 error
+      if (err.response && err.response.status === 404) {
+        setError('Appointment not found. It may have been deleted or you do not have permission to view it.');
+      } else {
+        setError('Failed to load appointment. Please try again.');
+      }
+      
       setLoading(false);
     }
   };
@@ -131,46 +127,6 @@ export default function AppointmentDetailPage() {
       default:
         return 'bg-gray-100/80 text-gray-800 border border-gray-200/50';
     }
-  };
-
-  const handleMaterialSelect = (material) => {
-    // Check if material is already selected
-    const existingIndex = selectedMaterials.findIndex(m => m.id === material.id);
-    
-    if (existingIndex >= 0) {
-      // Update quantity if already selected
-      const updatedMaterials = [...selectedMaterials];
-      updatedMaterials[existingIndex] = {
-        ...updatedMaterials[existingIndex],
-        quantity: updatedMaterials[existingIndex].quantity + 1
-      };
-      setSelectedMaterials(updatedMaterials);
-    } else {
-      // Add new material with quantity 1
-      setSelectedMaterials([
-        ...selectedMaterials,
-        {
-          ...material,
-          quantity: 1
-        }
-      ]);
-    }
-  };
-
-  const handleUpdateMaterialQuantity = (materialId, quantity) => {
-    if (quantity <= 0) {
-      // Remove material if quantity is 0 or negative
-      setSelectedMaterials(selectedMaterials.filter(m => m.id !== materialId));
-    } else {
-      // Update quantity
-      setSelectedMaterials(selectedMaterials.map(m => 
-        m.id === materialId ? { ...m, quantity } : m
-      ));
-    }
-  };
-
-  const handleRemoveMaterial = (materialId) => {
-    setSelectedMaterials(selectedMaterials.filter(m => m.id !== materialId));
   };
 
   const openCompleteModal = () => {
@@ -245,83 +201,51 @@ export default function AppointmentDetailPage() {
   };
 
   const handleCompleteAppointment = async () => {
-    setProcessingAction('complete');
-    setError('');
-    setSuccess('');
-    
     try {
-      // Validate service price
-      const price = parseFloat(servicePrice);
-      if (isNaN(price) || price < 0) {
+      // Validate required fields
+      if (!servicePrice || parseFloat(servicePrice) <= 0) {
         setError('Please enter a valid service price.');
-        setProcessingAction(null);
         return;
       }
       
-      // Prepare invoice items
-      const invoiceItems = [
-        // Add service item
-        {
-          description: `${appointment.title || 'Tiling Service'} - ${appointment.notes || 'Professional service'}`,
-          quantity: 1,
-          unit_price: price,
-          service_type: appointment.service_type || 'tiling'
-        }
-      ];
+      setProcessingAction('complete');
+      setError('');
       
-      // Add selected materials
-      selectedMaterials.forEach(material => {
-        invoiceItems.push({
-          description: `${material.name} - ${material.description || 'Tiling material'}`,
-          quantity: material.quantity,
-          unit_price: material.price_per_sqm || 0,
-          material_id: material.id
-        });
+      // Update appointment status to completed
+      await appointmentsAPI.complete(appointment.id, { 
+        status: 'completed',
+        price: servicePrice,
+        notes: notes
       });
       
-      // Calculate total amount from items
-      const totalAmount = invoiceItems.reduce((sum, item) => {
-        return sum + (parseFloat(item.quantity) * parseFloat(item.unit_price));
-      }, 0);
+      setSuccess('Appointment completed successfully!');
       
-      // Create invoice data
-      const invoiceData = {
-        appointment_id: appointment.id,
-        customer_id: appointment.customer_id,
-        items: invoiceItems,
-        amount: totalAmount,
-        tax_amount: 0, // Add tax calculation if needed
-        status: 'pending',
-        invoice_number: `INV-${Date.now()}`,
-        notes: notes,
-        due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) // 14 days from now
-      };
-      
-      console.log('Creating invoice with data:', invoiceData);
-      
-      // First, complete the appointment
-      await appointmentsAPI.complete(appointment.id, { status: 'completed' });
-      
-      // Then create the invoice
-      const invoiceResponse = await invoicesAPI.create(invoiceData);
-      
-      setSuccess('Appointment completed and invoice generated successfully!');
-      
-      // Close modal and refresh data
+      // Redirect to the new invoice page with appointment data
       setTimeout(() => {
-        closeCompleteModal();
-        fetchAppointment();
+        // Encode appointment data to pass to the new invoice page
+        const appointmentData = {
+          appointment_id: appointment.id,
+          customer_id: appointment.customer_id,
+          craftsman_id: appointment.craftsman_id,
+          amount: servicePrice, // Pre-fill the amount with service price
+          location: appointment.location || '',
+          service_date: appointment.scheduled_at ? new Date(appointment.scheduled_at).toISOString().split('T')[0] : '',
+          notes: notes || appointment.notes || '',
+          from_appointment: true
+        };
         
-        // Redirect to the invoice page
-        if (invoiceResponse && invoiceResponse.id) {
-          router.push(`/invoices/${invoiceResponse.id}`);
-        }
-      }, 2000);
+        // Create query string with appointment data
+        const queryString = new URLSearchParams(appointmentData).toString();
+        
+        // Redirect to new invoice page with appointment data
+        router.push(`/invoices/new?${queryString}`);
+      }, 1000);
     } catch (err) {
       console.error('Error completing appointment:', err);
       setError('Failed to complete appointment. Please try again.');
     } finally {
       setProcessingAction(null);
+      setShowCompleteModal(false);
     }
   };
 
@@ -559,93 +483,6 @@ export default function AppointmentDetailPage() {
                 placeholder="Enter service price"
                 className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
               />
-            </div>
-            
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-white/80 mb-2">
-                Materials Used
-              </label>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                {materials.map(material => (
-                  <div 
-                    key={material.id}
-                    onClick={() => handleMaterialSelect(material)}
-                    className="bg-white/5 border border-white/10 rounded-lg p-3 cursor-pointer hover:bg-white/10 transition-colors"
-                  >
-                    <h4 className="font-medium text-white">{material.name}</h4>
-                    <p className="text-white/70 text-sm">{material.description || 'No description'}</p>
-                    <div className="flex justify-between mt-2">
-                      <span className="text-white/70 text-sm">Price per sqm:</span>
-                      <span className="text-white text-sm">{formatCurrency(material.price_per_sqm)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {selectedMaterials.length > 0 ? (
-                <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                  <h4 className="font-medium text-white mb-3">Selected Materials</h4>
-                  
-                  <div className="space-y-3">
-                    {selectedMaterials.map(material => (
-                      <div key={material.id} className="flex items-center justify-between bg-white/5 rounded-lg p-3">
-                        <div>
-                          <h5 className="font-medium text-white">{material.name}</h5>
-                          <p className="text-white/70 text-sm">{formatCurrency(material.price_per_sqm)} per sqm</p>
-                        </div>
-                        
-                        <div className="flex items-center space-x-3">
-                          <div className="flex items-center">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleUpdateMaterialQuantity(material.id, material.quantity - 1);
-                              }}
-                              className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-l-lg border border-white/10 text-white hover:bg-white/20 transition-colors"
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              min="1"
-                              value={material.quantity}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                handleUpdateMaterialQuantity(material.id, parseInt(e.target.value) || 0);
-                              }}
-                              className="w-12 h-8 bg-white/5 border-t border-b border-white/10 text-center text-white"
-                            />
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleUpdateMaterialQuantity(material.id, material.quantity + 1);
-                              }}
-                              className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-r-lg border border-white/10 text-white hover:bg-white/20 transition-colors"
-                            >
-                              +
-                            </button>
-                          </div>
-                          
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveMaterial(material.id);
-                            }}
-                            className="text-red-400 hover:text-red-300 transition-colors"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <p className="text-white/70 italic">No materials selected. Click on materials above to add them.</p>
-              )}
             </div>
             
             <div className="mb-6">

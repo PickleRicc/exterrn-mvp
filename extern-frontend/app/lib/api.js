@@ -200,8 +200,16 @@ export const appointmentsAPI = {
     return response.data;
   },
   getById: async (id) => {
-    const response = await api.get(`/appointments/${id}`);
-    return response.data;
+    try {
+      console.log(`API call: Getting appointment with ID ${id}`);
+      const response = await api.get(`/appointments/${id}`);
+      console.log(`API response for appointment ${id}:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching appointment ${id}:`, error);
+      // Preserve the original error with its status code
+      throw error;
+    }
   },
   create: async (appointmentData) => {
     const response = await api.post('/appointments', appointmentData);

@@ -13,7 +13,7 @@ export default function NewInvoicePage() {
     craftsman_id: '',
     customer_id: '',
     amount: '',
-    tax_amount: '0',
+    tax_amount: '',
     total_amount: '',
     notes: '',
     due_date: '',
@@ -59,9 +59,50 @@ export default function NewInvoicePage() {
         console.log('Extracted craftsman ID:', extractedCraftsmanId);
         
         if (extractedCraftsmanId) {
-          setFormData(prev => ({ ...prev, craftsman_id: extractedCraftsmanId }));
+          setFormData(prev => ({ ...prev, craftsman_id: String(extractedCraftsmanId) }));
           fetchCustomers(extractedCraftsmanId);
           fetchAppointments(extractedCraftsmanId);
+          
+          // Check URL for pre-populated data from appointment
+          if (typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            if (urlParams.get('from_appointment') === 'true') {
+              console.log('Pre-populating invoice from appointment data');
+              
+              // Get appointment data from URL parameters
+              const appointmentId = urlParams.get('appointment_id');
+              const customerId = urlParams.get('customer_id');
+              const amount = urlParams.get('amount');
+              const location = urlParams.get('location');
+              const serviceDate = urlParams.get('service_date');
+              const notes = urlParams.get('notes');
+              
+              // Calculate default due date (14 days from now)
+              const dueDate = new Date();
+              dueDate.setDate(dueDate.getDate() + 14);
+              const formattedDueDate = dueDate.toISOString().split('T')[0];
+              
+              // Calculate tax (19% of amount)
+              const amountValue = parseFloat(amount) || 0;
+              const taxAmount = (amountValue * 0.19).toFixed(2);
+              const totalAmount = (amountValue + parseFloat(taxAmount)).toFixed(2);
+              
+              // Update form data with appointment details
+              setFormData(prev => ({
+                ...prev,
+                appointment_id: appointmentId || '',
+                customer_id: customerId || '',
+                amount: amount || '',
+                tax_amount: taxAmount,
+                total_amount: totalAmount,
+                location: location || '',
+                service_date: serviceDate || '',
+                notes: notes || '',
+                due_date: formattedDueDate
+              }));
+            }
+          }
         } else {
           console.error('No craftsman ID found in token:', tokenData);
           setError('No craftsman ID found in your account. Please contact support.');
@@ -124,15 +165,40 @@ export default function NewInvoicePage() {
         // If VAT exempt is checked, set tax_amount to 0
         if (name === 'vat_exempt' && checked) {
           newData.tax_amount = '0';
+          
+          // Recalculate total amount when VAT exempt is toggled
+          const amount = parseFloat(newData.amount) || 0;
+          newData.total_amount = amount.toFixed(2);
+        } else if (name === 'vat_exempt' && !checked) {
+          // If VAT exempt is unchecked, recalculate tax at 19%
+          const amount = parseFloat(newData.amount) || 0;
+          const taxAmount = amount * 0.19;
+          newData.tax_amount = taxAmount.toFixed(2);
+          newData.total_amount = (amount + taxAmount).toFixed(2);
         }
       } else {
         newData[name] = value;
       }
       
-      // Auto-calculate total amount when amount or tax_amount changes
-      if (name === 'amount' || name === 'tax_amount') {
+      // Auto-calculate tax and total amount when amount changes
+      if (name === 'amount') {
+        const amount = parseFloat(value) || 0;
+        
+        if (!newData.vat_exempt) {
+          // Calculate 19% tax
+          const taxAmount = amount * 0.19;
+          newData.tax_amount = taxAmount.toFixed(2);
+          newData.total_amount = (amount + taxAmount).toFixed(2);
+        } else {
+          // No tax for VAT exempt
+          newData.tax_amount = '0';
+          newData.total_amount = amount.toFixed(2);
+        }
+      } 
+      // If tax_amount is manually changed, recalculate total
+      else if (name === 'tax_amount') {
         const amount = parseFloat(newData.amount) || 0;
-        const taxAmount = parseFloat(newData.tax_amount) || 0;
+        const taxAmount = parseFloat(value) || 0;
         newData.total_amount = (amount + taxAmount).toFixed(2);
       }
       
@@ -453,19 +519,25 @@ export default function NewInvoicePage() {
                 {/* Amount */}
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Amount (€) *
+                    Amount (Net) *
                   </label>
-                  <input
-                    type="number"
-                    name="amount"
-                    value={formData.amount}
-                    onChange={handleChange}
-                    step="0.01"
-                    min="0"
-                    className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
-                    required
-                    disabled={success}
-                  />
+                  <div className="relative">
+                    <input
+                      type="number"
+                      name="amount"
+                      value={formData.amount}
+                      onChange={handleChange}
+                      step="0.01"
+                      min="0"
+                      className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63] pl-7"
+                      required
+                      disabled={success}
+                    />
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">€</span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Net amount before tax
+                  </p>
                 </div>
                 
                 {/* VAT Exempt Toggle */}
@@ -490,38 +562,47 @@ export default function NewInvoicePage() {
                 {!formData.vat_exempt && (
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Tax Amount (€)
+                      Tax Amount (19% VAT)
                     </label>
-                    <input
-                      type="number"
-                      name="tax_amount"
-                      value={formData.tax_amount}
-                      onChange={handleChange}
-                      step="0.01"
-                      min="0"
-                      className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
-                      disabled={success || formData.vat_exempt}
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        name="tax_amount"
+                        value={formData.tax_amount}
+                        onChange={handleChange}
+                        step="0.01"
+                        min="0"
+                        className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63] pl-7"
+                        disabled={success}
+                      />
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">€</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Automatically calculated as 19% of the amount
+                    </p>
                   </div>
                 )}
                 
                 {/* Total Amount (calculated) */}
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Total Amount (€) *
+                    Total Amount (Gross) *
                   </label>
-                  <input
-                    type="number"
-                    name="total_amount"
-                    value={formData.total_amount}
-                    onChange={handleChange}
-                    step="0.01"
-                    min="0"
-                    className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63] bg-opacity-50"
-                    required
-                    readOnly
-                    disabled={success}
-                  />
+                  <div className="relative">
+                    <input
+                      type="number"
+                      name="total_amount"
+                      value={formData.total_amount}
+                      onChange={handleChange}
+                      step="0.01"
+                      min="0"
+                      className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63] pl-7 bg-opacity-50"
+                      required
+                      readOnly
+                      disabled={success}
+                    />
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">€</span>
+                  </div>
                   <p className="text-xs text-gray-400 mt-1">
                     Automatically calculated from amount + tax
                   </p>
