@@ -19,7 +19,8 @@ export default function InvoicesPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredInvoices, setFilteredInvoices] = useState([]);
-  const [lastRefresh, setLastRefresh] = useState(Date.now());
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [statusUpdateId, setStatusUpdateId] = useState(null);
 
   const router = useRouter();
 
@@ -65,7 +66,7 @@ export default function InvoicesPage() {
     if (craftsmanId) {
       fetchInvoices();
     }
-  }, [craftsmanId, lastRefresh]);
+  }, [craftsmanId]);
 
   useEffect(() => {
     if (invoices.length > 0) {
@@ -112,11 +113,6 @@ export default function InvoicesPage() {
     }
   };
 
-  // Function to manually refresh the invoices list
-  const refreshInvoices = () => {
-    setLastRefresh(Date.now());
-  };
-
   // Direct client-side PDF generation without server request
   const handleGeneratePdf = async (invoice) => {
     try {
@@ -143,6 +139,36 @@ export default function InvoicesPage() {
     }
   };
 
+  // Handle status update
+  const handleStatusUpdate = async (invoiceId, newStatus) => {
+    if (!craftsmanId || updatingStatus) return;
+    
+    try {
+      setUpdatingStatus(true);
+      setStatusUpdateId(invoiceId);
+      
+      // Call API to update invoice status
+      await invoicesAPI.update(invoiceId, { 
+        status: newStatus,
+        craftsman_id: craftsmanId
+      });
+      
+      // Update local state to reflect the change
+      setInvoices(invoices.map(invoice => 
+        invoice.id === invoiceId 
+          ? { ...invoice, status: newStatus } 
+          : invoice
+      ));
+      
+    } catch (err) {
+      console.error('Error updating invoice status:', err);
+      alert('Failed to update invoice status. Please try again.');
+    } finally {
+      setUpdatingStatus(false);
+      setStatusUpdateId(null);
+    }
+  };
+
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case 'paid':
@@ -165,31 +191,27 @@ export default function InvoicesPage() {
     return new Date(dateString).toLocaleDateString();
   };
 
+  // Add event listener for focus to refresh data when returning to the page
+  const handleFocus = () => {
+    fetchInvoices();
+  };
+
   useEffect(() => {
-    // Add event listener for focus to refresh data when returning to the page
-    const handleFocus = () => {
-      if (craftsmanId) {
-        refreshInvoices();
-      }
-    };
-    
     window.addEventListener('focus', handleFocus);
-    
-    // Add event listener for visibility change to refresh data when tab becomes visible
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && craftsmanId) {
-        refreshInvoices();
-      }
-    };
-    
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
+  // Add event listener for visibility change to refresh data when tab becomes visible
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible') {
+      fetchInvoices();
+    }
+  };
+
+  useEffect(() => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [craftsmanId]);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   return (
     <>
@@ -199,15 +221,6 @@ export default function InvoicesPage() {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Invoices & Quotes</h1>
             <div className="flex space-x-2">
-              <button
-                onClick={refreshInvoices}
-                className="p-2 bg-[#1e3a5f] hover:bg-[#2a4d76] rounded-xl transition-colors"
-                title="Refresh invoices"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </button>
               <Link
                 href="/invoices/new"
                 className="px-4 py-2 bg-[#e91e63] hover:bg-[#d81b60] text-white font-medium rounded-xl transition-colors"
@@ -361,18 +374,44 @@ export default function InvoicesPage() {
                     >
                       View Details
                     </Link>
-                    <button
-                      onClick={() => handleGeneratePdf(invoice)}
-                      disabled={pdfLoading && processingInvoiceId === invoice.id}
-                      className={`px-3 py-1 ${pdfLoading && processingInvoiceId === invoice.id ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed' : 'bg-[#e91e63]/20 hover:bg-[#e91e63]/30 text-[#e91e63] cursor-pointer'} text-sm font-medium rounded-xl transition-colors flex items-center`}
-                    >
-                      {pdfLoading && processingInvoiceId === invoice.id ? (
-                        <>
-                          <span className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
-                          Processing...
-                        </>
-                      ) : 'Download PDF'}
-                    </button>
+                    <div className="flex space-x-2">
+                      <div className="relative">
+                        <select
+                          value={invoice.status || 'pending'}
+                          onChange={(e) => handleStatusUpdate(invoice.id, e.target.value)}
+                          disabled={updatingStatus && statusUpdateId === invoice.id}
+                          className={`px-3 py-1 bg-[#1e3a5f]/50 hover:bg-[#1e3a5f] text-white text-sm font-medium rounded-xl transition-colors cursor-pointer appearance-none pr-8 ${updatingStatus && statusUpdateId === invoice.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          aria-label="Update invoice status"
+                        >
+                          <option value="pending" className="bg-[#132f4c]">Status: Pending</option>
+                          <option value="paid" className="bg-[#132f4c]">Status: Paid</option>
+                          <option value="overdue" className="bg-[#132f4c]">Status: Overdue</option>
+                          <option value="cancelled" className="bg-[#132f4c]">Status: Cancelled</option>
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-white">
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                          </svg>
+                        </div>
+                        {updatingStatus && statusUpdateId === invoice.id && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleGeneratePdf(invoice)}
+                        disabled={pdfLoading && processingInvoiceId === invoice.id}
+                        className={`px-3 py-1 ${pdfLoading && processingInvoiceId === invoice.id ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed' : 'bg-[#e91e63]/20 hover:bg-[#e91e63]/30 text-[#e91e63] cursor-pointer'} text-sm font-medium rounded-xl transition-colors flex items-center`}
+                      >
+                        {pdfLoading && processingInvoiceId === invoice.id ? (
+                          <>
+                            <span className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
+                            Processing...
+                          </>
+                        ) : 'Download PDF'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
