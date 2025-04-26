@@ -5,3 +5,11 @@ services:
       - 3000:3000
     env_file:
       - .env
+    environment:
+      - EMAIL_HOST=smtp.mail.me.com
+      - EMAIL_PORT=587
+      - EMAIL_SECURE=false
+      - EMAIL_USER=hello@zimmr-app.com
+      - EMAIL_PASSWORD=pskk-zpen-oque-rzxu
+      - EMAIL_FROM=ZIMMR Support <hello@zimmr-app.com>
+      - FRONTEND_URL=https://zimmr-app.com
