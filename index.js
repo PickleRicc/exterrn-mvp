@@ -93,6 +93,23 @@ app.get('/send-test-email', async (req, res) => {
   }
 });
 
+// Test webhook endpoint
+app.get('/test-webhook', async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email parameter is required' });
+    }
+    
+    const emailService = require('./services/emailService');
+    const result = await emailService.testWebhookConnection(email);
+    res.json(result);
+  } catch (error) {
+    console.error('Test webhook error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.get('/db-test', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');

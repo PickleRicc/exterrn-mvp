@@ -1,75 +1,69 @@
-const nodemailer = require('nodemailer');
+const fetch = require('node-fetch');
 require('dotenv').config();
 
-// Check if we're in test mode
-const isTestMode = process.env.NODE_ENV === 'development' || !process.env.EMAIL_HOST;
+// Single n8n webhook URL - this should be set in environment variables in production
+const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'http://localhost:5678/webhook/zimmr-notifications';
 
-// Configure the email transporter
-let transporter;
-
-// Create a test account for development
-const createTestAccount = async () => {
-  try {
-    // Generate test SMTP service account from ethereal.email
-    const testAccount = await nodemailer.createTestAccount();
-    
-    console.log('Created Ethereal test account:');
-    console.log('- Email:', testAccount.user);
-    console.log('- Password:', testAccount.pass);
-    console.log('- Preview URL will be shown after sending emails');
-    
-    // Create a testing transporter
-    return nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      secure: false,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass
-      }
-    });
-  } catch (error) {
-    console.error('Failed to create test account:', error);
-    // Fallback to console logging
-    return {
-      sendMail: (mailOptions) => {
-        console.log('Email would have been sent:');
-        console.log('- From:', mailOptions.from);
-        console.log('- To:', mailOptions.to);
-        console.log('- Subject:', mailOptions.subject);
-        console.log('- Content:', mailOptions.html ? '[HTML Content]' : mailOptions.text);
-        return Promise.resolve({ messageId: 'test-message-id' });
-      },
-      verify: () => Promise.resolve(true)
-    };
-  }
+// Notification types for routing in n8n
+const NOTIFICATION_TYPES = {
+  APPOINTMENT_APPROVED: 'appointment_approved',
+  APPOINTMENT_REJECTED: 'appointment_rejected',
+  APPOINTMENT_COMPLETED: 'appointment_completed',
+  NEW_APPOINTMENT: 'new_appointment',
+  INVOICE_GENERATED: 'invoice_generated',
+  INVOICE_OVERDUE: 'invoice_overdue'
 };
 
-// Initialize the transporter
-const initTransporter = async () => {
-  if (isTestMode) {
-    transporter = await createTestAccount();
-  } else {
-    transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      secure: process.env.EMAIL_SECURE === 'true',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-      }
+/**
+ * Send data to n8n webhook
+ * @param {string} notificationType - The type of notification for routing
+ * @param {Object} data - The data to send
+ * @returns {Promise<boolean>} - True if webhook call was successful, false otherwise
+ */
+const callWebhook = async (notificationType, data) => {
+  try {
+    console.log(`Calling webhook for notification type: ${notificationType}`);
+    
+    // Add notification type to the data
+    const webhookData = {
+      notification_type: notificationType,
+      ...data,
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log('Webhook data:', JSON.stringify(webhookData, null, 2));
+    
+    const response = await fetch(N8N_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(webhookData)
     });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Webhook call failed: ${response.status} ${response.statusText}`);
+      console.error('Error details:', errorText);
+      return false;
+    }
+    
+    console.log(`Webhook call successful: ${response.status}`);
+    return true;
+  } catch (error) {
+    console.error('Error calling webhook:', error);
+    return false;
   }
 };
 
 /**
- * Send an email notification to a customer when their appointment is approved
+ * Send appointment approval notification via n8n webhook
  * @param {Object} appointment - The appointment object with customer and craftsman details
- * @returns {Promise<boolean>} - True if email was sent successfully, false otherwise
+ * @returns {Promise<boolean>} - True if webhook call was successful, false otherwise
  */
 const sendAppointmentApprovalEmail = async (appointment) => {
   try {
-    // Format the date and time for the email
+    // Format the date and time for the webhook data
     const appointmentDate = new Date(appointment.scheduled_at);
     const formattedDate = appointmentDate.toLocaleDateString('de-DE', {
       weekday: 'long',
@@ -83,53 +77,37 @@ const sendAppointmentApprovalEmail = async (appointment) => {
       minute: '2-digit'
     });
     
-    // Send email to customer
-    const info = await transporter.sendMail({
-      from: `"Extern Service" <${process.env.EMAIL_FROM || 'test@example.com'}>`,
-      to: appointment.customer_email,
-      subject: 'Your Appointment Has Been Confirmed',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #0070f3;">Appointment Confirmed</h2>
-          <p>Hello ${appointment.customer_name},</p>
-          <p>Your appointment with ${appointment.craftsman_name} has been confirmed for:</p>
-          <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 15px 0;">
-            <p style="margin: 5px 0;"><strong>Date:</strong> ${formattedDate}</p>
-            <p style="margin: 5px 0;"><strong>Time:</strong> ${formattedTime}</p>
-            <p style="margin: 5px 0;"><strong>Location:</strong> ${appointment.location || 'To be determined'}</p>
-            <p style="margin: 5px 0;"><strong>Duration:</strong> ${appointment.duration} minutes</p>
-          </div>
-          
-          <p>If you need to make any changes, please contact us directly at ${appointment.craftsman_phone || process.env.CONTACT_PHONE || '+49123456789'}.</p>
-          
-          <p>Thank you for choosing our service!</p>
-          <p>The Extern Team</p>
-        </div>
-      `
-    });
+    // Prepare data for the webhook
+    const webhookData = {
+      customer_name: appointment.customer_name,
+      customer_email: appointment.customer_email,
+      craftsman_name: appointment.craftsman_name,
+      craftsman_phone: appointment.craftsman_phone,
+      appointment_id: appointment.id,
+      scheduled_at: appointment.scheduled_at,
+      formatted_date: formattedDate,
+      formatted_time: formattedTime,
+      duration: appointment.duration,
+      location: appointment.location || 'To be determined',
+      notes: appointment.notes || ''
+    };
     
-    if (isTestMode && info.messageId) {
-      console.log(`Approval email sent to customer: ${appointment.customer_email}`);
-      console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
-    } else {
-      console.log(`Approval email sent to customer: ${appointment.customer_email}`);
-    }
-    
-    return true;
+    // Call the webhook
+    return await callWebhook(NOTIFICATION_TYPES.APPOINTMENT_APPROVED, webhookData);
   } catch (error) {
-    console.error('Error sending approval email:', error);
+    console.error('Error sending appointment approval webhook:', error);
     return false;
   }
 };
 
 /**
- * Send an email notification to a craftsman when a new appointment is created
+ * Send new appointment notification to craftsman via n8n webhook
  * @param {Object} appointment - The appointment object with customer and craftsman details
- * @returns {Promise<boolean>} - True if email was sent successfully, false otherwise
+ * @returns {Promise<boolean>} - True if webhook call was successful, false otherwise
  */
 const sendNewAppointmentNotificationEmail = async (appointment) => {
   try {
-    // Format the date and time for the email
+    // Format the date and time for the webhook data
     const appointmentDate = new Date(appointment.scheduled_at);
     const formattedDate = appointmentDate.toLocaleDateString('de-DE', {
       weekday: 'long',
@@ -143,63 +121,39 @@ const sendNewAppointmentNotificationEmail = async (appointment) => {
       minute: '2-digit'
     });
     
-    // Send email to craftsman
-    const info = await transporter.sendMail({
-      from: `"Extern Service" <${process.env.EMAIL_FROM || 'test@example.com'}>`,
-      to: appointment.craftsman_email,
-      subject: 'New Appointment Request',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #0070f3;">New Appointment Request</h2>
-          <p>Hello ${appointment.craftsman_name},</p>
-          <p>You have a new appointment request from ${appointment.customer_name}:</p>
-          <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 15px 0;">
-            <p style="margin: 5px 0;"><strong>Customer:</strong> ${appointment.customer_name}</p>
-            <p style="margin: 5px 0;"><strong>Phone:</strong> ${appointment.customer_phone || 'Not provided'}</p>
-            <p style="margin: 5px 0;"><strong>Date:</strong> ${formattedDate}</p>
-            <p style="margin: 5px 0;"><strong>Time:</strong> ${formattedTime}</p>
-            <p style="margin: 5px 0;"><strong>Duration:</strong> ${appointment.duration} minutes</p>
-            <p style="margin: 5px 0;"><strong>Location:</strong> ${appointment.location || 'Not specified'}</p>
-            <p style="margin: 5px 0;"><strong>Notes:</strong> ${appointment.notes || 'None'}</p>
-          </div>
-          
-          <p>Please log in to your dashboard to approve or reject this appointment:</p>
-          <p>
-            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/appointments" 
-               style="background-color: #0070f3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
-              Go to Dashboard
-            </a>
-          </p>
-          
-          <p>Thank you,</p>
-          <p>The Extern Team</p>
-        </div>
-      `
-    });
+    // Prepare data for the webhook
+    const webhookData = {
+      customer_name: appointment.customer_name,
+      customer_email: appointment.customer_email,
+      customer_phone: appointment.customer_phone,
+      craftsman_name: appointment.craftsman_name,
+      craftsman_email: appointment.craftsman_email,
+      appointment_id: appointment.id,
+      scheduled_at: appointment.scheduled_at,
+      formatted_date: formattedDate,
+      formatted_time: formattedTime,
+      duration: appointment.duration,
+      location: appointment.location || 'Not specified',
+      notes: appointment.notes || 'None'
+    };
     
-    if (isTestMode && info.messageId) {
-      console.log(`Notification email sent to craftsman: ${appointment.craftsman_email}`);
-      console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
-    } else {
-      console.log(`Notification email sent to craftsman: ${appointment.craftsman_email}`);
-    }
-    
-    return true;
+    // Call the webhook with the new appointment notification type
+    return await callWebhook(NOTIFICATION_TYPES.NEW_APPOINTMENT, webhookData);
   } catch (error) {
-    console.error('Error sending notification email:', error);
+    console.error('Error sending new appointment notification webhook:', error);
     return false;
   }
 };
 
 /**
- * Send an email notification to a customer when their appointment is rejected
+ * Send appointment rejection notification via n8n webhook
  * @param {Object} appointment - The appointment object with customer and craftsman details
  * @param {string} reason - The reason for rejection
- * @returns {Promise<boolean>} - True if email was sent successfully, false otherwise
+ * @returns {Promise<boolean>} - True if webhook call was successful, false otherwise
  */
 const sendAppointmentRejectionEmail = async (appointment, reason) => {
   try {
-    // Format the date and time for the email
+    // Format the date and time for the webhook data
     const appointmentDate = new Date(appointment.scheduled_at);
     const formattedDate = appointmentDate.toLocaleDateString('de-DE', {
       weekday: 'long',
@@ -213,50 +167,34 @@ const sendAppointmentRejectionEmail = async (appointment, reason) => {
       minute: '2-digit'
     });
     
-    // Send email to customer
-    const info = await transporter.sendMail({
-      from: `"Extern Service" <${process.env.EMAIL_FROM || 'test@example.com'}>`,
-      to: appointment.customer_email,
-      subject: 'Appointment Request Cannot Be Accommodated',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #e91e63;">Appointment Request Update</h2>
-          <p>Hello ${appointment.customer_name},</p>
-          <p>We regret to inform you that your appointment request with ${appointment.craftsman_name} for ${formattedDate} at ${formattedTime} cannot be accommodated at this time.</p>
-          
-          ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
-          
-          <p>Please contact us to schedule an alternative time that works for you.</p>
-          
-          <p>We apologize for any inconvenience this may cause.</p>
-          
-          <p>The Extern Team</p>
-        </div>
-      `
-    });
+    // Prepare data for the webhook
+    const webhookData = {
+      customer_name: appointment.customer_name,
+      customer_email: appointment.customer_email,
+      craftsman_name: appointment.craftsman_name,
+      appointment_id: appointment.id,
+      scheduled_at: appointment.scheduled_at,
+      formatted_date: formattedDate,
+      formatted_time: formattedTime,
+      reason: reason || 'No reason provided'
+    };
     
-    if (isTestMode && info.messageId) {
-      console.log(`Rejection email sent to customer: ${appointment.customer_email}`);
-      console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
-    } else {
-      console.log(`Rejection email sent to customer: ${appointment.customer_email}`);
-    }
-    
-    return true;
+    // Call the webhook with the rejection notification type
+    return await callWebhook(NOTIFICATION_TYPES.APPOINTMENT_REJECTED, webhookData);
   } catch (error) {
-    console.error('Error sending rejection email:', error);
+    console.error('Error sending appointment rejection webhook:', error);
     return false;
   }
 };
 
 /**
- * Send an email notification to a customer when their appointment is completed
+ * Send appointment completion notification via n8n webhook
  * @param {Object} appointment - The appointment object with customer and craftsman details
- * @returns {Promise<boolean>} - True if email was sent successfully, false otherwise
+ * @returns {Promise<boolean>} - True if webhook call was successful, false otherwise
  */
 const sendAppointmentCompletionEmail = async (appointment) => {
   try {
-    // Format the date and time for the email
+    // Format the date and time for the webhook data
     const appointmentDate = new Date(appointment.scheduled_at);
     const formattedDate = appointmentDate.toLocaleDateString('de-DE', {
       weekday: 'long',
@@ -270,112 +208,192 @@ const sendAppointmentCompletionEmail = async (appointment) => {
       minute: '2-digit'
     });
     
-    // Send email to customer
-    const info = await transporter.sendMail({
-      from: `"Extern Service" <${process.env.EMAIL_FROM || 'test@example.com'}>`,
-      to: appointment.customer_email,
-      subject: 'Your Appointment Has Been Completed',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #4caf50;">Appointment Completed</h2>
-          <p>Hello ${appointment.customer_name},</p>
-          <p>Your appointment with ${appointment.craftsman_name} on ${formattedDate} at ${formattedTime} has been completed.</p>
-          
-          <p>An invoice for this service will be sent to you shortly.</p>
-          
-          <p>Thank you for choosing our service! If you have any questions about your service or invoice, please contact us at ${appointment.craftsman_phone || process.env.CONTACT_PHONE || '+49123456789'}.</p>
-          
-          <p>The Extern Team</p>
-        </div>
-      `
-    });
+    // Prepare data for the webhook
+    const webhookData = {
+      customer_name: appointment.customer_name,
+      customer_email: appointment.customer_email,
+      craftsman_name: appointment.craftsman_name,
+      craftsman_phone: appointment.craftsman_phone,
+      appointment_id: appointment.id,
+      scheduled_at: appointment.scheduled_at,
+      formatted_date: formattedDate,
+      formatted_time: formattedTime,
+      completed_at: new Date().toISOString(),
+      notes: appointment.notes || ''
+    };
     
-    if (isTestMode && info.messageId) {
-      console.log(`Completion email sent to customer: ${appointment.customer_email}`);
-      console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
-    } else {
-      console.log(`Completion email sent to customer: ${appointment.customer_email}`);
-    }
-    
-    return true;
+    // Call the webhook
+    return await callWebhook(NOTIFICATION_TYPES.APPOINTMENT_COMPLETED, webhookData);
   } catch (error) {
-    console.error('Error sending completion email:', error);
+    console.error('Error sending appointment completion webhook:', error);
     return false;
   }
 };
 
 /**
- * Test the email connection and send a test email
- * @param {string} testEmail - Email address to send test email to
+ * Send invoice PDF to customer via n8n webhook
+ * @param {Object} invoice - The invoice object with customer and craftsman details
+ * @param {Object} pdfData - The PDF data object containing path and filename
+ * @returns {Promise<boolean>} - True if webhook call was successful, false otherwise
+ */
+const sendInvoicePdfEmail = async (invoice, pdfData) => {
+  try {
+    if (!invoice) {
+      console.error('Missing invoice data');
+      return false;
+    }
+
+    // Format dates for the webhook data
+    const invoiceDate = new Date(invoice.created_at);
+    const formattedDate = invoiceDate.toLocaleDateString('de-DE', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    const dueDate = invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('de-DE', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }) : 'Not specified';
+
+    // Prepare data for the webhook
+    const webhookData = {
+      customer_name: invoice.customer_name,
+      customer_email: invoice.customer_email,
+      craftsman_name: invoice.craftsman_name,
+      craftsman_phone: invoice.craftsman_phone,
+      invoice_id: invoice.id,
+      invoice_number: invoice.invoice_number,
+      created_at: invoice.created_at,
+      due_date: invoice.due_date,
+      formatted_date: formattedDate,
+      formatted_due_date: dueDate,
+      amount: invoice.amount,
+      tax_amount: invoice.tax_amount,
+      total_amount: invoice.total_amount,
+      pdf_url: `${process.env.BACKEND_URL || 'http://localhost:3000'}/pdfs/${pdfData.filename}`,
+      notes: invoice.notes || ''
+    };
+    
+    // Call the webhook
+    return await callWebhook(NOTIFICATION_TYPES.INVOICE_GENERATED, webhookData);
+  } catch (error) {
+    console.error('Error sending invoice PDF webhook:', error);
+    return false;
+  }
+};
+
+/**
+ * Send overdue invoice notification via n8n webhook
+ * @param {Object} invoice - The invoice object with customer and craftsman details
+ * @returns {Promise<boolean>} - True if webhook call was successful, false otherwise
+ */
+const sendInvoiceOverdueEmail = async (invoice) => {
+  try {
+    if (!invoice) {
+      console.error('Missing invoice data');
+      return false;
+    }
+
+    // Format dates for the webhook data
+    const invoiceDate = new Date(invoice.created_at);
+    const formattedDate = invoiceDate.toLocaleDateString('de-DE', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    const dueDate = invoice.due_date ? new Date(invoice.due_date) : null;
+    const formattedDueDate = dueDate ? dueDate.toLocaleDateString('de-DE', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }) : 'Not specified';
+    
+    // Calculate days overdue
+    const daysOverdue = dueDate ? Math.ceil((new Date() - dueDate) / (1000 * 60 * 60 * 24)) : 0;
+
+    // Prepare data for the webhook
+    const webhookData = {
+      customer_name: invoice.customer_name,
+      customer_email: invoice.customer_email,
+      craftsman_name: invoice.craftsman_name,
+      craftsman_phone: invoice.craftsman_phone,
+      invoice_id: invoice.id,
+      invoice_number: invoice.invoice_number,
+      created_at: invoice.created_at,
+      due_date: invoice.due_date,
+      formatted_date: formattedDate,
+      formatted_due_date: formattedDueDate,
+      amount: invoice.amount,
+      tax_amount: invoice.tax_amount,
+      total_amount: invoice.total_amount,
+      days_overdue: daysOverdue,
+      pdf_url: `${process.env.BACKEND_URL || 'http://localhost:3000'}/pdfs/invoice-${invoice.invoice_number}.pdf`,
+      notes: invoice.notes || ''
+    };
+    
+    // Call the webhook
+    return await callWebhook(NOTIFICATION_TYPES.INVOICE_OVERDUE, webhookData);
+  } catch (error) {
+    console.error('Error sending overdue invoice webhook:', error);
+    return false;
+  }
+};
+
+/**
+ * Test the webhook connection
+ * @param {string} testEmail - Email address for test data
  * @returns {Promise<object>} - Result of the test
  */
-const sendTestEmail = async (testEmail) => {
+const testWebhookConnection = async (testEmail) => {
   try {
     if (!testEmail) {
       return { success: false, message: 'Test email address is required' };
     }
     
-    const info = await transporter.sendMail({
-      from: `"Extern Service" <${process.env.EMAIL_FROM || 'test@example.com'}>`,
-      to: testEmail,
-      subject: 'Extern Email Service Test',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #0070f3;">Email Service Test</h2>
-          <p>This is a test email from the Extern appointment system.</p>
-          <p>If you're receiving this, the email service is configured correctly!</p>
-          <p>Time sent: ${new Date().toLocaleString()}</p>
-        </div>
-      `
-    });
-    
-    const result = {
-      success: true,
-      message: 'Test email sent successfully',
-      messageId: info.messageId
+    // Test data
+    const testData = {
+      customer_name: 'Test Customer',
+      customer_email: testEmail,
+      message: 'This is a test webhook call',
+      timestamp: new Date().toISOString()
     };
     
-    if (isTestMode) {
-      result.previewUrl = nodemailer.getTestMessageUrl(info);
+    // Try to call webhook with each notification type
+    const results = {};
+    for (const [name, type] of Object.entries(NOTIFICATION_TYPES)) {
+      try {
+        const success = await callWebhook(type, testData);
+        results[name] = { success, type };
+      } catch (err) {
+        results[name] = { success: false, error: err.message, type };
+      }
     }
     
-    return result;
+    return {
+      success: Object.values(results).some(r => r.success),
+      message: 'Webhook test completed',
+      results
+    };
   } catch (error) {
-    console.error('Error sending test email:', error);
+    console.error('Error testing webhooks:', error);
     return { 
       success: false, 
-      message: 'Failed to send test email', 
+      message: 'Failed to test webhooks', 
       error: error.message 
     };
   }
 };
-
-/**
- * Test the email connection
- * @returns {Promise<boolean>} - True if email service is ready, false otherwise
- */
-const testEmailConnection = async () => {
-  try {
-    await transporter.verify();
-    console.log('Email service is ready to send messages');
-    return true;
-  } catch (error) {
-    console.error('Email service configuration error:', error);
-    return false;
-  }
-};
-
-// Initialize the email service when this module is loaded
-(async () => {
-  await initTransporter();
-  await testEmailConnection();
-})();
 
 module.exports = {
   sendAppointmentApprovalEmail,
   sendNewAppointmentNotificationEmail,
   sendAppointmentRejectionEmail,
   sendAppointmentCompletionEmail,
-  testEmailConnection,
-  sendTestEmail
+  sendInvoicePdfEmail,
+  sendInvoiceOverdueEmail,
+  testWebhookConnection,
+  NOTIFICATION_TYPES
 };

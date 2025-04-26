@@ -1,4 +1,8 @@
 const pool = require('../db');
+const emailService = require('../services/emailService');
+const pdfService = require('../services/pdfService');
+const fs = require('fs-extra');
+const path = require('path');
 
 // Get all invoices with optional filters
 const getAllInvoices = async (req, res) => {
