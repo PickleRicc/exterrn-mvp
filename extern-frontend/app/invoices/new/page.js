@@ -384,13 +384,14 @@ export default function NewInvoicePage() {
                     name="customer_id"
                     value={formData.customer_id}
                     onChange={handleChange}
-                    className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                    className="w-full bg-white/10 text-white border border-white/10 rounded-xl px-4 py-2 appearance-none focus:ring-2 focus:ring-[#e91e63]/50 focus:border-[#e91e63]/50"
+                    style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                     required
                     disabled={success}
                   >
-                    <option value="">Select a customer</option>
+                    <option value="" className="text-black bg-white">Select a customer</option>
                     {customers.map(customer => (
-                      <option key={customer.id} value={customer.id}>
+                      <option key={customer.id} value={customer.id} className="text-black bg-white">
                         {customer.name}
                       </option>
                     ))}
@@ -406,17 +407,18 @@ export default function NewInvoicePage() {
                     name="appointment_id"
                     value={formData.appointment_id}
                     onChange={handleAppointmentChange}
-                    className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                    className="w-full bg-white/10 text-white border border-white/10 rounded-xl px-4 py-2 appearance-none focus:ring-2 focus:ring-[#e91e63]/50 focus:border-[#e91e63]/50"
+                    style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                     disabled={success || loadingAppointments}
                   >
-                    <option value="">Select an appointment (optional)</option>
+                    <option value="" className="text-black bg-white">Select an appointment (optional)</option>
                     {loadingAppointments ? (
-                      <option disabled>Loading appointments...</option>
+                      <option disabled className="text-black bg-white">Loading appointments...</option>
                     ) : appointments.length === 0 ? (
-                      <option disabled>No completed appointments found</option>
+                      <option disabled className="text-black bg-white">No completed appointments found</option>
                     ) : (
                       appointments.map((appointment) => (
-                        <option key={appointment.id} value={appointment.id}>
+                        <option key={appointment.id} value={appointment.id} className="text-black bg-white">
                           {new Date(appointment.scheduled_at).toLocaleDateString()} - {appointment.customer_name} - {appointment.service_type || 'Service'}
                         </option>
                       ))
@@ -475,13 +477,14 @@ export default function NewInvoicePage() {
                     name="type"
                     value={formData.type}
                     onChange={handleChange}
-                    className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                    className="w-full bg-white/10 text-white border border-white/10 rounded-xl px-4 py-2 appearance-none focus:ring-2 focus:ring-[#e91e63]/50 focus:border-[#e91e63]/50"
+                    style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                     required
                     disabled={success}
                   >
-                    <option value="invoice">Invoice</option>
-                    <option value="quote">Quote</option>
-                    <option value="draft">Draft</option>
+                    <option value="invoice" className="text-black bg-white">Invoice</option>
+                    <option value="quote" className="text-black bg-white">Quote</option>
+                    <option value="draft" className="text-black bg-white">Draft</option>
                   </select>
                 </div>
                 
@@ -495,7 +498,8 @@ export default function NewInvoicePage() {
                     name="service_date"
                     value={formData.service_date}
                     onChange={handleChange}
-                    className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                    className="w-full bg-white/10 text-white border border-white/10 rounded-xl px-4 py-2 appearance-none focus:ring-2 focus:ring-[#e91e63]/50 focus:border-[#e91e63]/50"
+                    style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                     disabled={success}
                   />
                 </div>
@@ -510,9 +514,10 @@ export default function NewInvoicePage() {
                     name="location"
                     value={formData.location}
                     onChange={handleChange}
-                    className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                    className="w-full bg-white/10 text-white border border-white/10 rounded-xl px-4 py-2 appearance-none focus:ring-2 focus:ring-[#e91e63]/50 focus:border-[#e91e63]/50"
+                    placeholder="Location"
+                    style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                     disabled={success}
-                    placeholder="Where was the service performed?"
                   />
                 </div>
                 
@@ -529,7 +534,9 @@ export default function NewInvoicePage() {
                       onChange={handleChange}
                       step="0.01"
                       min="0"
-                      className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63] pl-7"
+                      className="w-full bg-white/10 text-white border border-white/10 rounded-xl px-4 py-2 appearance-none focus:ring-2 focus:ring-[#e91e63]/50 focus:border-[#e91e63]/50 pl-7"
+                      placeholder="€"
+                      style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                       required
                       disabled={success}
                     />
@@ -572,7 +579,9 @@ export default function NewInvoicePage() {
                         onChange={handleChange}
                         step="0.01"
                         min="0"
-                        className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63] pl-7"
+                        className="w-full bg-white/10 text-white border border-white/10 rounded-xl px-4 py-2 appearance-none focus:ring-2 focus:ring-[#e91e63]/50 focus:border-[#e91e63]/50 pl-7"
+                        placeholder="€"
+                        style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                         disabled={success}
                       />
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">€</span>
@@ -596,7 +605,9 @@ export default function NewInvoicePage() {
                       onChange={handleChange}
                       step="0.01"
                       min="0"
-                      className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63] pl-7 bg-opacity-50"
+                      className="w-full bg-white/10 text-white border border-white/10 rounded-xl px-4 py-2 appearance-none focus:ring-2 focus:ring-[#e91e63]/50 focus:border-[#e91e63]/50 pl-7 bg-opacity-50"
+                      placeholder="€"
+                      style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                       required
                       readOnly
                       disabled={success}
@@ -618,7 +629,8 @@ export default function NewInvoicePage() {
                     name="due_date"
                     value={formData.due_date}
                     onChange={handleChange}
-                    className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                    className="w-full bg-white/10 text-white border border-white/10 rounded-xl px-4 py-2 appearance-none focus:ring-2 focus:ring-[#e91e63]/50 focus:border-[#e91e63]/50"
+                    style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                     disabled={success}
                   />
                 </div>
@@ -633,7 +645,9 @@ export default function NewInvoicePage() {
                     value={formData.notes}
                     onChange={handleChange}
                     rows="4"
-                    className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                    className="w-full bg-white/10 text-white border border-white/10 rounded-xl px-4 py-2 appearance-none focus:ring-2 focus:ring-[#e91e63]/50 focus:border-[#e91e63]/50"
+                    placeholder="Notes"
+                    style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                     disabled={success}
                   ></textarea>
                 </div>

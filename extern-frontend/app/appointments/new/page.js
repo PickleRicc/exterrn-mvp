@@ -193,12 +193,13 @@ export default function NewAppointmentPage() {
                       id="customerId"
                       value={customerId}
                       onChange={(e) => setCustomerId(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/10 text-white placeholder-white/70 appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                       required
                     >
-                      <option value="">Select a customer</option>
+                      <option value="" className="text-black bg-white">Select a customer</option>
                       {customers.map((customer) => (
-                        <option key={customer.id} value={customer.id}>
+                        <option key={customer.id} value={customer.id} className="text-black bg-white">
                           {customer.name} - {customer.phone}
                         </option>
                       ))}
@@ -238,7 +239,8 @@ export default function NewAppointmentPage() {
                         type="date"
                         value={scheduledAt}
                         onChange={(e) => setScheduledAt(e.target.value)}
-                        className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/10 text-white placeholder-white/70 appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                         required
                       />
                     </div>
@@ -258,7 +260,8 @@ export default function NewAppointmentPage() {
                         type="time"
                         value={scheduledTime}
                         onChange={(e) => setScheduledTime(e.target.value)}
-                        className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/10 text-white placeholder-white/70 appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                         required
                       />
                     </div>
@@ -280,7 +283,8 @@ export default function NewAppointmentPage() {
                       type="number"
                       value={duration}
                       onChange={(e) => setDuration(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/10 text-white placeholder-white/70 appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                       min="15"
                       step="15"
                     />
@@ -303,8 +307,9 @@ export default function NewAppointmentPage() {
                       type="text"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/10 text-white placeholder-white/70 appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                       placeholder="Customer's home, your workshop, etc."
+                      style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                     />
                   </div>
                 </div>
@@ -323,9 +328,10 @@ export default function NewAppointmentPage() {
                       id="notes"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/10 text-white placeholder-white/70 appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                       rows="3"
                       placeholder="Details about the appointment..."
+                      style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                     ></textarea>
                   </div>
                 </div>

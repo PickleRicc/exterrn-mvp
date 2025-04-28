@@ -36,34 +36,11 @@ function LoginContent() {
       // Store user data in localStorage for easy access
       localStorage.setItem('user', JSON.stringify(response.user));
       
-      // Check if user is a craftsman and redirect accordingly
-      if (response.user.role === 'craftsman') {
-        // Only redirect to onboarding for new craftsmen who haven't set availability
-        const isNewUser = !localStorage.getItem('onboardingCompleted');
-        
-        if (isNewUser && response.user.craftsman) {
-          // Check if the craftsman has availability_hours set
-          const hasAvailabilityHours = 
-            response.user.craftsman.availability_hours && 
-            Object.keys(response.user.craftsman.availability_hours).length > 0;
-          
-          if (!hasAvailabilityHours) {
-            // Mark that we've shown the onboarding, even if they don't complete it
-            localStorage.setItem('onboardingShown', 'true');
-            router.push('/onboarding');
-            return;
-          } else {
-            // If they have availability hours, mark onboarding as completed
-            localStorage.setItem('onboardingCompleted', 'true');
-          }
-        }
-        
-        // For all other cases, go to appointments page
-        router.push('/appointments');
-      } else {
-        // Redirect to the home page for other users
-        router.push('/');
-      }
+      // Mark onboarding as completed for all users after login
+      localStorage.setItem('onboardingCompleted', 'true');
+      
+      // Always redirect to home after login
+      router.push('/');
     } catch (err) {
       console.error('Login error:', err);
       setError(err.response?.data?.error || 'Failed to login. Please check your credentials.');

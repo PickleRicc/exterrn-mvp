@@ -1,6 +1,5 @@
 import './globals.css';
-import { OnboardingMiddleware } from './middleware';
-import BottomNav from './components/BottomNav';
+import LayoutWrapper from './components/LayoutWrapper';
 
 export const metadata = {
   title: 'ZIMMR',
@@ -17,10 +16,7 @@ export default function RootLayout({ children }) {
         <meta name="theme-color" content="#0a1929" />
       </head>
       <body className="antialiased">
-        <OnboardingMiddleware>
-          {children}
-          <BottomNav />
-        </OnboardingMiddleware>
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );

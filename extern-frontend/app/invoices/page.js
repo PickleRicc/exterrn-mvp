@@ -290,13 +290,14 @@ export default function InvoicesPage() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full bg-[#0a1929] border border-[#2a4d76] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                  className="w-full bg-white/10 text-white border border-white/10 rounded-xl px-4 py-2 appearance-none focus:ring-2 focus:ring-[#e91e63]/50 focus:border-[#e91e63]/50"
+                  style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                 >
-                  <option value="all">All Statuses</option>
-                  <option value="pending">Pending</option>
-                  <option value="paid">Paid</option>
-                  <option value="overdue">Overdue</option>
-                  <option value="cancelled">Cancelled</option>
+                  <option value="all" className="text-black bg-white">All Statuses</option>
+                  <option value="pending" className="text-black bg-white">Pending</option>
+                  <option value="paid" className="text-black bg-white">Paid</option>
+                  <option value="overdue" className="text-black bg-white">Overdue</option>
+                  <option value="cancelled" className="text-black bg-white">Cancelled</option>
                 </select>
               </div>
             </div>
@@ -308,7 +309,8 @@ export default function InvoicesPage() {
                 placeholder="Search by customer name or invoice number..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-[#0a1929] border border-[#2a4d76] rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                className="w-full bg-white/10 text-white border border-white/10 rounded-xl pl-10 pr-4 py-2 appearance-none focus:ring-2 focus:ring-[#e91e63]/50 focus:border-[#e91e63]/50"
+                style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
               />
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -382,13 +384,13 @@ export default function InvoicesPage() {
                           value={invoice.status || 'pending'}
                           onChange={(e) => handleStatusUpdate(invoice.id, e.target.value)}
                           disabled={updatingStatus && statusUpdateId === invoice.id}
-                          className={`px-3 py-1 bg-[#1e3a5f]/50 hover:bg-[#1e3a5f] text-white text-sm font-medium rounded-xl transition-colors cursor-pointer appearance-none pr-8 ${updatingStatus && statusUpdateId === invoice.id ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          aria-label="Update invoice status"
+                          className={`px-3 py-1 bg-white/10 text-white border border-white/10 rounded-xl appearance-none focus:ring-2 focus:ring-[#e91e63]/50 focus:border-[#e91e63]/50 ${updatingStatus && statusUpdateId === invoice.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                         >
-                          <option value="pending" className="bg-[#132f4c]">Status: Pending</option>
-                          <option value="paid" className="bg-[#132f4c]">Status: Paid</option>
-                          <option value="overdue" className="bg-[#132f4c]">Status: Overdue</option>
-                          <option value="cancelled" className="bg-[#132f4c]">Status: Cancelled</option>
+                          <option value="pending" className="text-black bg-white">Status: Pending</option>
+                          <option value="paid" className="text-black bg-white">Status: Paid</option>
+                          <option value="overdue" className="text-black bg-white">Status: Overdue</option>
+                          <option value="cancelled" className="text-black bg-white">Status: Cancelled</option>
                         </select>
                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-white">
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

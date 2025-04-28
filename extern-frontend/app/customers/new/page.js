@@ -173,9 +173,9 @@ export default function NewCustomerPage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
-                    placeholder="Full name"
-                    required
+                    className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/10 text-white placeholder-white/70 appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    placeholder="Customer Name"
+                    style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                   />
                 </div>
               </div>
@@ -195,9 +195,9 @@ export default function NewCustomerPage() {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
-                    placeholder="+49 123 456 7890"
-                    required
+                    className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/10 text-white placeholder-white/70 appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    placeholder="Phone Number"
+                    style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                   />
                 </div>
                 <p className="text-xs text-white/60 mt-1.5">Include country code (e.g., +49 for Germany)</p>
@@ -218,8 +218,9 @@ export default function NewCustomerPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
-                    placeholder="customer@example.com"
+                    className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/10 text-white placeholder-white/70 appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    placeholder="Email (optional)"
+                    style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                   />
                 </div>
               </div>
@@ -239,9 +240,10 @@ export default function NewCustomerPage() {
                     id="address"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/10 text-white placeholder-white/70 appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                     rows="2"
                     placeholder="Street, City, Postal Code"
+                    style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                   ></textarea>
                 </div>
               </div>
@@ -260,9 +262,10 @@ export default function NewCustomerPage() {
                     id="notes"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/10 text-white placeholder-white/70 appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                     rows="3"
                     placeholder="Additional information about the customer..."
+                    style={{ WebkitTextFillColor: '#fff', backgroundColor: 'rgba(255,255,255,0.07)' }}
                   ></textarea>
                 </div>
               </div>

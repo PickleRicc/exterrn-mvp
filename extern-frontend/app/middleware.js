@@ -23,16 +23,12 @@ export function OnboardingMiddleware({ children }) {
     // Parse the token to get user info
     try {
       const tokenData = JSON.parse(atob(token.split('.')[1]));
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      
-      // If user is a craftsman, check if they need onboarding
-      if (tokenData.role === 'craftsman' && tokenData.craftsmanId) {
-        // For now, we'll use a simple check - if they've visited the onboarding page
-        const onboardingCompleted = localStorage.getItem('onboardingCompleted');
-        
-        if (!onboardingCompleted && pathname !== '/onboarding') {
-          router.push('/onboarding');
-        }
+      // Only redirect to onboarding if onboardingCompleted is not explicitly set to 'true'
+      const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+      if (onboardingCompleted !== 'true' && pathname !== '/onboarding') {
+        // Only redirect if this is a new registration or onboarding is truly incomplete
+        // Optionally, you can add more checks here if needed
+        router.push('/onboarding');
       }
     } catch (err) {
       console.error('Error parsing token:', err);
