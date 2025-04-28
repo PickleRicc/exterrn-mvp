@@ -70,15 +70,46 @@ export default function AppointmentsPage() {
 
   // Format date for display
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('de-DE', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    if (!dateString) return 'N/A';
+    
+    try {
+      // Parse the date string directly without timezone conversion
+      // This approach preserves the exact time that was entered
+      
+      // Handle ISO format with or without timezone indicator
+      if (dateString.includes('T')) {
+        // Split the ISO string to extract date and time parts
+        const [datePart, timePart] = dateString.split('T');
+        const timePieces = timePart.split(':');
+        const hours = timePieces[0];
+        const minutes = timePieces[1];
+        
+        // Create a date object with the local date components
+        const date = new Date(datePart);
+        
+        // Format with German locale as per ZIMMR's requirements
+        return date.toLocaleDateString('de-DE', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }) + ', ' + hours + ':' + minutes + ' Uhr';
+      } else {
+        // Fallback for non-ISO format
+        const date = new Date(dateString);
+        return date.toLocaleDateString('de-DE', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+    } catch (error) {
+      console.error('Error formatting date:', error, dateString);
+      return 'Invalid Date';
+    }
   };
 
   const getStatusClass = (status, approvalStatus) => {

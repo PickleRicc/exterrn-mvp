@@ -17,6 +17,12 @@
   --input: #f3f3f3;
   --ring: #0070f3;
   --radius: 0.5rem;
+  
+  /* Safe area insets for mobile devices */
+  --safe-area-top: env(safe-area-inset-top);
+  --safe-area-right: env(safe-area-inset-right);
+  --safe-area-bottom: env(safe-area-inset-bottom);
+  --safe-area-left: env(safe-area-inset-left);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -260,4 +266,38 @@ input:focus, select:focus, textarea:focus {
 
 .btn-glow:hover::after {
   opacity: 1;
+}
+
+/* Safe area utilities for mobile devices */
+.pt-safe {
+  padding-top: var(--safe-area-top);
+}
+
+.pr-safe {
+  padding-right: var(--safe-area-right);
+}
+
+.pb-safe {
+  padding-bottom: var(--safe-area-bottom);
+}
+
+.pl-safe {
+  padding-left: var(--safe-area-left);
+}
+
+.h-safe-bottom {
+  height: var(--safe-area-bottom);
+}
+
+/* Mobile navigation styles */
+.mobile-nav {
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-nav-item {
+  transition: all 0.2s ease;
+}
+
+.mobile-nav-item.active {
+  color: #e91e63;
 }

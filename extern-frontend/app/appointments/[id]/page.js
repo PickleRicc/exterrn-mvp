@@ -86,15 +86,47 @@ export default function AppointmentDetailPage() {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     
-    const date = new Date(dateString);
-    return date.toLocaleDateString('de-DE', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    try {
+      // Parse the date string directly without timezone conversion
+      // This approach preserves the exact time that was entered
+      let parts;
+      
+      // Handle ISO format with or without timezone indicator
+      if (dateString.includes('T')) {
+        // Split the ISO string to extract date and time parts
+        const [datePart, timePart] = dateString.split('T');
+        const timePieces = timePart.split(':');
+        const hours = timePieces[0];
+        const minutes = timePieces[1];
+        
+        // Create a date object with the local date and time components
+        const date = new Date(datePart);
+        date.setHours(parseInt(hours, 10));
+        date.setMinutes(parseInt(minutes, 10));
+        
+        // Format with German locale as per ZIMMR's requirements
+        return date.toLocaleDateString('de-DE', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }) + ', ' + hours + ':' + minutes + ' Uhr';
+      } else {
+        // Fallback for non-ISO format
+        const date = new Date(dateString);
+        return date.toLocaleDateString('de-DE', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+    } catch (error) {
+      console.error('Error formatting date:', error, dateString);
+      return 'Invalid Date';
+    }
   };
 
   // Format currency for display
@@ -365,7 +397,7 @@ export default function AppointmentDetailPage() {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-white/70">Date & Time:</span>
-                  <span className="text-white">{formatDate(appointment.start_time)}</span>
+                  <span className="text-white">{formatDate(appointment.scheduled_at || appointment.start_time)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-white/70">Duration:</span>
@@ -509,7 +541,7 @@ export default function AppointmentDetailPage() {
               <button
                 onClick={handleCompleteAppointment}
                 disabled={processingAction === 'complete'}
-                className="px-4 py-2 bg-gradient-to-r from-[#0070f3] to-[#0050d3] text-white rounded-lg shadow hover:shadow-lg transition-all flex items-center"
+                className="px-4 py-2 bg-gradient-to-r from-[#0070f3] to-[#0050d3] text-white rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center"
               >
                 {processingAction === 'complete' ? (
                   <>

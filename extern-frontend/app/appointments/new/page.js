@@ -85,11 +85,25 @@ export default function NewAppointmentPage() {
       // Combine date and time
       const dateTime = new Date(`${scheduledAt}T${scheduledTime}`);
       
-      // Create appointment
+      // Store the local time components to ensure what the user entered is what gets stored
+      const year = dateTime.getFullYear();
+      const month = String(dateTime.getMonth() + 1).padStart(2, '0');
+      const day = String(dateTime.getDate()).padStart(2, '0');
+      const hours = String(dateTime.getHours()).padStart(2, '0');
+      const minutes = String(dateTime.getMinutes()).padStart(2, '0');
+      
+      // Create ISO string but force the 'Z' (UTC) indicator to be removed
+      // This tells the backend to treat this as a local time, not UTC
+      const localISOString = `${year}-${month}-${day}T${hours}:${minutes}:00`;
+      
+      // Log for debugging
+      console.log('Original input:', `${scheduledAt}T${scheduledTime}`);
+      console.log('Sending to backend:', localISOString);
+      
       await appointmentsAPI.create({
         customer_id: parseInt(customerId),
         craftsman_id: craftsmanId,
-        scheduled_at: dateTime.toISOString(),
+        scheduled_at: localISOString,
         notes,
         duration: parseInt(duration),
         location,

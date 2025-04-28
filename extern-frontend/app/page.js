@@ -11,6 +11,7 @@ export default function Home() {
   const [error, setError] = useState('');
   const [craftsman, setCraftsman] = useState(null);
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [todayAppointment, setTodayAppointment] = useState(null);
   const [customerCount, setCustomerCount] = useState(0);
   const [invoiceCount, setInvoiceCount] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -55,6 +56,23 @@ export default function Home() {
         
         // Ensure appointmentsData is an array before using array methods
         if (Array.isArray(appointmentsData)) {
+          // Get today's date (without time)
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const tomorrow = new Date(today);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          
+          // Find today's appointments
+          const todaysAppointments = appointmentsData.filter(apt => {
+            const aptDate = new Date(apt.scheduled_at);
+            return aptDate >= today && aptDate < tomorrow;
+          }).sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
+          
+          // Set the next appointment for today (if any)
+          if (todaysAppointments.length > 0) {
+            setTodayAppointment(todaysAppointments[0]);
+          }
+          
           // Sort appointments by date and take only future ones
           const now = new Date();
           const upcoming = appointmentsData
@@ -139,7 +157,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#0a1929] to-[#132f4c]">
       <Header />
-      <main className="flex-grow container mx-auto px-5 py-8 max-w-7xl overflow-hidden">
+      <main className="flex-grow container mx-auto px-5 py-8 pb-24 max-w-7xl overflow-hidden">
         {loading ? (
           <div className="flex justify-center items-center h-64 my-8">
             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#00c2ff]"></div>
@@ -183,12 +201,73 @@ export default function Home() {
                 </div>
               </div>
               
+              {/* Today's Appointment Section */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-xl p-5 border border-white/10 mb-8 animate-fade-in">
+                <div className="flex items-center mb-3">
+                  <div className="p-2 bg-[#e91e63]/20 rounded-full mr-3">
+                    <svg className="w-5 h-5 text-[#e91e63]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  <h2 className="text-lg font-semibold text-white">Today's Schedule</h2>
+                </div>
+                
+                {todayAppointment ? (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                    <div>
+                      <div className="flex items-center">
+                        <span className="text-xl font-semibold text-white mr-2">
+                          {(() => {
+                            // Parse time directly from the scheduled_at string to avoid timezone issues
+                            if (todayAppointment.scheduled_at && todayAppointment.scheduled_at.includes('T')) {
+                              const timePart = todayAppointment.scheduled_at.split('T')[1];
+                              const [hours, minutes] = timePart.split(':');
+                              return `${hours}:${minutes}`;
+                            } else {
+                              // Fallback to standard formatting
+                              return new Date(todayAppointment.scheduled_at).toLocaleTimeString('de-DE', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false
+                              });
+                            }
+                          })()}
+                        </span>
+                        <span className="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded-full">
+                          Confirmed
+                        </span>
+                      </div>
+                      <div className="text-white mt-1">{todayAppointment.customer_name || 'Customer'}</div>
+                      <div className="text-white/60 text-sm mt-1">
+                        {todayAppointment.location || 'No address provided'}
+                      </div>
+                    </div>
+                    <Link 
+                      href={`/appointments/${todayAppointment.id}`}
+                      className="mt-3 sm:mt-0 px-4 py-2 bg-[#e91e63] hover:bg-[#d81b60] text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                      View Details
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <div className="text-white/80">No jobs planned today</div>
+                    <Link 
+                      href="/appointments/new"
+                      className="px-4 py-2 bg-[#e91e63]/20 hover:bg-[#e91e63]/30 text-[#e91e63] text-sm font-medium rounded-lg transition-colors"
+                    >
+                      Add Appointment
+                    </Link>
+                  </div>
+                )}
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 transition-all duration-300 hover:bg-white/10">
                   <div className="flex items-center mb-4">
                     <div className="p-3 bg-[#0070f3]/20 rounded-full mr-4">
                       <svg className="w-6 h-6 text-[#0070f3]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                       </svg>
                     </div>
                     <h2 className="text-xl font-semibold text-white">Upcoming Appointments</h2>
@@ -260,53 +339,6 @@ export default function Home() {
                 </div>
               </div>
               
-              {upcomingAppointments.length > 0 && (
-                <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 mb-8">
-                  <div className="flex items-center mb-6">
-                    <div className="p-3 bg-[#0070f3]/20 rounded-full mr-4">
-                      <svg className="w-6 h-6 text-[#0070f3]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                      </svg>
-                    </div>
-                    <h2 className="text-xl font-semibold text-white">Upcoming Tiling Projects</h2>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {upcomingAppointments.map((appointment) => (
-                      <Link 
-                        key={appointment.id}
-                        href={`/appointments/${appointment.id}`}
-                        className="block bg-white/5 hover:bg-white/10 rounded-lg p-4 transition-all duration-200"
-                      >
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                          <div>
-                            <h3 className="font-medium text-white">{appointment.customer_name || 'Customer'}</h3>
-                            <p className="text-white/70 text-sm">{formatDate(appointment.scheduled_at)}</p>
-                            {appointment.service_type && (
-                              <span className="inline-block mt-2 px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs">
-                                {appointment.service_type}
-                              </span>
-                            )}
-                          </div>
-                          <div className="mt-3 md:mt-0 flex items-center">
-                            <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              appointment.status === 'scheduled' ? 'bg-green-500/20 text-green-400' :
-                              appointment.status === 'completed' ? 'bg-blue-500/20 text-blue-400' :
-                              'bg-yellow-500/20 text-yellow-400'
-                            }`}>
-                              {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                            </div>
-                            <svg className="w-5 h-5 ml-2 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
               <div className="mb-8">
                 <div className="flex items-center mb-6">
                   <div className="p-2 bg-[#00c2ff]/20 rounded-full">
@@ -333,7 +365,7 @@ export default function Home() {
                   >
                     <div className="p-3 bg-[#7928ca]/20 rounded-full mb-3">
                       <svg className="w-6 h-6 text-[#7928ca]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 0118 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
                       </svg>
                     </div>
                     <span className="font-medium">Add New Customer</span>
