@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { appointmentsAPI, craftsmenAPI, customersAPI } from '../lib/api';
+import CalendarView from '../components/CalendarView';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -18,6 +19,7 @@ export default function AppointmentsPage() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [appointmentToReject, setAppointmentToReject] = useState(null);
+  const [activeTab, setActiveTab] = useState('list'); // 'list' or 'calendar'
   
   const router = useRouter();
 
@@ -71,41 +73,15 @@ export default function AppointmentsPage() {
   // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    
     try {
-      // Parse the date string directly without timezone conversion
-      // This approach preserves the exact time that was entered
-      
-      // Handle ISO format with or without timezone indicator
-      if (dateString.includes('T')) {
-        // Split the ISO string to extract date and time parts
-        const [datePart, timePart] = dateString.split('T');
-        const timePieces = timePart.split(':');
-        const hours = timePieces[0];
-        const minutes = timePieces[1];
-        
-        // Create a date object with the local date components
-        const date = new Date(datePart);
-        
-        // Format with German locale as per ZIMMR's requirements
-        return date.toLocaleDateString('de-DE', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        }) + ', ' + hours + ':' + minutes + ' Uhr';
-      } else {
-        // Fallback for non-ISO format
-        const date = new Date(dateString);
-        return date.toLocaleDateString('de-DE', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      }
+      // Always parse the full ISO string, not just the date part
+      const date = new Date(dateString);
+      return date.toLocaleDateString('de-DE', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }) + ', ' + date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr';
     } catch (error) {
       console.error('Error formatting date:', error, dateString);
       return 'Invalid Date';
@@ -405,7 +381,7 @@ export default function AppointmentsPage() {
               </button>
               <a 
                 href="/appointments/new" 
-                className="px-3 py-2 bg-gradient-to-r from-[#0070f3] to-[#0050d3] text-white rounded-lg text-sm font-medium flex items-center"
+                className="px-3 py-2 bg-gradient-to-r from-[#0070f3] to-[#0050d3] text-white rounded-lg shadow hover:shadow-lg transition-all flex items-center"
               >
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -414,125 +390,144 @@ export default function AppointmentsPage() {
               </a>
             </div>
           </div>
-          
+          {/* Tabs for List/Calendar */}
+          <div className="flex border-b border-gray-700 mb-6">
+            <button
+              className={`py-2 px-4 mr-2 ${activeTab === 'list' ? 'text-pink-600 border-b-2 border-pink-600 font-medium' : 'text-gray-300 hover:text-white'}`}
+              onClick={() => setActiveTab('list')}
+            >
+              List
+            </button>
+            <button
+              className={`py-2 px-4 ${activeTab === 'calendar' ? 'text-pink-600 border-b-2 border-pink-600 font-medium' : 'text-gray-300 hover:text-white'}`}
+              onClick={() => setActiveTab('calendar')}
+            >
+              Calendar
+            </button>
+          </div>
           {loading ? (
             <div className="flex flex-col justify-center items-center h-64">
               <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#00c2ff] mx-auto"></div>
               <p className="mt-6 text-white/80 font-medium">Loading appointments...</p>
             </div>
-          ) : getFilteredAppointments().length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <svg className="w-16 h-16 text-white/20 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-              </svg>
-              <p className="text-xl font-medium text-white mb-2">No {filter} appointments found</p>
-              <p className="text-white/70 max-w-md mx-auto">
-                {filter === 'pending' 
-                  ? 'All appointments have been reviewed. Great job!' 
-                  : filter === 'upcoming' 
-                  ? 'Create a new appointment to get started with your schedule' 
-                  : 'Check other filters to see more appointments'}
-              </p>
-              {filter === 'upcoming' && (
-                <a 
-                  href="/appointments/new" 
-                  className="mt-6 inline-flex items-center px-4 py-2 bg-gradient-to-r from-[#0070f3] to-[#0050d3] text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                  </svg>
-                  Create Appointment
-                </a>
-              )}
-            </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-white/10 text-white/70">
-                    <th className="px-4 py-3 text-left font-medium">Date & Time</th>
-                    <th className="px-4 py-3 text-left font-medium">Customer</th>
-                    <th className="px-4 py-3 text-left font-medium">Duration</th>
-                    <th className="px-4 py-3 text-left font-medium">Status</th>
-                    <th className="px-4 py-3 text-left font-medium">Notes</th>
-                    <th className="px-4 py-3 text-left font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/10">
-                  {getFilteredAppointments().map(appointment => (
-                    <tr key={appointment.id} className="hover:bg-white/5 transition-colors">
-                      <td className="px-4 py-4 text-white">
-                        <div className="font-medium">{formatDate(appointment.scheduled_at)}</div>
-                      </td>
-                      <td className="px-4 py-4 text-white">
-                        {customers[appointment.customer_id]?.name || 'Unknown'}
-                      </td>
-                      <td className="px-4 py-4 text-white">
-                        <div className="flex items-center">
-                          <svg className="w-4 h-4 mr-1 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                          </svg>
-                          {appointment.duration || 60} min
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs backdrop-blur-sm ${getStatusClass(appointment.status, appointment.approval_status)}`}>
-                          {appointment.approval_status === 'pending' 
-                            ? 'Pending Approval' 
-                            : appointment.approval_status === 'rejected'
-                            ? 'Rejected'
-                            : appointment.status || 'scheduled'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 text-white/80 max-w-xs truncate">
-                        {appointment.notes || '-'}
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center space-x-2">
-                          {appointment.approval_status === 'pending' ? (
-                            <>
-                              <button
-                                onClick={() => handleApprove(appointment.id)}
-                                disabled={processingAppointment === appointment.id}
-                                className="px-2 py-1 bg-green-600/30 hover:bg-green-600/50 text-green-300 rounded text-xs font-medium transition-colors flex items-center"
-                              >
-                                {processingAppointment === appointment.id ? (
-                                  <svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                  </svg>
+            <div>
+              {activeTab === 'list' && (
+                <div>
+                  <div className="md:hidden">
+                    {getFilteredAppointments().length === 0 ? (
+                      <div className="text-center py-8 text-blue-200">No appointments found for this filter.</div>
+                    ) : (
+                      <div className="flex flex-col gap-4">
+                        {getFilteredAppointments().map((appointment) => (
+                          <div key={appointment.id} className="bg-blue-900/80 rounded-xl p-4 shadow flex flex-col gap-2">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-blue-200 font-bold text-lg">{formatDate(appointment.scheduled_at)}</span>
+                              <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${getStatusClass(appointment.status, appointment.approval_status)}`}>{appointment.status || 'N/A'}</span>
+                            </div>
+                            <div className="text-blue-100 text-base font-medium">{customers[appointment.customer_id]?.name || 'Unknown'}</div>
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${appointment.approval_status === 'approved' ? 'bg-green-500/30 text-green-200' : appointment.approval_status === 'pending' ? 'bg-yellow-500/30 text-yellow-200' : appointment.approval_status === 'rejected' ? 'bg-red-500/30 text-red-200' : 'bg-gray-500/30 text-gray-200'}`}>{appointment.approval_status || 'N/A'}</span>
+                            </div>
+                            <div className="flex gap-2 mt-2">
+                              {appointment.approval_status === 'pending' ? (
+                                <>
+                                  <button
+                                    onClick={() => handleApprove(appointment.id)}
+                                    disabled={processingAppointment === appointment.id}
+                                    className="flex-1 px-3 py-2 bg-gradient-to-r from-green-600 to-green-800 text-white rounded-lg shadow text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                                  >
+                                    Approve
+                                  </button>
+                                  <button
+                                    onClick={() => openRejectModal(appointment)}
+                                    disabled={processingAppointment === appointment.id}
+                                    className="flex-1 px-3 py-2 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg shadow text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                                  >
+                                    Reject
+                                  </button>
+                                </>
+                              ) : (
+                                <a
+                                  href={`/appointments/${appointment.id}`}
+                                  className="flex-1 text-[#00c2ff] hover:text-white text-center py-2 rounded-lg bg-blue-800/60 font-semibold"
+                                >
+                                  View Details
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="hidden md:block overflow-x-auto rounded-lg bg-blue-900/70 shadow-lg">
+                    <table className="min-w-full divide-y divide-blue-800/70">
+                      <thead>
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-blue-200 uppercase tracking-wider">Date</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-blue-200 uppercase tracking-wider">Customer</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-blue-200 uppercase tracking-wider">Status</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-blue-200 uppercase tracking-wider">Approval</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-blue-200 uppercase tracking-wider">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-blue-900/60 divide-y divide-blue-800/70">
+                        {getFilteredAppointments().length === 0 ? (
+                          <tr>
+                            <td colSpan="5" className="text-center py-8 text-blue-200">No appointments found for this filter.</td>
+                          </tr>
+                        ) : (
+                          getFilteredAppointments().map((appointment) => (
+                            <tr key={appointment.id} className="hover:bg-blue-800/40 transition-colors">
+                              <td className="px-4 py-3 whitespace-nowrap text-blue-100">{formatDate(appointment.scheduled_at)}</td>
+                              <td className="px-4 py-3 whitespace-nowrap text-blue-100">{customers[appointment.customer_id]?.name || 'Unknown'}</td>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${getStatusClass(appointment.status, appointment.approval_status)}`}>{appointment.status || 'N/A'}</span>
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${appointment.approval_status === 'approved' ? 'bg-green-500/30 text-green-200' : appointment.approval_status === 'pending' ? 'bg-yellow-500/30 text-yellow-200' : appointment.approval_status === 'rejected' ? 'bg-red-500/30 text-red-200' : 'bg-gray-500/30 text-gray-200'}`}>{appointment.approval_status || 'N/A'}</span>
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                {appointment.approval_status === 'pending' ? (
+                                  <>
+                                    <button 
+                                      onClick={() => handleApprove(appointment.id)}
+                                      disabled={processingAppointment === appointment.id}
+                                      className="mr-2 px-3 py-1 bg-gradient-to-r from-green-600 to-green-800 text-white rounded-lg shadow hover:shadow-lg transition-all flex items-center text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                                    >
+                                      Approve
+                                    </button>
+                                    <button 
+                                      onClick={() => openRejectModal(appointment)}
+                                      disabled={processingAppointment === appointment.id}
+                                      className="px-3 py-1 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg shadow hover:shadow-lg transition-all flex items-center text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                                    >
+                                      Reject
+                                    </button>
+                                  </>
                                 ) : (
-                                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                  </svg>
+                                  <a 
+                                    href={`/appointments/${appointment.id}`}
+                                    className="text-[#00c2ff] hover:text-white transition-colors"
+                                  >
+                                    View Details
+                                  </a>
                                 )}
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => openRejectModal(appointment)}
-                                disabled={processingAppointment === appointment.id}
-                                className="px-2 py-1 bg-red-600/30 hover:bg-red-600/50 text-red-300 rounded text-xs font-medium transition-colors flex items-center"
-                              >
-                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                                Reject
-                              </button>
-                            </>
-                          ) : (
-                            <a 
-                              href={`/appointments/${appointment.id}`}
-                              className="text-[#00c2ff] hover:text-white transition-colors"
-                            >
-                              View Details
-                            </a>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+              {activeTab === 'calendar' && (
+                <div className="py-4">
+                  <CalendarView appointments={appointments} />
+                </div>
+              )}
             </div>
           )}
         </div>
