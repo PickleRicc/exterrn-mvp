@@ -1,3 +1,6 @@
+// Test edit: add a comment at the top
+// CASCADE TEST EDIT
+
 export default function Footer() {
   return (
     <footer className="bg-[#132f4c] text-white py-4 px-4 mt-8">
