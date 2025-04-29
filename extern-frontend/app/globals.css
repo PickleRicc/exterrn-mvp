@@ -261,3 +261,46 @@ input:focus, select:focus, textarea:focus {
 .btn-glow:hover::after {
   opacity: 1;
 }
+
+/* --- CALENDAR OVERRIDES: Remove white backgrounds and improve calendar styling --- */
+div.rbc-month-view .rbc-day-bg,
+div.rbc-month-view .rbc-off-range-bg,
+div.rbc-month-view .rbc-today,
+div.rbc-month-view .rbc-selected-cell {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Also cover week/day views */
+div.rbc-time-view .rbc-day-bg,
+div.rbc-time-view .rbc-today,
+div.rbc-time-view .rbc-selected-cell {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Set a dark blue for off-range days */
+div.rbc-month-view .rbc-off-range-bg {
+  background: #132f4c !important;
+  background-color: #132f4c !important;
+  opacity: 0.6;
+}
+
+/* Remove any box-shadow or border that causes white highlights */
+/* div.rbc-month-view .rbc-today {
+  box-shadow: none !important;
+  border: 2px solid #e91e6c !important;
+} */
+
+/* Fix vertical grid lines to match brand */
+.rbc-day-bg + .rbc-day-bg {
+  border-left: 1px solid #223a5e !important;
+}
+
+/* Maximum specificity for off-range days */
+div.rbc-month-view div.rbc-day-bg.rbc-off-range-bg,
+div.rbc-month-view div.rbc-day-bg.rbc-off-range-bg[style] {
+  background: #132f4c !important;
+  background-color: #132f4c !important;
+  opacity: 0.6;
+}

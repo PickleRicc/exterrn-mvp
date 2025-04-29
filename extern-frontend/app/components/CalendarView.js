@@ -75,7 +75,7 @@ export default function CalendarView({ appointments }) {
   // Custom toolbar
   function Toolbar() {
     return (
-      <div className="flex flex-col gap-2 mb-4 px-2">
+      <div className="flex flex-col gap-2 mb-4 px-1">
         {/* Month/Year Dropdown Row */}
         <div className="flex gap-2 items-center justify-center w-full">
           <select
@@ -85,7 +85,7 @@ export default function CalendarView({ appointments }) {
               newDate.setMonth(Number(e.target.value));
               setDate(newDate);
             }}
-            className="rounded-lg bg-[#223a5e] text-pink-200 px-2 py-1 font-semibold shadow focus:outline-none"
+            className="rounded-lg bg-[#223a5e] text-white px-3 py-2 font-medium shadow focus:outline-none focus:ring-1 focus:ring-[#e91e6c] text-sm"
           >
             {months.map((m, idx) => (
               <option key={m} value={idx}>{m}</option>
@@ -98,7 +98,7 @@ export default function CalendarView({ appointments }) {
               newDate.setFullYear(Number(e.target.value));
               setDate(newDate);
             }}
-            className="rounded-lg bg-[#223a5e] text-pink-200 px-2 py-1 font-semibold shadow focus:outline-none"
+            className="rounded-lg bg-[#223a5e] text-white px-3 py-2 font-medium shadow focus:outline-none focus:ring-1 focus:ring-[#e91e6c] text-sm"
           >
             {years.map(yr => (
               <option key={yr} value={yr}>{yr}</option>
@@ -109,39 +109,42 @@ export default function CalendarView({ appointments }) {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 w-full">
           <div className="flex gap-2 mb-2 sm:mb-0 items-center">
             <button
-              className="rounded-full bg-[#192f4c] text-pink-400 hover:bg-[#223a5e] px-3 py-1 font-bold shadow"
+              className="rounded-full bg-[#192f4c] text-[#e91e6c] hover:bg-[#223a5e] px-3 py-1 font-bold shadow h-8 w-8 flex items-center justify-center"
               onClick={() => handleNavigate('PREV')}
+              aria-label="Previous"
             >
               ←
             </button>
             <button
-              className="rounded-full bg-[#192f4c] text-pink-400 hover:bg-[#223a5e] px-3 py-1 font-bold shadow"
+              className="rounded-full bg-[#192f4c] text-[#e91e6c] hover:bg-[#223a5e] px-3 py-1 font-bold shadow h-8 w-8 flex items-center justify-center"
               onClick={() => handleNavigate('TODAY')}
+              aria-label="Today"
             >
-              Heute
+              •
             </button>
             <button
-              className="rounded-full bg-[#192f4c] text-pink-400 hover:bg-[#223a5e] px-3 py-1 font-bold shadow"
+              className="rounded-full bg-[#192f4c] text-[#e91e6c] hover:bg-[#223a5e] px-3 py-1 font-bold shadow h-8 w-8 flex items-center justify-center"
               onClick={() => handleNavigate('NEXT')}
+              aria-label="Next"
             >
               →
             </button>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1 items-center">
             <button
-              className={`rounded-lg px-3 py-1 font-semibold text-xs shadow ${view === 'month' ? 'bg-pink-600 text-white' : 'bg-[#223a5e] text-pink-200 hover:bg-pink-700'}`}
+              className={`rounded-lg px-3 py-1 font-medium text-sm shadow ${view === 'month' ? 'bg-[#e91e6c] text-white' : 'bg-[#223a5e] text-white hover:bg-[#e91e6c]/70'}`}
               onClick={() => setView('month')}
             >
               Monat
             </button>
             <button
-              className={`rounded-lg px-3 py-1 font-semibold text-xs shadow ${view === 'week' ? 'bg-pink-600 text-white' : 'bg-[#223a5e] text-pink-200 hover:bg-pink-700'}`}
+              className={`rounded-lg px-3 py-1 font-medium text-sm shadow ${view === 'week' ? 'bg-[#e91e6c] text-white' : 'bg-[#223a5e] text-white hover:bg-[#e91e6c]/70'}`}
               onClick={() => setView('week')}
             >
               Woche
             </button>
             <button
-              className={`rounded-lg px-3 py-1 font-semibold text-xs shadow ${view === 'day' ? 'bg-pink-600 text-white' : 'bg-[#223a5e] text-pink-200 hover:bg-pink-700'}`}
+              className={`rounded-lg px-3 py-1 font-medium text-sm shadow ${view === 'day' ? 'bg-[#e91e6c] text-white' : 'bg-[#223a5e] text-white hover:bg-[#e91e6c]/70'}`}
               onClick={() => setView('day')}
             >
               Tag
@@ -157,26 +160,36 @@ export default function CalendarView({ appointments }) {
     if (status === 'approved') return 'bg-green-500';
     if (status === 'pending') return 'bg-yellow-400';
     if (status === 'rejected') return 'bg-red-500';
-    return 'bg-pink-500';
+    return 'bg-[#e91e6c]';
   }
 
   // Custom month cell renderer: show dots for each appointment (match by YYYY-MM-DD)
   function CustomMonthDateCell({ date, events }) {
     const cellDateKey = date.toISOString().split('T')[0];
     const todaysEvents = events.filter(ev => ev.dateKey === cellDateKey);
+    const todayKey = new Date().toISOString().split('T')[0];
+    const isToday = cellDateKey === todayKey;
+    
     return (
-      <div className="flex flex-col items-center justify-center min-h-[48px]">
-        <span className="text-xs text-blue-100 mb-1">{date.getDate()}</span>
-        <div className="flex flex-wrap gap-0.5 justify-center">
-          {todaysEvents.slice(0, 4).map(ev => (
+      <div
+        className={`flex flex-col items-center justify-center min-h-[48px] transition-all duration-150 rounded-lg cursor-pointer 
+          ${isToday ? 'bg-[#e91e6c]/15' : 'hover:bg-[#223a5e]/60'}
+        `}
+        style={{ boxSizing: 'border-box', minHeight: 48, background: isToday ? null : 'none' }}
+      >
+        <span className={`text-xs ${isToday ? 'text-[#e91e6c] font-bold' : 'text-blue-100'} mb-1 drop-shadow`}>
+          {date.getDate()}
+        </span>
+        <div className="flex flex-wrap gap-1 justify-center">
+          {todaysEvents.slice(0, 3).map(ev => (
             <span
               key={ev.id}
-              className={`w-2 h-2 rounded-full ${getDotColor(ev.resource.approval_status)} border border-white`}
+              className={`w-2.5 h-2.5 rounded-full ${getDotColor(ev.resource.approval_status)} border border-white/30 shadow-sm`}
               title={ev.title}
             />
           ))}
-          {todaysEvents.length > 4 && (
-            <span className="text-xs text-pink-300 ml-1">+{todaysEvents.length - 4}</span>
+          {todaysEvents.length > 3 && (
+            <span className="text-xs text-[#e91e6c] font-semibold ml-1">+{todaysEvents.length - 3}</span>
           )}
         </div>
       </div>
@@ -208,7 +221,7 @@ export default function CalendarView({ appointments }) {
           events={events}
           startAccessor="start"
           endAccessor="end"
-          style={{ height: 500, minWidth: 320, background: "transparent" }}
+          style={{ height: 450, minWidth: 320, background: "transparent" }}
           popup
           views={["month", "week", "day"]}
           view={view}
@@ -225,8 +238,16 @@ export default function CalendarView({ appointments }) {
               ),
             },
           }}
-          eventPropGetter={() => ({
+          eventPropGetter={(event) => ({
             style: {
+              backgroundColor: event.resource.approval_status === 'approved' ? '#4caf50' : 
+                              event.resource.approval_status === 'pending' ? '#ff9800' : 
+                              event.resource.approval_status === 'rejected' ? '#f44336' : '#e91e6c',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '2px 6px',
+              fontSize: '14px',
               display: view === 'month' ? 'none' : undefined,
             },
           })}
@@ -242,20 +263,61 @@ export default function CalendarView({ appointments }) {
         />
         {/* Day popup */}
         {popupInfo.show && (
-          <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-            <div className="bg-[#132f4c] rounded-2xl shadow-xl p-6 w-full max-w-xs mx-2">
-              <div className="flex justify-between items-center mb-4">
+          <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+            <div className="bg-[#132f4c] rounded-xl shadow-xl p-5 w-full max-w-sm mx-auto">
+              <div className="flex justify-between items-center mb-3">
                 <span className="text-lg font-bold text-white">{popupInfo.date && popupInfo.date.toLocaleDateString()}</span>
-                <button onClick={closePopup} className="text-pink-400 hover:text-pink-200 text-xl font-bold">×</button>
+                <button 
+                  onClick={closePopup} 
+                  className="text-[#e91e6c] hover:text-pink-200 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10"
+                >
+                  ×
+                </button>
               </div>
               <div className="space-y-3">
                 {popupInfo.events.map(ev => (
-                  <div key={ev.id} className="flex items-center gap-2 bg-blue-900/80 rounded-lg px-3 py-2">
-                    <span className={`w-3 h-3 rounded-full ${getDotColor(ev.resource.approval_status)} border border-white`} />
-                    <span className="text-white text-sm font-semibold">{ev.title}</span>
-                    <span className="text-xs text-blue-200 ml-auto">{ev.timeStr || '-'}</span>
+                  <div key={ev.id} className="bg-[#0a1929]/80 rounded-lg overflow-hidden">
+                    <div className="flex items-center gap-2 px-3 py-2.5 hover:bg-[#0a1929]">
+                      <span className={`w-3 h-3 rounded-full ${getDotColor(ev.resource.approval_status)} border border-white/30 shadow-sm`} />
+                      <span className="text-white text-sm font-medium">{ev.title}</span>
+                      <span className="text-xs text-blue-200 ml-auto font-mono">{ev.timeStr || '-'}</span>
+                    </div>
+                    <div className="px-3 py-2 bg-[#0a1929]/50 text-xs space-y-1.5">
+                      <div className="flex justify-between">
+                        <span className="text-blue-300">Status:</span>
+                        <span className={`
+                          ${ev.resource.approval_status === 'approved' ? 'text-green-400' : 
+                            ev.resource.approval_status === 'pending' ? 'text-yellow-400' : 
+                            ev.resource.approval_status === 'rejected' ? 'text-red-400' : 'text-[#e91e6c]'}
+                          font-medium
+                        `}>
+                          {ev.resource.approval_status === 'approved' ? 'Genehmigt' : 
+                           ev.resource.approval_status === 'pending' ? 'Ausstehend' : 
+                           ev.resource.approval_status === 'rejected' ? 'Abgelehnt' : 'Unbekannt'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-blue-300">Kunde:</span>
+                        <span className="text-white">{ev.resource.customer_name || 'Nicht angegeben'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-blue-300">Ort:</span>
+                        <span className="text-white">{ev.resource.location || 'Nicht angegeben'}</span>
+                      </div>
+                      <div className="mt-2 pt-1 border-t border-[#223a5e]">
+                        <a 
+                          href={`/appointments/${ev.id}`} 
+                          className="block w-full text-center text-[#e91e6c] hover:text-white bg-[#223a5e]/50 hover:bg-[#e91e6c]/20 py-1.5 rounded transition-colors"
+                        >
+                          Details anzeigen
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 ))}
+                {popupInfo.events.length === 0 && (
+                  <div className="text-center py-3 text-blue-200">Keine Termine für diesen Tag</div>
+                )}
               </div>
             </div>
           </div>
