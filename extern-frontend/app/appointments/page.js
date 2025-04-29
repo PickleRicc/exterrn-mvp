@@ -20,7 +20,10 @@ export default function AppointmentsPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [appointmentToReject, setAppointmentToReject] = useState(null);
   const [activeTab, setActiveTab] = useState('list'); // 'list' or 'calendar'
-  
+  const [notes, setNotes] = useState('');
+  const [notesSaved, setNotesSaved] = useState(false);
+  const [notesList, setNotesList] = useState([]);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -47,6 +50,16 @@ export default function AppointmentsPage() {
       setLoading(false);
     }
   }, [router]);
+
+  useEffect(() => {
+    if (craftsmanId) {
+      const saved = localStorage.getItem(`zimr_appointments_notes_${craftsmanId}`);
+      if (saved) {
+        setNotes(saved);
+        setNotesList(saved.split('\n').filter(line => line.trim() !== ''));
+      }
+    }
+  }, [craftsmanId]);
 
   const fetchData = async (craftsmanId) => {
     try {
@@ -295,6 +308,15 @@ export default function AppointmentsPage() {
     }
   };
 
+  const saveNotes = () => {
+    if (craftsmanId) {
+      localStorage.setItem(`zimr_appointments_notes_${craftsmanId}`, notes);
+      setNotesList(notes.split('\n').filter(line => line.trim() !== ''));
+      setNotesSaved(true);
+      setTimeout(() => setNotesSaved(false), 1500);
+    }
+  };
+
   // Count pending appointments
   const pendingCount = appointments.filter(apt => apt.approval_status === 'pending').length;
 
@@ -532,6 +554,36 @@ export default function AppointmentsPage() {
           )}
         </div>
       </main>
+      
+      {/* Notes Section */}
+      <section className="max-w-lg w-full mx-auto mt-6 mb-6">
+        <div className="bg-[#182c47] border border-white/10 rounded-xl shadow-lg p-4">
+          <div className="flex items-center mb-2">
+            <span className="text-lg font-semibold text-white flex-1">My Notes &amp; Todos</span>
+            {notesSaved && <span className="text-xs text-[#ff2e90] ml-2">Saved!</span>}
+          </div>
+          <textarea
+            className="w-full min-h-[90px] bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:ring-2 focus:ring-[#00c2ff]/40 focus:border-[#00c2ff]/40 transition-all text-base placeholder:text-white/40 resize-vertical"
+            placeholder="Write notes, todos, or reminders here..."
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            onFocus={() => setNotesSaved(false)}
+          />
+          <button
+            onClick={saveNotes}
+            className="mt-3 w-full py-2 rounded-lg bg-gradient-to-r from-[#ff2e90] to-[#00c2ff] text-white font-bold shadow hover:opacity-90 transition-all"
+          >
+            Save Notes
+          </button>
+          {notesList.length > 0 && (
+            <ul className="mt-5 space-y-2 text-white/90 list-disc list-inside">
+              {notesList.map((item, idx) => (
+                <li key={idx} className="bg-white/5 rounded px-3 py-2 text-base">{item}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
       
       {/* Reject Modal */}
       {showRejectModal && (

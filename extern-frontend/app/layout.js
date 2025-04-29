@@ -1,5 +1,6 @@
 import './globals.css';
 import { OnboardingMiddleware } from './middleware';
+import MobileNavbar from './components/MobileNavbar';
 
 export const metadata = {
   title: 'Extern App',
@@ -7,11 +8,13 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  // MobileNavbar hides itself on /auth routes, so always render here
   return (
     <html lang="en">
       <body className="antialiased">
         <OnboardingMiddleware>
           {children}
+          <MobileNavbar />
         </OnboardingMiddleware>
       </body>
     </html>
