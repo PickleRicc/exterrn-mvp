@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function Header() {
+export default function Header({ minimal = false }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
   const [userInitials, setUserInitials] = useState('');
@@ -12,17 +12,12 @@ export default function Header() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is logged in
     const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
     if (token) {
-      setIsLoggedIn(true);
-      
-      // Get user info from localStorage
       try {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         setUserName(user.username || '');
-        
-        // Generate initials from username or name
         if (user.name) {
           const nameParts = user.name.split(' ');
           if (nameParts.length > 1) {
@@ -45,35 +40,63 @@ export default function Header() {
   }, []);
 
   const handleLogout = () => {
-    // Clear localStorage
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('onboardingCompleted');
-    
-    // Update state
     setIsLoggedIn(false);
-    
-    // Redirect to login page
     router.push('/auth/login');
   };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-  
   const toggleProfileMenu = () => {
     setShowProfileMenu(!showProfileMenu);
   };
 
+  // --- MINIMAL HEADER FOR PUBLIC/LANDING PAGE ---
+  if (minimal || !isLoggedIn) {
+    return (
+      <header className="bg-gradient-to-r from-[#0a1929] to-[#132f4c] text-white shadow-lg backdrop-blur-lg sticky top-0 z-50 transition-all duration-300 ease-in-out">
+        <div className="container mx-auto px-4 flex justify-between items-center py-4">
+          <div className="flex items-center space-x-3">
+            <a href="/">
+              <img
+                src="/images/ZIMMR_Logo_transparent.png"
+                alt="ZIMMR Logo"
+                className="h-7 w-auto md:h-8 max-w-[96px] md:max-w-[120px] object-contain drop-shadow-lg transition-all duration-300"
+                style={{ minWidth: '48px', maxHeight: '2.25rem' }}
+                loading="eager"
+                decoding="async"
+              />
+            </a>
+          </div>
+          <div className="flex gap-2">
+            <a href="/auth/login" className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200 font-medium">Login</a>
+            <a href="/auth/register" className="px-4 py-2 rounded-full bg-[#e91e63] hover:bg-[#d81b60] transition-all duration-200 font-medium">Sign Up</a>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  // --- FULL HEADER FOR LOGGED-IN USERS ---
   return (
     <header className="bg-gradient-to-r from-[#0a1929] to-[#132f4c] text-white shadow-lg backdrop-blur-lg sticky top-0 z-50 transition-all duration-300 ease-in-out">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
-          <a href="/" className="text-xl md:text-2xl font-bold text-white flex items-center">
-            <span className="bg-gradient-to-r from-[#00c2ff] to-[#7928ca] bg-clip-text text-transparent">ZIMMR</span>
-          </a>
-          
-          {/* Mobile menu button */}
+          <div className="flex items-center space-x-3">
+            <a href="/">
+              <img
+                src="/images/ZIMMR_Logo_transparent.png"
+                alt="ZIMMR Logo"
+                className="h-7 w-auto md:h-8 max-w-[96px] md:max-w-[120px] object-contain drop-shadow-lg transition-all duration-300"
+                style={{ minWidth: '48px', maxHeight: '2.25rem' }}
+                loading="eager"
+                decoding="async"
+              />
+            </a>
+          </div>
           <button 
             className="md:hidden flex items-center justify-center w-10 h-10 rounded-full bg-[#1e3a5f]/40 backdrop-blur-md text-white hover:bg-[#2c5282]/60 transition-all duration-300"
             onClick={toggleMenu}
@@ -94,7 +117,6 @@ export default function Header() {
               )}
             </svg>
           </button>
-          
           {/* Desktop navigation */}
           <nav className="hidden md:block">
             <ul className="flex items-center space-x-1">

@@ -38,31 +38,24 @@ function LoginContent() {
       
       // Check if user is a craftsman and redirect accordingly
       if (response.user.role === 'craftsman') {
-        // Only redirect to onboarding for new craftsmen who haven't set availability
         const isNewUser = !localStorage.getItem('onboardingCompleted');
-        
         if (isNewUser && response.user.craftsman) {
-          // Check if the craftsman has availability_hours set
-          const hasAvailabilityHours = 
-            response.user.craftsman.availability_hours && 
+          const hasAvailabilityHours =
+            response.user.craftsman.availability_hours &&
             Object.keys(response.user.craftsman.availability_hours).length > 0;
-          
           if (!hasAvailabilityHours) {
-            // Mark that we've shown the onboarding, even if they don't complete it
             localStorage.setItem('onboardingShown', 'true');
             router.push('/onboarding');
             return;
           } else {
-            // If they have availability hours, mark onboarding as completed
             localStorage.setItem('onboardingCompleted', 'true');
           }
         }
-        
-        // For all other cases, go to appointments page
-        router.push('/appointments');
+        // For all other cases, go to dashboard page
+        router.push('/dashboard');
       } else {
-        // Redirect to the home page for other users
-        router.push('/');
+        // Redirect to dashboard for any other user roles as well
+        router.push('/dashboard');
       }
     } catch (err) {
       console.error('Login error:', err);
