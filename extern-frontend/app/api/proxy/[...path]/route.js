@@ -14,7 +14,7 @@ export async function GET(request) {
     const searchParams = url.searchParams;
     const queryString = searchParams.toString() ? `?${searchParams.toString()}` : '';
     
-    const backendUrl = process.env.BACKEND_URL || 'http://3.127.139.32:3000';
+    const backendUrl = process.env.BACKEND_URL || 'http://63.178.22.180:3000';
     const fullUrl = `${backendUrl}/${path}${queryString}`;
     
     console.log(`Proxying GET request to: ${fullUrl}`);
@@ -62,7 +62,7 @@ export async function POST(request) {
     const pathSegments = url.pathname.split('/api/proxy/');
     const path = pathSegments.length > 1 ? pathSegments[1] : '';
     
-    const backendUrl = process.env.BACKEND_URL || 'http://3.127.139.32:3000';
+    const backendUrl = process.env.BACKEND_URL || 'http://63.178.22.180:3000';
     const fullUrl = `${backendUrl}/${path}`;
     
     console.log(`Proxying POST request to: ${fullUrl}`);
@@ -114,7 +114,7 @@ export async function PUT(request) {
     const pathSegments = url.pathname.split('/api/proxy/');
     const path = pathSegments.length > 1 ? pathSegments[1] : '';
     
-    const backendUrl = process.env.BACKEND_URL || 'http://3.127.139.32:3000';
+    const backendUrl = process.env.BACKEND_URL || 'http://63.178.22.180:3000';
     const fullUrl = `${backendUrl}/${path}`;
     
     console.log(`Proxying PUT request to: ${fullUrl}`);
@@ -177,7 +177,7 @@ export async function DELETE(request) {
     const pathSegments = url.pathname.split('/api/proxy/');
     const path = pathSegments.length > 1 ? pathSegments[1] : '';
     
-    const backendUrl = process.env.BACKEND_URL || 'http://3.127.139.32:3000';
+    const backendUrl = process.env.BACKEND_URL || 'http://63.178.22.180:3000';
     const fullUrl = `${backendUrl}/${path}`;
     
     console.log(`Proxying DELETE request to: ${fullUrl}`);
