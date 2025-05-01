@@ -1,14 +1,5 @@
 // lib/api/financesAPI.js
-import axios from 'axios';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
-
-// Attach JWT from localStorage to every request
-function authHeaders() {
-  if (typeof window === 'undefined') return {};
-  const token = localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+import api from '../../app/lib/api';
 
 /**
  * Get financial statistics for the craftsman
@@ -17,9 +8,8 @@ function authHeaders() {
  */
 export async function getFinanceStats(period = 'month') {
   try {
-    const res = await axios.get(`${API_BASE}/finances`, {
-      params: { period },
-      headers: authHeaders(),
+    const res = await api.get('/finances', {
+      params: { period }
     });
     return res.data;
   } catch (error) {
@@ -36,10 +26,9 @@ export async function getFinanceStats(period = 'month') {
  */
 export async function setFinanceGoal(goal_amount, goal_period) {
   try {
-    const res = await axios.post(
-      `${API_BASE}/finances`,
-      { goal_amount, goal_period },
-      { headers: authHeaders() }
+    const res = await api.post(
+      '/finances',
+      { goal_amount, goal_period }
     );
     return res.data;
   } catch (error) {
