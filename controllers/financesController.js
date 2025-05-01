@@ -25,12 +25,40 @@ const getFinanceStats = async (req, res) => {
 
     // Only sum up paid invoices
     const revenueResult = await pool.query(
-      `SELECT COALESCE(SUM(amount), 0) AS total_revenue FROM invoices WHERE craftsman_id = $1 AND status = $2 ${dateCondition}`,
+      `SELECT COALESCE(SUM(total_amount), 0) AS total_revenue FROM invoices WHERE craftsman_id = $1 AND status = $2 ${dateCondition}`,
       params
     );
     const totalRevenue = revenueResult.rows[0].total_revenue;
 
-    res.json({ goal, totalRevenue });
+    // Calculate outstanding (unpaid) invoices
+    const outstandingResult = await pool.query(
+      `SELECT COALESCE(SUM(total_amount), 0) AS total_open 
+       FROM invoices 
+       WHERE craftsman_id = $1 AND status IN ('pending', 'overdue') ${dateCondition}`,
+      [craftsmanId]
+    );
+    const totalOpen = outstandingResult.rows[0].total_open;
+
+    // Get monthly revenue breakdown for the current year (for chart)
+    let monthlyRevenueData = [];
+    if (period === 'year') {
+      const monthlyResult = await pool.query(
+        `SELECT 
+          date_trunc('month', created_at) AS month,
+          COALESCE(SUM(total_amount), 0) AS revenue
+        FROM invoices 
+        WHERE 
+          craftsman_id = $1 
+          AND status = 'paid'
+          AND date_trunc('year', created_at) = date_trunc('year', CURRENT_DATE)
+        GROUP BY date_trunc('month', created_at)
+        ORDER BY month`,
+        [craftsmanId]
+      );
+      monthlyRevenueData = monthlyResult.rows;
+    }
+
+    res.json({ goal, totalRevenue, totalOpen, monthlyRevenueData });
   } catch (err) {
     console.error('Error in getFinanceStats:', err);
     res.status(500).json({ error: 'Failed to fetch finance stats' });
@@ -61,7 +89,37 @@ const setFinanceGoal = async (req, res) => {
   }
 };
 
+// Update finances when an invoice is marked as paid
+const updateFinancesFromInvoice = async (invoiceId, craftsmanId) => {
+  try {
+    console.log(`Updating finances for invoice ${invoiceId} and craftsman ${craftsmanId}`);
+    
+    // Get the invoice details
+    const invoiceResult = await pool.query(
+      'SELECT total_amount, created_at FROM invoices WHERE id = $1 AND craftsman_id = $2',
+      [invoiceId, craftsmanId]
+    );
+    
+    if (invoiceResult.rows.length === 0) {
+      console.error(`Invoice ${invoiceId} not found for craftsman ${craftsmanId}`);
+      return false;
+    }
+    
+    const invoice = invoiceResult.rows[0];
+    console.log(`Invoice found with total amount: ${invoice.total_amount}`);
+    
+    // No need to update any specific record in the finances table
+    // The getFinanceStats function will calculate revenue from invoices on demand
+    
+    return true;
+  } catch (err) {
+    console.error('Error in updateFinancesFromInvoice:', err);
+    return false;
+  }
+};
+
 module.exports = {
   getFinanceStats,
   setFinanceGoal,
+  updateFinancesFromInvoice,
 };

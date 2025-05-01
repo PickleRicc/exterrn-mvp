@@ -3,6 +3,7 @@ const emailService = require('../services/emailService');
 const pdfService = require('../services/pdfService');
 const fs = require('fs-extra');
 const path = require('path');
+const { updateFinancesFromInvoice } = require('./financesController');
 
 // Get all invoices with optional filters
 const getAllInvoices = async (req, res) => {
@@ -184,144 +185,139 @@ const updateInvoice = async (req, res) => {
       appointment_id
     } = req.body;
     
-    // Validate required fields
+    // Ensure craftsman_id is provided for security
     if (!craftsman_id) {
       return res.status(400).json({ error: 'craftsman_id is required' });
     }
     
-    // Check if invoice exists and belongs to craftsman
-    const checkQuery = `
-      SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2
-    `;
+    // Check if invoice exists and belongs to the craftsman
+    const checkQuery = 'SELECT * FROM invoices WHERE id = $1 AND craftsman_id = $2';
     const checkResult = await pool.query(checkQuery, [id, craftsman_id]);
     
     if (checkResult.rows.length === 0) {
       return res.status(404).json({ error: 'Invoice not found or you do not have permission to update it' });
     }
     
-    // Get the current appointment_id if it exists
-    const currentAppointmentId = checkResult.rows[0].appointment_id;
-    
-    // Build dynamic update query
-    const updateFields = [];
-    const values = [id, craftsman_id]; // $1 = id, $2 = craftsman_id
-    let paramIndex = 3;
-    
+    const oldInvoice = checkResult.rows[0];
+    const oldStatus = oldInvoice.status;
+
+    // Build the update query dynamically based on provided fields
+    let updateFields = [];
+    let values = [];
+    let paramIndex = 1;
+
     if (customer_id) {
-      updateFields.push(`customer_id = $${paramIndex}`);
+      updateFields.push(`customer_id = $${paramIndex++}`);
       values.push(customer_id);
-      paramIndex++;
     }
-    
+
     if (amount !== undefined) {
-      updateFields.push(`amount = $${paramIndex}`);
+      updateFields.push(`amount = $${paramIndex++}`);
       values.push(amount);
-      paramIndex++;
     }
-    
+
     if (tax_amount !== undefined) {
-      updateFields.push(`tax_amount = $${paramIndex}`);
+      updateFields.push(`tax_amount = $${paramIndex++}`);
       values.push(tax_amount);
-      paramIndex++;
     }
-    
+
     if (total_amount !== undefined) {
-      updateFields.push(`total_amount = $${paramIndex}`);
+      updateFields.push(`total_amount = $${paramIndex++}`);
       values.push(total_amount);
-      paramIndex++;
     }
-    
+
     if (notes !== undefined) {
-      updateFields.push(`notes = $${paramIndex}`);
+      updateFields.push(`notes = $${paramIndex++}`);
       values.push(notes);
-      paramIndex++;
     }
-    
+
     if (due_date !== undefined) {
-      updateFields.push(`due_date = $${paramIndex}`);
-      values.push(due_date || null);
-      paramIndex++;
+      updateFields.push(`due_date = $${paramIndex++}`);
+      values.push(due_date);
     }
-    
-    if (status !== undefined) {
-      updateFields.push(`status = $${paramIndex}`);
-      values.push(status);
-      paramIndex++;
-    }
-    
+
     if (service_date !== undefined) {
-      updateFields.push(`service_date = $${paramIndex}`);
-      values.push(service_date || null);
-      paramIndex++;
+      updateFields.push(`service_date = $${paramIndex++}`);
+      values.push(service_date);
     }
-    
+
     if (location !== undefined) {
-      updateFields.push(`location = $${paramIndex}`);
-      values.push(location || '');
-      paramIndex++;
+      updateFields.push(`location = $${paramIndex++}`);
+      values.push(location);
     }
-    
+
     if (vat_exempt !== undefined) {
-      updateFields.push(`vat_exempt = $${paramIndex}`);
+      updateFields.push(`vat_exempt = $${paramIndex++}`);
       values.push(vat_exempt);
-      paramIndex++;
     }
-    
+
     if (type !== undefined) {
-      updateFields.push(`type = $${paramIndex}`);
+      updateFields.push(`type = $${paramIndex++}`);
       values.push(type);
-      paramIndex++;
     }
-    
+
+    if (status !== undefined) {
+      updateFields.push(`status = $${paramIndex++}`);
+      values.push(status);
+    }
+
     if (appointment_id !== undefined) {
-      updateFields.push(`appointment_id = $${paramIndex}`);
-      values.push(appointment_id || null);
-      paramIndex++;
+      updateFields.push(`appointment_id = $${paramIndex++}`);
+      values.push(appointment_id);
     }
-    
-    // Add updated_at timestamp
-    updateFields.push(`updated_at = NOW()`);
-    
-    // If no fields to update, return the existing invoice
-    if (updateFields.length === 1) {
-      return res.json(checkResult.rows[0]);
+
+    // Always update the updated_at timestamp
+    updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
+
+    // If there are no fields to update, return an error
+    if (updateFields.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
     }
-    
-    // Execute update query
+
+    // Build and execute the update query
     const updateQuery = `
       UPDATE invoices
       SET ${updateFields.join(', ')}
-      WHERE id = $1 AND craftsman_id = $2
+      WHERE id = $${paramIndex++} AND craftsman_id = $${paramIndex++}
       RETURNING *
     `;
-    
+
+    values.push(id);
+    values.push(craftsman_id);
+
     const result = await pool.query(updateQuery, values);
-    
-    // Handle appointment relationship updates
-    if (appointment_id !== undefined && appointment_id !== currentAppointmentId) {
-      // If a new appointment was linked, update its status
+
+    // If status changed to 'paid', update finances
+    if (status === 'paid' && oldStatus !== 'paid') {
+      console.log(`Invoice ${id} marked as paid. Updating finances.`);
+      await updateFinancesFromInvoice(id, craftsman_id);
+    }
+
+    // If appointment_id changed, update the old and new appointments
+    if (appointment_id !== undefined && appointment_id !== oldInvoice.appointment_id) {
+      // If there was a previous appointment, update its has_invoice status to false
+      if (oldInvoice.appointment_id) {
+        try {
+          await pool.query(
+            'UPDATE appointments SET has_invoice = false WHERE id = $1 AND craftsman_id = $2',
+            [oldInvoice.appointment_id, craftsman_id]
+          );
+        } catch (err) {
+          console.error('Error updating old appointment has_invoice status:', err);
+          // Continue with the response even if this fails
+        }
+      }
+
+      // If there is a new appointment, update its has_invoice status to true
       if (appointment_id) {
         try {
           await pool.query(
-            `UPDATE appointments SET has_invoice = true WHERE id = $1 AND craftsman_id = $2`,
+            'UPDATE appointments SET has_invoice = true WHERE id = $1 AND craftsman_id = $2',
             [appointment_id, craftsman_id]
           );
-          console.log(`Updated appointment ${appointment_id} to mark it as having an invoice`);
-        } catch (appointmentError) {
-          console.error('Error updating new appointment has_invoice status:', appointmentError);
-        }
-      }
-      
-      // If an old appointment was unlinked, update its status
-      if (currentAppointmentId) {
-        try {
-          await pool.query(
-            `UPDATE appointments SET has_invoice = false WHERE id = $1 AND craftsman_id = $2`,
-            [currentAppointmentId, craftsman_id]
-          );
-          console.log(`Updated appointment ${currentAppointmentId} to mark it as no longer having an invoice`);
-        } catch (appointmentError) {
-          console.error('Error updating old appointment has_invoice status:', appointmentError);
+        } catch (err) {
+          console.error('Error updating new appointment has_invoice status:', err);
+          // Continue with the response even if this fails
         }
       }
     }
