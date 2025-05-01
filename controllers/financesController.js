@@ -25,14 +25,14 @@ const getFinanceStats = async (req, res) => {
 
     // Calculate total revenue (net, paid invoices)
     const revenueResult = await pool.query(
-      `SELECT COALESCE(SUM(amount_net), 0) AS total_revenue FROM invoices WHERE craftsman_id = $1 AND status = $2 ${dateCondition}`,
+      `SELECT COALESCE(SUM(amount), 0) AS total_revenue FROM invoices WHERE craftsman_id = $1 AND status = $2 ${dateCondition}`,
       params
     );
     const totalRevenue = revenueResult.rows[0].total_revenue;
 
     // Calculate total outstanding (open invoices)
     const openResult = await pool.query(
-      `SELECT COALESCE(SUM(amount_net), 0) AS total_open FROM invoices WHERE craftsman_id = $1 AND status = 'pending' ${dateCondition}`,
+      `SELECT COALESCE(SUM(amount), 0) AS total_open FROM invoices WHERE craftsman_id = $1 AND status = 'pending' ${dateCondition}`,
       [craftsmanId]
     );
     const totalOpen = openResult.rows[0].total_open;
