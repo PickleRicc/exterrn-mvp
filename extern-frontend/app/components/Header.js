@@ -152,6 +152,18 @@ export default function Header({ minimal = false }) {
                   Invoices
                 </a>
               </li>
+              <li>
+                <a 
+                  href="/finances"
+                  className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
+                >
+                  <svg className="w-5 h-5 mr-2 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="#e91e63" strokeWidth="2" fill="#132f4c" />
+                    <text x="12" y="16" textAnchor="middle" fontSize="10" fill="#e91e63" fontWeight="bold">€</text>
+                  </svg>
+                  Finanzen
+                </a>
+              </li>
               {isLoggedIn ? (
                 <>
                   <li className="relative ml-2">
@@ -277,6 +289,18 @@ export default function Header({ minimal = false }) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                   </svg>
                   Invoices
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="/finances"
+                  className="flex items-center px-4 py-2.5 rounded-xl text-white/90 hover:text-white hover:bg-white/10 transition-all"
+                >
+                  <svg className="w-5 h-5 mr-3 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="#e91e63" strokeWidth="2" fill="#132f4c" />
+                    <text x="12" y="16" textAnchor="middle" fontSize="10" fill="#e91e63" fontWeight="bold">€</text>
+                  </svg>
+                  Finanzen
                 </a>
               </li>
             </ul>

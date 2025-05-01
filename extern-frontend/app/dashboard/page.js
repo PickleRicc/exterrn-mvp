@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { appointmentsAPI, craftsmenAPI, customersAPI, invoicesAPI } from '../lib/api';
 import Link from 'next/link';
 import NextAppointment from '../components/NextAppointment';
+import FinanceCard from './FinanceCard';
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -224,24 +225,8 @@ export default function Home() {
                   </Link>
                 </div>
                 
-                {/* <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 transition-all duration-300 hover:bg-white/10">
-                  <div className="flex items-center mb-4">
-                    <div className="p-3 bg-[#00c2ff]/20 rounded-full mr-4">
-                      <svg className="w-6 h-6 text-[#00c2ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4"></path>
-                      </svg>
-                    </div>
-                    <h2 className="text-xl font-semibold text-white">Tiling Materials</h2>
-                  </div>
-                  <p className="text-white/60 mb-4">Manage your tiling inventory</p>
-                  <Link href="/materials" className="text-[#00c2ff] hover:underline flex items-center text-sm">
-                    View Materials Inventory
-                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                  </Link>
-                </div> */}
-
+                <FinanceCard />
+                
                 <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 transition-all duration-300 hover:bg-white/10">
                   <div className="flex items-center mb-4">
                     <div className="p-3 bg-[#0070f3]/20 rounded-full mr-4">

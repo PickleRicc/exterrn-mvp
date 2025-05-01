@@ -10,6 +10,7 @@ const customerRoutes = require('./routes/customers');
 const authRoutes = require('./routes/auth');
 const craftsmenRoutes = require('./routes/craftsmen');
 const invoiceRoutes = require('./routes/invoices');
+const financesRoutes = require('./routes/finances');
 const { updateInvoiceStatuses } = require('./controllers/invoicesController');
 
 const app = express();
@@ -45,6 +46,7 @@ app.use('/customers', customerRoutes);
 app.use('/auth', authRoutes);
 app.use('/craftsmen', craftsmenRoutes);
 app.use('/invoices', invoiceRoutes);
+app.use('/finances', financesRoutes);
 
 app.get('/', (req, res) => res.send('Extern MVP API is live '));
 

@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 const navItems = [
   {
     label: 'Home',
-    href: '/',
+    href: '/dashboard',
     icon: (
       <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 11.5L12 4l9 7.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7.5Z"/><path d="M9 22V12h6v10"/></svg>
     ),
@@ -42,21 +42,33 @@ export default function MobileNavbar() {
   // Hide on desktop/tablet
   // Safe area for iOS/Android
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-around items-center h-16 bg-[#132f4c] border-t border-[#223a5e] text-white md:hidden" style={{paddingBottom: 'env(safe-area-inset-bottom)'}}>
-      {navItems.map((item) => {
-        const isActive = pathname === item.href;
-        return (
-          <Link
-            key={item.label}
-            href={item.href}
-            className={`flex flex-col items-center justify-center flex-1 py-2 px-1 transition-colors ${isActive ? 'text-[#e91e63]' : 'text-white'} hover:text-[#e91e63] focus:text-[#e91e63]`}
-            aria-label={item.label}
-          >
-            {item.icon}
-            <span className="text-xs mt-1 font-medium">{item.label}</span>
-          </Link>
-        );
-      })}
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-center h-16 bg-[#132f4c] border-t border-[#223a5e] text-white md:hidden" style={{paddingBottom: 'env(safe-area-inset-bottom)'}}>
+      <div className="flex justify-around items-center h-16 w-full">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={`flex flex-col items-center justify-center flex-1 py-2 px-1 transition-colors ${isActive ? 'text-[#e91e63]' : 'text-white'} hover:text-[#e91e63] focus:text-[#e91e63]`}
+              aria-label={item.label}
+            >
+              {item.icon}
+              <span className="text-xs mt-1 font-medium">{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+      <button
+        className="w-full flex items-center gap-2 px-4 py-3 text-left text-red-400 hover:bg-red-100/10 transition-colors rounded-xl mt-4"
+        onClick={() => {
+          localStorage.removeItem('token');
+          window.location.href = '/';
+        }}
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1"></path></svg>
+        Log out
+      </button>
     </nav>
   );
 }
