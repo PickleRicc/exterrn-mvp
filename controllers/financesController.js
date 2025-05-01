@@ -47,7 +47,8 @@ const getFinanceStats = async (req, res) => {
 // Set or update the goal for the logged-in craftsman and period
 const setFinanceGoal = async (req, res) => {
   try {
-    const craftsmanId = req.user.craftsman_id;
+    // FIX: Support both camelCase and snake_case for craftsmanId
+    const craftsmanId = req.user.craftsmanId || req.user.craftsman_id;
     const { goal_amount, goal_period } = req.body;
     if (!goal_amount || !goal_period) {
       return res.status(400).json({ error: 'Goal amount and period required' });

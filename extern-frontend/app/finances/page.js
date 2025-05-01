@@ -22,9 +22,15 @@ export default function FinancesPage() {
     setLoading(true);
     getFinanceStats(period)
       .then(data => {
-        setStats(data);
-        setGoalInput(data.goal?.goal_amount || '');
-        setError('');
+        if (!data || !data.goal) {
+          setStats(null);
+          setGoalInput('');
+          setError('No finance goal set yet. Please add your revenue goal below.');
+        } else {
+          setStats(data);
+          setGoalInput(data.goal.goal_amount || '');
+          setError('');
+        }
       })
       .catch(() => setError('Could not load finance stats'))
       .finally(() => setLoading(false));
@@ -68,10 +74,10 @@ export default function FinancesPage() {
             <div>
               <h1 className="text-2xl md:text-3xl font-bold mb-2">
                 <span className="bg-gradient-to-r from-[#e91e63] to-[#00c2ff] bg-clip-text text-transparent">
-                  Finanzen
+                  Finances
                 </span>
               </h1>
-              <p className="text-white/70">Verfolge dein Umsatzziel & Einnahmen</p>
+              <p className="text-white/70">Track your revenue goal & earnings</p>
             </div>
             <div className="flex gap-2 mt-3 md:mt-0">
               {PERIODS.map(p => (
@@ -92,32 +98,33 @@ export default function FinancesPage() {
             </div>
           )}
           {loading ? (
-            <div className="text-blue-200">Lädt...</div>
+            <div className="text-blue-200">Loading...</div>
           ) : (
             <div className="bg-[#132f4c] rounded-xl p-5 shadow-md">
               <div className="mb-4">
                 <div className="flex items-center mb-2">
-                  <span className="text-lg font-semibold text-white mr-2">Umsatzziel:</span>
-                  {editing ? (
+                  <span className="text-lg font-semibold text-white mr-2">Revenue Goal:</span>
+                  {editing || !stats ? (
                     <>
                       <input
                         type="number"
                         min="0"
                         value={goalInput}
+                        placeholder="Enter your monthly goal (€)"
                         onChange={e => setGoalInput(e.target.value)}
-                        className="px-2 py-1 rounded bg-blue-950 text-white border border-pink-400 w-28 mr-2"
+                        className="px-2 py-1 rounded bg-blue-950 text-white border border-pink-400 w-32 mr-2"
                       />
-                      <button className="text-pink-400 font-bold mr-2" onClick={handleGoalSave}>Speichern</button>
-                      <button className="text-white" onClick={() => { setEditing(false); setGoalInput(stats.goal?.goal_amount || ''); }}>Abbrechen</button>
+                      <button className="text-pink-400 font-bold mr-2" onClick={handleGoalSave}>Save</button>
+                      {stats && <button className="text-white" onClick={() => { setEditing(false); setGoalInput(stats.goal?.goal_amount || ''); }}>Cancel</button>}
                     </>
                   ) : (
                     <>
-                      <span className="text-pink-300">{stats.goal ? `€${Number(stats.goal.goal_amount).toLocaleString('de-DE')}` : 'Kein Ziel gesetzt'}</span>
-                      <button className="ml-3 text-pink-400 underline text-sm" onClick={() => setEditing(true)}>Bearbeiten</button>
+                      <span className="text-pink-300">{stats.goal ? `€${Number(stats.goal.goal_amount).toLocaleString('en-US')}` : 'No goal set'}</span>
+                      <button className="ml-3 text-pink-400 underline text-sm" onClick={() => setEditing(true)}>Edit</button>
                     </>
                   )}
                 </div>
-                {stats.goal && (
+                {stats && stats.goal && (
                   <div className="w-full h-4 bg-blue-900 rounded overflow-hidden">
                     <div
                       className={`${progressColor} h-4 transition-all duration-500`}
@@ -125,22 +132,22 @@ export default function FinancesPage() {
                     />
                   </div>
                 )}
-                {stats.goal && (
+                {stats && stats.goal && (
                   <div className="mt-2 text-sm text-white">
-                    {progress}% erreicht (
-                    €{Number(stats.totalRevenue).toLocaleString('de-DE')} von €{Number(stats.goal.goal_amount).toLocaleString('de-DE')}
+                    {progress}% reached (
+                    €{Number(stats.totalRevenue).toLocaleString('en-US')} of €{Number(stats.goal.goal_amount).toLocaleString('en-US')}
                     )
                   </div>
                 )}
               </div>
               <div className="flex flex-col sm:flex-row gap-4 mt-6">
                 <div className="flex-1 bg-blue-950 rounded-lg p-4 text-center">
-                  <div className="text-xs text-blue-300 mb-1">Einnahmen (bezahlt)</div>
-                  <div className="text-xl font-bold text-green-400">€{Number(stats.totalRevenue).toLocaleString('de-DE')}</div>
+                  <div className="text-xs text-blue-300 mb-1">Revenue (paid)</div>
+                  <div className="text-xl font-bold text-green-400">€{stats ? Number(stats.totalRevenue).toLocaleString('en-US') : '0'}</div>
                 </div>
                 <div className="flex-1 bg-blue-950 rounded-lg p-4 text-center">
-                  <div className="text-xs text-blue-300 mb-1">Offen (unbezahlt)</div>
-                  <div className="text-xl font-bold text-orange-300">€{Number(stats.totalOpen).toLocaleString('de-DE')}</div>
+                  <div className="text-xs text-blue-300 mb-1">Outstanding (unpaid)</div>
+                  <div className="text-xl font-bold text-orange-300">€{stats ? Number(stats.totalOpen).toLocaleString('en-US') : '0'}</div>
                 </div>
               </div>
             </div>
