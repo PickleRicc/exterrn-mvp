@@ -4,7 +4,7 @@ const pool = require('../db');
 // Get current goal and revenue for the logged-in craftsman and period
 const getFinanceStats = async (req, res) => {
   try {
-    const craftsmanId = req.user.craftsman_id;
+    const craftsmanId = req.user.craftsmanId || req.user.craftsman_id;
     const period = req.query.period || 'month'; // 'month', 'year', 'all'
 
     // Get goal from finances table
@@ -14,30 +14,23 @@ const getFinanceStats = async (req, res) => {
     );
     const goal = goalResult.rows[0] || null;
 
-    // Determine time range for invoices
+    // Calculate total revenue from invoices (for this craftsman and period)
     let dateCondition = '';
     let params = [craftsmanId, 'paid'];
     if (period === 'month') {
-      dateCondition = "AND date_trunc('month', issued_at) = date_trunc('month', CURRENT_DATE)";
+      dateCondition = "AND date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE)";
     } else if (period === 'year') {
-      dateCondition = "AND date_trunc('year', issued_at) = date_trunc('year', CURRENT_DATE)";
+      dateCondition = "AND date_trunc('year', created_at) = date_trunc('year', CURRENT_DATE)";
     } // else 'all' = no date filter
 
-    // Calculate total revenue (net, paid invoices)
+    // Only sum up paid invoices
     const revenueResult = await pool.query(
       `SELECT COALESCE(SUM(amount), 0) AS total_revenue FROM invoices WHERE craftsman_id = $1 AND status = $2 ${dateCondition}`,
       params
     );
     const totalRevenue = revenueResult.rows[0].total_revenue;
 
-    // Calculate total outstanding (open invoices)
-    const openResult = await pool.query(
-      `SELECT COALESCE(SUM(amount), 0) AS total_open FROM invoices WHERE craftsman_id = $1 AND status = 'pending' ${dateCondition}`,
-      [craftsmanId]
-    );
-    const totalOpen = openResult.rows[0].total_open;
-
-    res.json({ goal, totalRevenue, totalOpen });
+    res.json({ goal, totalRevenue });
   } catch (err) {
     console.error('Error in getFinanceStats:', err);
     res.status(500).json({ error: 'Failed to fetch finance stats' });
