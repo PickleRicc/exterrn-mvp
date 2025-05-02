@@ -251,7 +251,7 @@ export default function NewCustomerPage() {
                         id="title"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="w-full p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                       >
                         <option value="">Select...</option>
                         <option value="Mr">Mr</option>
@@ -283,7 +283,7 @@ export default function NewCustomerPage() {
                       type="text"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                       placeholder={isCompany ? "Company name" : "First name"}
                       required
                     />
@@ -301,7 +301,7 @@ export default function NewCustomerPage() {
                         type="text"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
-                        className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="w-full p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                         placeholder="Last name"
                         required
                       />
@@ -325,7 +325,7 @@ export default function NewCustomerPage() {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                     placeholder="+49 123 456789"
                     required
                   />
@@ -347,7 +347,7 @@ export default function NewCustomerPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                     placeholder="example@email.com"
                   />
                 </div>
@@ -373,8 +373,8 @@ export default function NewCustomerPage() {
                         type="text"
                         value={street}
                         onChange={(e) => setStreet(e.target.value)}
-                        className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
-                        placeholder="Musterstraße"
+                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        placeholder="Street name"
                       />
                     </div>
                   </div>
@@ -388,8 +388,8 @@ export default function NewCustomerPage() {
                       type="text"
                       value={houseNumber}
                       onChange={(e) => setHouseNumber(e.target.value)}
-                      className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
-                      placeholder="12"
+                      className="w-full p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      placeholder="123"
                     />
                   </div>
                 </div>
@@ -403,7 +403,7 @@ export default function NewCustomerPage() {
                     type="text"
                     value={addressLine2}
                     onChange={(e) => setAddressLine2(e.target.value)}
-                    className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    className="w-full p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                     placeholder="Apartment, floor, c/o, etc."
                   />
                 </div>
@@ -418,7 +418,7 @@ export default function NewCustomerPage() {
                       type="text"
                       value={postalCode}
                       onChange={(e) => setPostalCode(e.target.value)}
-                      className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                       placeholder="12345"
                     />
                   </div>
@@ -432,8 +432,8 @@ export default function NewCustomerPage() {
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
-                      placeholder="Musterstadt"
+                      className="w-full p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      placeholder="City"
                     />
                   </div>
                 </div>
@@ -453,9 +453,9 @@ export default function NewCustomerPage() {
                     id="notes"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                     rows="3"
-                    placeholder="Additional information about the customer..."
+                    placeholder="Additional notes about the customer..."
                   ></textarea>
                 </div>
               </div>

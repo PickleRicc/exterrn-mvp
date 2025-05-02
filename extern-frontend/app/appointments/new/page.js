@@ -246,7 +246,7 @@ export default function NewAppointmentPage() {
                       id="customer"
                       value={customerId}
                       onChange={handleCustomerChange}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                     >
                       <option value="">Select a customer</option>
                       {customers.map((customer) => (
@@ -274,7 +274,7 @@ export default function NewAppointmentPage() {
                         type="date"
                         value={scheduledAt}
                         onChange={(e) => setScheduledAt(e.target.value)}
-                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                         required
                       />
                     </div>
@@ -295,7 +295,7 @@ export default function NewAppointmentPage() {
                         type="time"
                         value={scheduledTime}
                         onChange={(e) => setScheduledTime(e.target.value)}
-                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                         required
                       />
                     </div>
@@ -316,7 +316,7 @@ export default function NewAppointmentPage() {
                       id="duration"
                       value={duration}
                       onChange={(e) => setDuration(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                     >
                       <option value="30">30 minutes</option>
                       <option value="60">1 hour</option>
@@ -342,7 +342,7 @@ export default function NewAppointmentPage() {
                       id="status"
                       value={status}
                       onChange={(e) => setStatus(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                     >
                       <option value="scheduled">Scheduled</option>
                       <option value="completed">Completed</option>
@@ -378,7 +378,7 @@ export default function NewAppointmentPage() {
                       type="text"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                       placeholder="Customer's home, your workshop, etc."
                       disabled={selectedCustomer?.address && !showCustomLocation}
                     />
@@ -399,7 +399,7 @@ export default function NewAppointmentPage() {
                       id="notes"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                       rows="3"
                       placeholder="Details about the appointment..."
                     ></textarea>

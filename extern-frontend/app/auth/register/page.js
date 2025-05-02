@@ -279,7 +279,7 @@ export default function RegisterPage() {
                         type="text"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
-                        className="w-full p-3 pl-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="w-full p-3 pl-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                         placeholder="First name"
                         required
                       />
@@ -296,7 +296,7 @@ export default function RegisterPage() {
                         type="text"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
-                        className="w-full p-3 pl-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="w-full p-3 pl-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                         placeholder="Last name"
                         required
                       />
@@ -311,7 +311,7 @@ export default function RegisterPage() {
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
                       </svg>
                     </div>
                     <input
@@ -319,7 +319,7 @@ export default function RegisterPage() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                       placeholder="your@email.com"
                       required
                     />
@@ -341,7 +341,7 @@ export default function RegisterPage() {
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                       placeholder="+49 123 456 7890"
                       required
                     />
@@ -364,7 +364,7 @@ export default function RegisterPage() {
                         id="specialty"
                         value={specialty}
                         onChange={(e) => setSpecialty(e.target.value)}
-                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all appearance-none"
+                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all appearance-none"
                         required
                       >
                         <option value="">Select your specialty</option>
@@ -402,7 +402,7 @@ export default function RegisterPage() {
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                         placeholder="Your company (if applicable)"
                       />
                     </div>
@@ -424,7 +424,7 @@ export default function RegisterPage() {
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                       placeholder="••••••••"
                       required
                     />
@@ -446,7 +446,7 @@ export default function RegisterPage() {
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                       placeholder="••••••••"
                       required
                     />
@@ -508,7 +508,7 @@ export default function RegisterPage() {
                                 <select
                                   value={start}
                                   onChange={(e) => handleTimeSlotChange(day, index, 'start', e.target.value)}
-                                  className="w-full p-2 border border-white/20 rounded-lg bg-[#132f4c] text-white appearance-none pl-3 pr-8"
+                                  className="w-full p-2 border border-white/20 rounded-lg bg-[#132f4c] text-gray-700 appearance-none pl-3 pr-8"
                                 >
                                   {timeSlots.map(time => (
                                     <option key={time} value={time}>{time}</option>
@@ -527,7 +527,7 @@ export default function RegisterPage() {
                                 <select
                                   value={end}
                                   onChange={(e) => handleTimeSlotChange(day, index, 'end', e.target.value)}
-                                  className="w-full p-2 border border-white/20 rounded-lg bg-[#132f4c] text-white appearance-none pl-3 pr-8"
+                                  className="w-full p-2 border border-white/20 rounded-lg bg-[#132f4c] text-gray-700 appearance-none pl-3 pr-8"
                                 >
                                   {timeSlots.map(time => (
                                     <option key={time} value={time}>{time}</option>
