@@ -90,6 +90,7 @@ export default function RegisterPage() {
           
           // Store token for availability setting
           localStorage.setItem('token', loginResponse.token);
+          localStorage.setItem('user', JSON.stringify(loginResponse.user));
           setToken(loginResponse.token);
           
           // Get craftsman ID from token
@@ -97,6 +98,9 @@ export default function RegisterPage() {
             const tokenData = JSON.parse(atob(loginResponse.token.split('.')[1]));
             if (tokenData.craftsmanId) {
               setCraftsmanId(tokenData.craftsmanId);
+              // This is a new registration, so we need to set up availability
+              // Mark that this user is in the registration flow
+              localStorage.setItem('isNewRegistration', 'true');
               setRegistrationComplete(true);
               setCurrentStep(2);
             } else {
@@ -166,14 +170,15 @@ export default function RegisterPage() {
         availability_hours: availabilityHours 
       });
       
-      // Mark onboarding as completed
+      // Mark onboarding as completed and clear the new registration flag
       localStorage.setItem('onboardingCompleted', 'true');
+      localStorage.removeItem('isNewRegistration');
       
       setSuccess('Your availability has been saved successfully!');
       
       // Redirect to dashboard after a short delay
       setTimeout(() => {
-        router.push('/');
+        router.push('/dashboard');
       }, 2000);
     } catch (err) {
       console.error('Error saving availability:', err);

@@ -37,6 +37,14 @@ export default function OnboardingPage() {
       return;
     }
 
+    // Check if this is a new registration
+    const isNewRegistration = localStorage.getItem('isNewRegistration') === 'true';
+    if (!isNewRegistration) {
+      // Not a new registration, redirect to dashboard
+      router.push('/dashboard');
+      return;
+    }
+
     // Parse the token to get user info
     try {
       const tokenData = JSON.parse(atob(token.split('.')[1]));
@@ -120,14 +128,15 @@ export default function OnboardingPage() {
         availability_hours: availabilityHours 
       });
       
-      // Mark onboarding as completed
+      // Mark onboarding as completed and clear the new registration flag
       localStorage.setItem('onboardingCompleted', 'true');
+      localStorage.removeItem('isNewRegistration');
       
       setSuccess('Your availability has been saved successfully!');
       
-      // Redirect to appointments page after a short delay
+      // Redirect to dashboard after a short delay
       setTimeout(() => {
-        router.push('/appointments');
+        router.push('/dashboard');
       }, 1500);
     } catch (err) {
       console.error('Error saving availability:', err);
