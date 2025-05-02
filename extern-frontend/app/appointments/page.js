@@ -213,17 +213,19 @@ export default function AppointmentsPage() {
       // Show success message
       setSuccess('Appointment approved successfully! An email has been sent to the customer.');
       
-      // Refresh the data
+      // Update the appointment in the local state immediately
+      setAppointments(prevAppointments => 
+        prevAppointments.map(apt => 
+          apt.id === appointmentId 
+            ? { ...apt, approval_status: 'approved' }
+            : apt
+        )
+      );
+      
+      // Also fetch fresh data from the server
       if (craftsmanId) {
         console.log('Refreshing appointment data after approval');
         await fetchData(craftsmanId);
-        
-        // Debug: Check if the appointment status was updated correctly
-        const updatedAppointment = appointments.find(apt => apt.id === appointmentId);
-        console.log('Updated appointment after refresh:', updatedAppointment);
-        
-        // Force a re-render by updating a state variable
-        setAppointments([...appointments]);
       }
       
       // Clear the success message after 5 seconds
@@ -277,10 +279,19 @@ export default function AppointmentsPage() {
       // Show success message
       setSuccess('Appointment rejected. The customer has been notified.');
       
+      // Update the appointment in the local state immediately
+      setAppointments(prevAppointments => 
+        prevAppointments.map(apt => 
+          apt.id === appointmentToReject.id 
+            ? { ...apt, approval_status: 'rejected' }
+            : apt
+        )
+      );
+      
       // Close the modal
       closeRejectModal();
       
-      // Refresh the data
+      // Also fetch fresh data from the server
       if (craftsmanId) {
         await fetchData(craftsmanId);
       }

@@ -22,6 +22,8 @@ export default function NewAppointmentPage() {
   const [duration, setDuration] = useState(60);
   const [location, setLocation] = useState('');
   const [status, setStatus] = useState('scheduled');
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [showCustomLocation, setShowCustomLocation] = useState(false);
   
   const router = useRouter();
 
@@ -50,6 +52,40 @@ export default function NewAppointmentPage() {
     }
   }, [router]);
 
+  // Check for customer ID in URL parameters
+  useEffect(() => {
+    if (typeof window !== 'undefined' && customers.length > 0) {
+      // Parse URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const customerParam = urlParams.get('customer');
+      
+      if (customerParam) {
+        // Set the customer ID from URL parameter
+        setCustomerId(customerParam);
+        
+        // Fetch and set customer details
+        const fetchCustomerDetails = async () => {
+          try {
+            const customerData = await customersAPI.getById(customerParam);
+            setSelectedCustomer(customerData);
+            
+            // If customer has an address, set it as the location
+            if (customerData.address) {
+              setLocation(customerData.address);
+              setShowCustomLocation(false);
+            } else {
+              setShowCustomLocation(true);
+            }
+          } catch (err) {
+            console.error('Error fetching customer details from URL param:', err);
+          }
+        };
+        
+        fetchCustomerDetails();
+      }
+    }
+  }, [customers]);
+
   const fetchCustomers = async () => {
     try {
       const data = await customersAPI.getAll();
@@ -59,6 +95,40 @@ export default function NewAppointmentPage() {
       console.error('Error fetching customers:', err);
       setError('Failed to load customers. Please try again.');
       setLoading(false);
+    }
+  };
+
+  const handleCustomerChange = async (e) => {
+    const selectedId = e.target.value;
+    setCustomerId(selectedId);
+    
+    if (selectedId) {
+      try {
+        const customerData = await customersAPI.getById(selectedId);
+        setSelectedCustomer(customerData);
+        
+        // If customer has an address, set it as the location
+        if (customerData.address) {
+          setLocation(customerData.address);
+          setShowCustomLocation(false);
+        } else {
+          setShowCustomLocation(true);
+        }
+      } catch (err) {
+        console.error('Error fetching customer details:', err);
+      }
+    } else {
+      setSelectedCustomer(null);
+      setLocation('');
+      setShowCustomLocation(true);
+    }
+  };
+
+  const handleToggleCustomLocation = () => {
+    setShowCustomLocation(!showCustomLocation);
+    if (!showCustomLocation && selectedCustomer?.address) {
+      // Reset to customer's address when hiding custom location
+      setLocation(selectedCustomer.address);
     }
   };
 
@@ -166,21 +236,20 @@ export default function NewAppointmentPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-4">
                 <div className="relative">
-                  <label htmlFor="customerId" className="block mb-2 text-sm font-medium text-white">
+                  <label htmlFor="customer" className="block mb-2 text-sm font-medium text-white">
                     Customer <span className="text-[#00c2ff]">*</span>
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <div className="absolute top-3 left-3 flex items-center pointer-events-none">
                       <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                       </svg>
                     </div>
                     <select
-                      id="customerId"
+                      id="customer"
                       value={customerId}
-                      onChange={(e) => setCustomerId(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white appearance-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
-                      required
+                      onChange={handleCustomerChange}
+                      className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                     >
                       <option value="">Select a customer</option>
                       {customers.map((customer) => (
@@ -274,11 +343,22 @@ export default function NewAppointmentPage() {
                 </div>
                 
                 <div className="relative">
-                  <label htmlFor="location" className="block mb-2 text-sm font-medium text-white">
-                    Location
-                  </label>
+                  <div className="flex justify-between items-center mb-2">
+                    <label htmlFor="location" className="block text-sm font-medium text-white">
+                      Location *
+                    </label>
+                    {selectedCustomer?.address && (
+                      <button 
+                        type="button" 
+                        onClick={handleToggleCustomLocation}
+                        className="text-xs text-[#00c2ff] hover:text-[#00a0ff] transition-colors"
+                      >
+                        {showCustomLocation ? 'Use Customer Address' : 'Change Address'}
+                      </button>
+                    )}
+                  </div>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <div className="absolute top-3 left-3 flex items-center pointer-events-none">
                       <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -291,6 +371,7 @@ export default function NewAppointmentPage() {
                       onChange={(e) => setLocation(e.target.value)}
                       className="w-full pl-10 p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
                       placeholder="Customer's home, your workshop, etc."
+                      disabled={selectedCustomer?.address && !showCustomLocation}
                     />
                   </div>
                 </div>
