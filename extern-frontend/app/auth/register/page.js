@@ -204,222 +204,158 @@ export default function RegisterPage() {
       </div>
       
       <div className="w-full max-w-md z-10 animate-fade-in">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-3">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
             <span className="bg-gradient-to-r from-[#00c2ff] to-[#7928ca] bg-clip-text text-transparent">ZIMMR</span>
           </h1>
-          <p className="text-white/80 text-lg font-light">
+          <p className="text-white text-lg font-light">
             {currentStep === 1 ? 'Create your account' : 'Set your availability'}
           </p>
         </div>
         
-        <div className="bg-[#132f4c]/40 backdrop-blur-xl rounded-2xl shadow-xl border border-white/5 p-8 overflow-hidden">
+        <div className="bg-[#132f4c]/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 overflow-hidden">
           {error && (
-            <div className="mb-6 p-4 bg-red-100/90 backdrop-blur-sm text-red-700 rounded-xl border border-red-200/50 shadow-lg animate-slide-up flex items-center">
-              <svg className="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span>{error}</span>
+            <div className="m-6 p-4 bg-red-100/90 backdrop-blur-sm text-red-700 rounded-xl border border-red-200/50 shadow-lg animate-slide-up">
+              {error}
             </div>
           )}
           
           {success && (
-            <div className="mb-6 p-4 bg-green-100/90 backdrop-blur-sm text-green-700 rounded-xl border border-green-200/50 shadow-lg animate-slide-up flex items-center">
-              <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span>{success}</span>
+            <div className="m-6 p-4 bg-green-100/90 backdrop-blur-sm text-green-700 rounded-xl border border-green-200/50 shadow-lg animate-slide-up">
+              {success}
             </div>
           )}
           
-          {currentStep === 1 ? (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div className="relative">
-                  <label htmlFor="firstName" className="block text-sm font-medium text-white/90 mb-1.5 ml-1">
-                    First Name
+          {currentStep === 1 && (
+            <div className="p-6 md:p-8">
+              <div className="mb-6">
+                <div className="flex justify-center space-x-4 mb-6">
+                  <button
+                    type="button"
+                    onClick={() => setRole('craftsman')}
+                    className={`flex-1 py-3 px-4 rounded-xl text-center transition-all duration-300 ${
+                      role === 'craftsman'
+                        ? 'bg-gradient-to-r from-[#0070f3] to-[#0050d3] text-white shadow-lg'
+                        : 'bg-white/10 text-white border border-white/20 hover:bg-white/15'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center">
+                      <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      </svg>
+                      <span className="font-medium">Craftsman</span>
+                    </div>
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setRole('customer')}
+                    className={`flex-1 py-3 px-4 rounded-xl text-center transition-all duration-300 ${
+                      role === 'customer'
+                        ? 'bg-gradient-to-r from-[#0070f3] to-[#0050d3] text-white shadow-lg'
+                        : 'bg-white/10 text-white border border-white/20 hover:bg-white/15'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center">
+                      <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                      </svg>
+                      <span className="font-medium">Customer</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+              
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label htmlFor="firstName" className="block text-sm font-medium text-white mb-1">
+                      First Name <span className="text-[#00c2ff]">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="firstName"
+                        type="text"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="w-full p-3 pl-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        placeholder="First name"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label htmlFor="lastName" className="block text-sm font-medium text-white mb-1">
+                      Last Name <span className="text-[#00c2ff]">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="lastName"
+                        type="text"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className="w-full p-3 pl-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        placeholder="Last name"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-1">
+                  <label htmlFor="email" className="block text-sm font-medium text-white mb-1">
+                    Email <span className="text-[#00c2ff]">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                      <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                       </svg>
                     </div>
                     <input
-                      id="firstName"
-                      type="text"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0070f3] focus:border-transparent transition-all duration-200"
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      placeholder="your@email.com"
                       required
                     />
                   </div>
                 </div>
                 
-                <div className="relative">
-                  <label htmlFor="lastName" className="block text-sm font-medium text-white/90 mb-1.5 ml-1">
-                    Last Name
+                <div className="space-y-1">
+                  <label htmlFor="phone" className="block text-sm font-medium text-white mb-1">
+                    Phone <span className="text-[#00c2ff]">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                      <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
                       </svg>
                     </div>
                     <input
-                      id="lastName"
-                      type="text"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0070f3] focus:border-transparent transition-all duration-200"
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      placeholder="+49 123 456 7890"
                       required
                     />
                   </div>
                 </div>
-              </div>
-              
-              <div className="relative">
-                <label htmlFor="email" className="block text-sm font-medium text-white/90 mb-1.5 ml-1">
-                  Email
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
-                    </svg>
-                  </div>
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0070f3] focus:border-transparent transition-all duration-200"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="relative">
-                <label htmlFor="password" className="block text-sm font-medium text-white/90 mb-1.5 ml-1">
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                    </svg>
-                  </div>
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0070f3] focus:border-transparent transition-all duration-200"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="relative">
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-white/90 mb-1.5 ml-1">
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                    </svg>
-                  </div>
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0070f3] focus:border-transparent transition-all duration-200"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-white/90 mb-1.5 ml-1">
-                  Account Type
-                </label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div 
-                    className={`flex items-center justify-center p-4 rounded-xl cursor-pointer border transition-all duration-200 ${
-                      role === 'craftsman' 
-                        ? 'bg-gradient-to-r from-[#0070f3] to-[#0050d3] border-[#0070f3] text-white shadow-lg' 
-                        : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
-                    }`}
-                    onClick={() => setRole('craftsman')}
-                  >
-                    <span className="text-sm font-medium">Craftsman</span>
-                  </div>
-                  <div 
-                    className={`flex items-center justify-center p-4 rounded-xl cursor-pointer border transition-all duration-200 ${
-                      role === 'customer' 
-                        ? 'bg-gradient-to-r from-[#0070f3] to-[#0050d3] border-[#0070f3] text-white shadow-lg' 
-                        : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
-                    }`}
-                    onClick={() => setRole('customer')}
-                  >
-                    <span className="text-sm font-medium">Customer</span>
-                  </div>
-                </div>
-              </div>
-              
-              {role === 'craftsman' && (
-                <div className="space-y-5 pt-2">
-                  <div className="relative">
-                    <label htmlFor="name" className="block text-sm font-medium text-white/90 mb-1.5 ml-1">
-                      Business Name
+                
+                {role === 'craftsman' && (
+                  <div className="space-y-1">
+                    <label htmlFor="specialty" className="block text-sm font-medium text-white mb-1">
+                      Specialty <span className="text-[#00c2ff]">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                        </svg>
-                      </div>
-                      <input
-                        id="name"
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Your business name"
-                        className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0070f3] focus:border-transparent transition-all duration-200"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="relative">
-                    <label htmlFor="phone" className="block text-sm font-medium text-white/90 mb-1.5 ml-1">
-                      Phone
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                        </svg>
-                      </div>
-                      <input
-                        id="phone"
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="+49 123 4567890"
-                        className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0070f3] focus:border-transparent transition-all duration-200"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="relative">
-                    <label htmlFor="specialty" className="block text-sm font-medium text-white/90 mb-1.5 ml-1">
-                      Specialty
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
@@ -428,57 +364,125 @@ export default function RegisterPage() {
                         id="specialty"
                         value={specialty}
                         onChange={(e) => setSpecialty(e.target.value)}
-                        className="block w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0070f3] focus:border-transparent transition-all duration-200 appearance-none"
+                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all appearance-none"
+                        required
                       >
                         <option value="">Select your specialty</option>
-                        <option value="plumber">Plumber</option>
-                        <option value="electrician">Electrician</option>
-                        <option value="carpenter">Carpenter</option>
-                        <option value="painter">Painter</option>
-                        <option value="roofer">Roofer</option>
-                        <option value="hvac">HVAC Technician</option>
-                        <option value="mason">Mason</option>
-                        <option value="landscaper">Landscaper</option>
-                        <option value="other">Other</option>
+                        <option value="Plumber">Plumber</option>
+                        <option value="Electrician">Electrician</option>
+                        <option value="Carpenter">Carpenter</option>
+                        <option value="Painter">Painter</option>
+                        <option value="HVAC">HVAC</option>
+                        <option value="Roofer">Roofer</option>
+                        <option value="Landscaper">Landscaper</option>
+                        <option value="General Contractor">General Contractor</option>
                       </select>
                       <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-              
-              <button
-                type="submit"
-                className="w-full py-3.5 px-4 mt-4 bg-gradient-to-r from-[#0070f3] to-[#0050d3] hover:from-[#0060df] hover:to-[#0040c0] text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0070f3] transition-all duration-300 transform hover:-translate-y-0.5"
-                disabled={loading}
-              >
-                {loading ? (
-                  <div className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>{role === 'craftsman' ? 'Continuing...' : 'Registering...'}</span>
-                  </div>
-                ) : (
-                  <span>{role === 'craftsman' ? 'Continue to Availability' : 'Register'}</span>
                 )}
-              </button>
-            </form>
-          ) : (
-            // Availability settings step
-            <div className="space-y-6">
+                
+                {role === 'customer' && (
+                  <div className="space-y-1">
+                    <label htmlFor="name" className="block text-sm font-medium text-white mb-1">
+                      Company Name (Optional)
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                      </div>
+                      <input
+                        id="name"
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        placeholder="Your company (if applicable)"
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                <div className="space-y-1">
+                  <label htmlFor="password" className="block text-sm font-medium text-white mb-1">
+                    Password <span className="text-[#00c2ff]">*</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                      </svg>
+                    </div>
+                    <input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-1">
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-white mb-1">
+                    Confirm Password <span className="text-[#00c2ff]">*</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                      </svg>
+                    </div>
+                    <input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 px-4 mt-4 bg-gradient-to-r from-[#0070f3] to-[#0050d3] hover:from-[#0060df] hover:to-[#0040c0] text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0070f3] transition-all duration-300 transform hover:-translate-y-0.5"
+                >
+                  {loading ? (
+                    <div className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Registering...</span>
+                    </div>
+                  ) : (
+                    'Create Account'
+                  )}
+                </button>
+              </form>
+            </div>
+          )}
+          
+          {currentStep === 2 && (
+            <div className="p-6 md:p-8">
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold text-white">Your Working Hours</h2>
-                <p className="text-white/70 text-sm">Set your regular working hours for each day of the week.</p>
+                <p className="text-white text-sm">Set your regular working hours for each day of the week.</p>
                 
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                   {days.map((day) => (
-                    <div key={day} className="bg-white/5 backdrop-blur-sm p-5 rounded-xl border border-white/10 space-y-3 transition-all hover:bg-white/10">
+                    <div key={day} className="bg-white/10 backdrop-blur-sm p-5 rounded-xl border border-white/20 space-y-3 transition-all hover:bg-white/15">
                       <div className="flex items-center justify-between">
                         <h3 className="font-medium text-white">{dayLabels[day]}</h3>
                         <button
@@ -499,38 +503,38 @@ export default function RegisterPage() {
                         availabilityHours[day].map((timeSlot, index) => {
                           const [start, end] = timeSlot.split('-');
                           return (
-                            <div key={index} className="flex items-center mb-3 space-x-2 bg-white/5 p-2 rounded-lg">
+                            <div key={index} className="flex items-center mb-3 space-x-2 bg-white/10 p-2 rounded-lg">
                               <div className="relative flex-1">
                                 <select
                                   value={start}
                                   onChange={(e) => handleTimeSlotChange(day, index, 'start', e.target.value)}
-                                  className="w-full p-2 border border-white/10 rounded-lg bg-[#132f4c] text-white appearance-none pl-3 pr-8"
+                                  className="w-full p-2 border border-white/20 rounded-lg bg-[#132f4c] text-white appearance-none pl-3 pr-8"
                                 >
                                   {timeSlots.map(time => (
                                     <option key={time} value={time}>{time}</option>
                                   ))}
                                 </select>
                                 <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                  <svg className="h-4 w-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <svg className="h-4 w-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                                   </svg>
                                 </div>
                               </div>
                               
-                              <span className="text-white/70">to</span>
+                              <span className="text-white">to</span>
                               
                               <div className="relative flex-1">
                                 <select
                                   value={end}
                                   onChange={(e) => handleTimeSlotChange(day, index, 'end', e.target.value)}
-                                  className="w-full p-2 border border-white/10 rounded-lg bg-[#132f4c] text-white appearance-none pl-3 pr-8"
+                                  className="w-full p-2 border border-white/20 rounded-lg bg-[#132f4c] text-white appearance-none pl-3 pr-8"
                                 >
                                   {timeSlots.map(time => (
                                     <option key={time} value={time}>{time}</option>
                                   ))}
                                 </select>
                                 <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-                                  <svg className="h-4 w-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <svg className="h-4 w-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                                   </svg>
                                 </div>
@@ -555,11 +559,11 @@ export default function RegisterPage() {
                 </div>
               </div>
               
-              <div className="flex justify-between space-x-3 pt-4">
+              <div className="flex justify-between space-x-3 pt-6 mt-4 border-t border-white/20">
                 <button
                   type="button"
-                  onClick={() => router.push('/')}
-                  className="px-4 py-3 border border-white/10 text-white rounded-xl hover:bg-white/10 transition-all duration-200"
+                  onClick={() => router.push('/dashboard')}
+                  className="px-4 py-3 border border-white/20 text-white rounded-xl hover:bg-white/10 transition-all duration-200"
                 >
                   Skip for Now
                 </button>
@@ -585,8 +589,8 @@ export default function RegisterPage() {
             </div>
           )}
           
-          <div className="mt-8 text-center">
-            <p className="text-sm text-white/70">
+          <div className="px-6 md:px-8 pb-6 md:pb-8 pt-2 text-center">
+            <p className="text-sm text-white">
               Already have an account?{' '}
               <a href="/auth/login" className="text-[#00c2ff] hover:text-white transition-colors font-medium">
                 Sign in here
