@@ -9,9 +9,11 @@ import Footer from '../components/Footer';
 export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [customers, setCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [craftsmanId, setCraftsmanId] = useState(null);
+  const [processingCustomer, setProcessingCustomer] = useState(null);
   
   const router = useRouter();
 
@@ -69,6 +71,37 @@ export default function CustomersPage() {
     );
   };
 
+  // Handle customer deletion
+  const handleDelete = async (customerId, customerName) => {
+    if (!confirm(`Are you sure you want to delete ${customerName}? This will also delete all their appointments.`)) {
+      return;
+    }
+    
+    try {
+      setProcessingCustomer(customerId);
+      
+      // Call API to delete the customer
+      await customersAPI.delete(customerId);
+      
+      // Update the customers list
+      setCustomers(customers.filter(customer => customer.id !== customerId));
+      
+      // Show success message
+      setSuccess(`Customer ${customerName} has been deleted successfully.`);
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => setSuccess(''), 5000);
+    } catch (err) {
+      console.error('Error deleting customer:', err);
+      setError(err.response?.data?.error || 'Failed to delete customer. Please try again.');
+      
+      // Hide error message after 5 seconds
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setProcessingCustomer(null);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#0a1929] to-[#132f4c]">
       <Header />
@@ -95,8 +128,20 @@ export default function CustomersPage() {
           </div>
           
           {error && (
-            <div className="mb-6 p-4 bg-red-100/90 backdrop-blur-sm text-red-700 rounded-xl border border-red-200/50 shadow-lg animate-slide-up">
+            <div className="mb-6 p-4 bg-red-100/90 backdrop-blur-sm text-red-700 rounded-xl border border-red-200/50 shadow-lg animate-slide-up flex items-center">
+              <svg className="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
               <span>{error}</span>
+            </div>
+          )}
+          
+          {success && (
+            <div className="mb-6 p-4 bg-green-100/90 backdrop-blur-sm text-green-700 rounded-xl border border-green-200/50 shadow-lg animate-slide-up flex items-center">
+              <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span>{success}</span>
             </div>
           )}
           
@@ -204,6 +249,16 @@ export default function CustomersPage() {
                       </svg>
                       Schedule Appointment
                     </a>
+                    <button 
+                      onClick={() => handleDelete(customer.id, customer.name)}
+                      disabled={processingCustomer === customer.id}
+                      className="text-red-400 hover:text-red-300 transition-colors flex items-center justify-center sm:justify-start"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                      {processingCustomer === customer.id ? 'Deleting...' : 'Delete'}
+                    </button>
                   </div>
                 </div>
               ))}

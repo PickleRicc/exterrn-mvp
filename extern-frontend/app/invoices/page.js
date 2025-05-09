@@ -21,6 +21,8 @@ export default function InvoicesPage() {
   const [filteredInvoices, setFilteredInvoices] = useState([]);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [statusUpdateId, setStatusUpdateId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [success, setSuccess] = useState('');
 
   const router = useRouter();
 
@@ -171,6 +173,50 @@ export default function InvoicesPage() {
     }
   };
 
+  // Simple invoice deletion handler
+  const handleDelete = async (id, e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      setDeletingId(id);
+      
+      // Get invoice details before deletion for the success message
+      const invoice = invoices.find(inv => inv.id === id);
+      const customerName = invoice?.customer_name || 'Customer';
+      
+      console.log(`Attempting to delete invoice ${id}`);
+      
+      // Call API to delete the invoice
+      await invoicesAPI.delete(id);
+      
+      console.log('Invoice deleted successfully');
+      
+      // Update local state
+      setInvoices(invoices.filter(inv => inv.id !== id));
+      
+      // Show success message
+      setSuccess(`Invoice for ${customerName} has been deleted successfully`);
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccess(''), 5000);
+    } catch (err) {
+      console.error('Error deleting invoice:', err);
+      setError(err.response?.data?.error || 'Failed to delete invoice. Please try again.');
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case 'paid':
@@ -231,6 +277,18 @@ export default function InvoicesPage() {
               </Link>
             </div>
           </div>
+          
+          {error && (
+            <div className="bg-red-500/20 text-red-400 p-4 rounded-xl mb-6">
+              {error}
+            </div>
+          )}
+          
+          {success && (
+            <div className="bg-green-500/20 text-green-400 p-4 rounded-xl mb-6">
+              {success}
+            </div>
+          )}
           
           {error && (
             <div className="bg-red-500/20 text-red-400 p-4 rounded-xl mb-6">
@@ -412,6 +470,13 @@ export default function InvoicesPage() {
                             Processing...
                           </>
                         ) : 'Download PDF'}
+                      </button>
+                      <button
+                        onClick={(e) => handleDelete(invoice.id, e)}
+                        disabled={deletingId === invoice.id}
+                        className="px-3 py-1 bg-red-700/20 hover:bg-red-700/40 text-red-400 text-sm font-medium rounded-xl transition-colors"
+                      >
+                        {deletingId === invoice.id ? 'Deleting...' : 'Delete'}
                       </button>
                     </div>
                   </div>

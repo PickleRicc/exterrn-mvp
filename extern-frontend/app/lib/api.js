@@ -184,7 +184,24 @@ export const customersAPI = {
     return response.data;
   },
   delete: async (id) => {
-    const response = await api.delete(`/customers/${id}`);
+    // Extract craftsman_id from token
+    let craftsmanId = null;
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const tokenData = JSON.parse(atob(token.split('.')[1]));
+          craftsmanId = tokenData.craftsmanId;
+        } catch (err) {
+          console.error('Error parsing token:', err);
+        }
+      }
+    }
+    
+    console.log(`Deleting customer ${id} for craftsman ${craftsmanId}`);
+    const response = await api.delete(`/customers/${id}`, {
+      params: { craftsman_id: craftsmanId }
+    });
     return response.data;
   },
   getAppointments: async (id) => {
@@ -299,6 +316,40 @@ export const invoicesAPI = {
     
     const response = await api.post('/invoices', { ...invoiceData, craftsman_id: craftsmanId });
     return response.data;
+  },
+  delete: async (id) => {
+    // Extract craftsman_id from token
+    let craftsmanId = null;
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const tokenData = JSON.parse(atob(token.split('.')[1]));
+          craftsmanId = tokenData.craftsmanId;
+        } catch (err) {
+          console.error('Error parsing token:', err);
+        }
+      }
+    }
+    
+    // Make sure we have a craftsman ID
+    if (!craftsmanId) {
+      console.error('No craftsman ID found for delete request');
+      throw new Error('Authentication error: No craftsman ID found');
+    }
+    
+    console.log(`Deleting invoice ${id} for craftsman ${craftsmanId}`);
+    try {
+      // Use the standard DELETE method with craftsman_id as a query parameter
+      // This matches the pattern used in appointments which is working
+      const response = await api.delete(`/invoices/${id}`, {
+        params: { craftsman_id: craftsmanId }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      throw error;
+    }
   },
   update: async (id, invoiceData) => {
     const response = await api.put(`/invoices/${id}`, invoiceData);

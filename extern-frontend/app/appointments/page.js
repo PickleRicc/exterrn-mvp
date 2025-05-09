@@ -333,14 +333,18 @@ export default function AppointmentsPage() {
     try {
       setProcessingAppointment(appointmentId);
       
+      // Find appointment details before deletion for the success message
+      const appointment = appointments.find(app => app.id === appointmentId);
+      const customerName = appointment ? (customers[appointment.customer_id]?.name || 'Customer') : 'Customer';
+      
       // Call API to delete the appointment
       await appointmentsAPI.delete(appointmentId);
       
       // Update the appointments list
       setAppointments(appointments.filter(app => app.id !== appointmentId));
       
-      // Show success message
-      setSuccess('Appointment has been deleted successfully.');
+      // Show success message with customer name and date
+      setSuccess(`Appointment with ${customerName} has been deleted successfully.`);
       
       // Hide success message after 5 seconds
       setTimeout(() => setSuccess(''), 5000);

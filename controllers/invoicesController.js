@@ -363,7 +363,6 @@ const updateInvoiceStatuses = async () => {
 };
 
 // Delete invoice
-/*
 const deleteInvoice = async (req, res) => {
   try {
     const { id } = req.params;
@@ -422,7 +421,6 @@ const deleteInvoice = async (req, res) => {
     return res.status(500).json({ error: 'Server error while deleting invoice' });
   }
 };
-*/
 
 module.exports = {
   getAllInvoices,
@@ -430,5 +428,5 @@ module.exports = {
   createInvoice,
   updateInvoice,
   updateInvoiceStatuses,
-  // deleteInvoice - removed temporarily
+  deleteInvoice
 };

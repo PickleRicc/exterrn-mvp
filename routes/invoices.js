@@ -6,7 +6,8 @@ const {
   getInvoiceById,
   createInvoice,
   updateInvoice,
-  updateInvoiceStatuses
+  updateInvoiceStatuses,
+  deleteInvoice
 } = require('../controllers/invoicesController');
 
 // Apply authentication middleware to all routes
@@ -46,6 +47,12 @@ router.post('/check-overdue', async (req, res) => {
     });
   }
 });
+
+// DELETE invoice via DELETE method (standard way)
+router.delete('/:id', deleteInvoice);
+
+// Alternative DELETE via PUT method (for clients that can't use DELETE)
+router.put('/:id/delete', deleteInvoice);
 
 // Export the router
 module.exports = router;
