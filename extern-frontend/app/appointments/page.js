@@ -328,6 +328,33 @@ export default function AppointmentsPage() {
     }
   };
 
+  // Handle appointment deletion
+  const handleDelete = async (appointmentId) => {
+    try {
+      setProcessingAppointment(appointmentId);
+      
+      // Call API to delete the appointment
+      await appointmentsAPI.delete(appointmentId);
+      
+      // Update the appointments list
+      setAppointments(appointments.filter(app => app.id !== appointmentId));
+      
+      // Show success message
+      setSuccess('Appointment has been deleted successfully.');
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => setSuccess(''), 5000);
+    } catch (err) {
+      console.error('Error deleting appointment:', err);
+      setError(err.response?.data?.error || 'Failed to delete appointment. Please try again.');
+      
+      // Hide error message after 5 seconds
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setProcessingAppointment(null);
+    }
+  };
+
   // Count pending appointments
   const pendingCount = appointments.filter(apt => apt.approval_status === 'pending').length;
 
@@ -462,32 +489,45 @@ export default function AppointmentsPage() {
                             <div className="flex items-center gap-2">
                               <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${appointment.approval_status === 'approved' ? 'bg-green-500/30 text-green-200' : appointment.approval_status === 'pending' ? 'bg-yellow-500/30 text-yellow-200' : appointment.approval_status === 'rejected' ? 'bg-red-500/30 text-red-200' : 'bg-gray-500/30 text-gray-200'}`}>{appointment.approval_status || 'N/A'}</span>
                             </div>
-                            <div className="flex gap-2 mt-2">
+                            <div className="flex mt-3 space-x-2">
                               {appointment.approval_status === 'pending' ? (
                                 <>
-                                  <button
+                                  <button 
                                     onClick={() => handleApprove(appointment.id)}
                                     disabled={processingAppointment === appointment.id}
-                                    className="flex-1 px-3 py-2 bg-gradient-to-r from-green-600 to-green-800 text-white rounded-lg shadow text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                                    className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg shadow text-xs font-semibold disabled:bg-green-800/50 disabled:cursor-not-allowed transition-all flex items-center justify-center"
                                   >
-                                    Approve
+                                    {processingAppointment === appointment.id ? (
+                                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                      </svg>
+                                    ) : (
+                                      'Approve'
+                                    )}
                                   </button>
-                                  <button
+                                  <button 
                                     onClick={() => openRejectModal(appointment)}
-                                    disabled={processingAppointment === appointment.id}
-                                    className="flex-1 px-3 py-2 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg shadow text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                                    className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg shadow text-xs font-semibold"
                                   >
                                     Reject
                                   </button>
                                 </>
                               ) : (
-                                <a
+                                <a 
                                   href={`/appointments/${appointment.id}`}
-                                  className="flex-1 text-[#00c2ff] hover:text-white text-center py-2 rounded-lg bg-blue-800/60 font-semibold"
+                                  className="flex-1 px-3 py-2 bg-[#0070f3] text-white rounded-lg shadow text-center text-xs font-semibold"
                                 >
                                   View Details
                                 </a>
                               )}
+                              <button 
+                                onClick={() => handleDelete(appointment.id)}
+                                disabled={processingAppointment === appointment.id}
+                                className="px-3 py-2 bg-red-700 text-white rounded-lg shadow text-xs font-semibold"
+                              >
+                                {processingAppointment === appointment.id ? '...' : 'Delete'}
+                              </button>
                             </div>
                           </div>
                         ))}
@@ -522,31 +562,40 @@ export default function AppointmentsPage() {
                                 <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${appointment.approval_status === 'approved' ? 'bg-green-500/30 text-green-200' : appointment.approval_status === 'pending' ? 'bg-yellow-500/30 text-yellow-200' : appointment.approval_status === 'rejected' ? 'bg-red-500/30 text-red-200' : 'bg-gray-500/30 text-gray-200'}`}>{appointment.approval_status || 'N/A'}</span>
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap">
-                                {appointment.approval_status === 'pending' ? (
-                                  <>
-                                    <button 
-                                      onClick={() => handleApprove(appointment.id)}
-                                      disabled={processingAppointment === appointment.id}
-                                      className="mr-2 px-3 py-1 bg-gradient-to-r from-green-600 to-green-800 text-white rounded-lg shadow hover:shadow-lg transition-all flex items-center text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                                <div className="flex gap-2">
+                                  {appointment.approval_status === 'pending' ? (
+                                    <>
+                                      <button 
+                                        onClick={() => handleApprove(appointment.id)}
+                                        disabled={processingAppointment === appointment.id}
+                                        className="mr-2 px-3 py-1 bg-gradient-to-r from-green-600 to-green-800 text-white rounded-lg shadow hover:shadow-lg transition-all flex items-center text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                                      >
+                                        Approve
+                                      </button>
+                                      <button 
+                                        onClick={() => openRejectModal(appointment)}
+                                        disabled={processingAppointment === appointment.id}
+                                        className="px-3 py-1 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg shadow hover:shadow-lg transition-all flex items-center text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                                      >
+                                        Reject
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <a 
+                                      href={`/appointments/${appointment.id}`}
+                                      className="text-[#00c2ff] hover:text-white transition-colors mr-2"
                                     >
-                                      Approve
-                                    </button>
-                                    <button 
-                                      onClick={() => openRejectModal(appointment)}
-                                      disabled={processingAppointment === appointment.id}
-                                      className="px-3 py-1 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg shadow hover:shadow-lg transition-all flex items-center text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
-                                    >
-                                      Reject
-                                    </button>
-                                  </>
-                                ) : (
-                                  <a 
-                                    href={`/appointments/${appointment.id}`}
-                                    className="text-[#00c2ff] hover:text-white transition-colors"
+                                      View Details
+                                    </a>
+                                  )}
+                                  <button
+                                    onClick={() => handleDelete(appointment.id)}
+                                    disabled={processingAppointment === appointment.id}
+                                    className="px-3 py-1 bg-red-700 text-white rounded-lg shadow hover:shadow-lg transition-all text-xs font-semibold"
                                   >
-                                    View Details
-                                  </a>
-                                )}
+                                    {processingAppointment === appointment.id ? '...' : 'Delete'}
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))

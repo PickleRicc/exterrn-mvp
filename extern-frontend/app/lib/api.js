@@ -220,7 +220,24 @@ export const appointmentsAPI = {
     return response.data;
   },
   delete: async (id) => {
-    const response = await api.delete(`/appointments/${id}`);
+    // Extract craftsman_id from token
+    let craftsmanId = null;
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const tokenData = JSON.parse(atob(token.split('.')[1]));
+          craftsmanId = tokenData.craftsmanId;
+        } catch (err) {
+          console.error('Error parsing token:', err);
+        }
+      }
+    }
+    
+    console.log(`Deleting appointment ${id} for craftsman ${craftsmanId}`);
+    const response = await api.delete(`/appointments/${id}`, {
+      params: { craftsman_id: craftsmanId }
+    });
     return response.data;
   },
   approve: async (id) => {

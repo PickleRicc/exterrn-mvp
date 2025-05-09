@@ -248,14 +248,54 @@ const updateAppointment = async (req, res) => {
 const deleteAppointment = async (req, res) => {
   try {
     const { id } = req.params;
+    const craftsman_id = req.query.craftsman_id || (req.user && req.user.craftsmanId);
     
-    const result = await pool.query('DELETE FROM appointments WHERE id = $1 RETURNING *', [id]);
+    console.log(`Attempting to delete appointment ${id}`, {
+      params: req.params,
+      query: req.query,
+      user: req.user
+    });
     
-    if (result.rows.length === 0) {
+    if (!craftsman_id) {
+      console.error('Missing craftsman_id for delete appointment');
+      return res.status(400).json({ error: 'Craftsman ID is required' });
+    }
+    
+    // First check if appointment exists and belongs to this craftsman
+    const checkResult = await pool.query(
+      'SELECT * FROM appointments WHERE id = $1', 
+      [id]
+    );
+    
+    if (checkResult.rows.length === 0) {
       return res.status(404).json({ error: 'Appointment not found' });
     }
     
-    res.json({ message: 'Appointment deleted successfully', appointment: result.rows[0] });
+    const appointment = checkResult.rows[0];
+    
+    // Verify craftsman has permission to delete this appointment
+    if (appointment.craftsman_id !== parseInt(craftsman_id)) {
+      console.error(`Unauthorized deletion attempt: Craftsman ${craftsman_id} does not own appointment ${id}`);
+      return res.status(403).json({ error: 'You are not authorized to delete this appointment' });
+    }
+    
+    // Optional: Check if appointment status allows deletion
+    if (appointment.status === 'completed') {
+      // If we need to check for invoices in the future, we can add that logic here
+      console.warn(`Deleting a completed appointment: ${id}`);
+    }
+    
+    // Delete the appointment
+    const result = await pool.query(
+      'DELETE FROM appointments WHERE id = $1 AND craftsman_id = $2 RETURNING *', 
+      [id, craftsman_id]
+    );
+    
+    console.log(`Successfully deleted appointment ${id}`);
+    res.json({ 
+      message: 'Appointment deleted successfully', 
+      appointment: result.rows[0] 
+    });
   } catch (error) {
     console.error('Error deleting appointment:', error);
     res.status(500).json({ error: error.message });
