@@ -366,17 +366,35 @@ const updateInvoiceStatuses = async () => {
 const deleteInvoice = async (req, res) => {
   try {
     const { id } = req.params;
-    const craftsman_id = req.query.craftsman_id;
+    // Check both query parameters and body for craftsman_id
+    let craftsman_id = req.query.craftsman_id;
     
-    console.log('Request params:', req.params);
-    console.log('Request query:', req.query);
-    console.log('Request body:', req.body);
-    console.log(`Attempting to delete invoice ${id} for craftsman ${craftsman_id}`);
+    // Log full request details for debugging
+    console.log('⚠️ DELETE INVOICE REQUEST:');
+    console.log('  URL:', req.originalUrl);
+    console.log('  Method:', req.method);
+    console.log('  Params:', req.params);
+    console.log('  Query:', req.query);
+    console.log('  Body:', req.body);
+    console.log('  Headers:', req.headers);
+    console.log(`  Target: Invoice ${id} for craftsman ${craftsman_id}`);
+    
+    // Double-check id parameter
+    if (!id || isNaN(parseInt(id))) {
+      console.error('Invalid invoice ID:', id);
+      return res.status(400).json({ error: `Invalid invoice ID: ${id}` });
+    }
+    
+    // Ensure craftsman_id is available from either query params or request body
+    if (!craftsman_id && req.body && req.body.craftsman_id) {
+      craftsman_id = req.body.craftsman_id;
+      console.log('Using craftsman_id from request body:', craftsman_id);
+    }
     
     // Validate required fields
     if (!craftsman_id) {
-      console.error('Missing craftsman_id in request');
-      return res.status(400).json({ error: 'craftsman_id is required' });
+      console.error('Missing craftsman_id in both query and body');
+      return res.status(400).json({ error: 'craftsman_id is required (include in query params)' });
     }
     
     // Check if invoice exists and get appointment_id if it exists
@@ -388,18 +406,51 @@ const deleteInvoice = async (req, res) => {
     console.log('Check result rows:', checkResult.rows.length);
     
     if (checkResult.rows.length === 0) {
+      console.error(`🚨 Invoice not found: id=${id}, craftsman_id=${craftsman_id}`);
+      
+      // Debug: check if invoice exists without craftsman constraint
+      const debugQuery = 'SELECT id, craftsman_id FROM invoices WHERE id = $1';
+      const debugResult = await pool.query(debugQuery, [id]);
+      if (debugResult.rows.length > 0) {
+        console.log(`⚠️ Invoice exists but with different craftsman_id: ${debugResult.rows[0].craftsman_id}`);
+      } else {
+        console.log(`❌ Invoice with id=${id} does not exist at all`);
+      }
+      
       return res.status(404).json({ error: 'Invoice not found or you do not have permission to delete it' });
     }
+    
+    // Log the invoice we're about to delete
+    console.log('📄 Invoice to delete:', checkResult.rows[0]);
     
     // Get the appointment_id if it exists
     const appointment_id = checkResult.rows[0].appointment_id;
     console.log(`Invoice has appointment_id: ${appointment_id}`);
     
     // Delete the invoice
-    const deleteQuery = 'DELETE FROM invoices WHERE id = $1 AND craftsman_id = $2';
+    const deleteQuery = 'DELETE FROM invoices WHERE id = $1 AND craftsman_id = $2 RETURNING id';
     console.log('Executing delete query:', deleteQuery, 'with params:', [id, craftsman_id]);
     const deleteResult = await pool.query(deleteQuery, [id, craftsman_id]);
-    console.log('Delete result:', deleteResult.rowCount, 'rows affected');
+    console.log('Delete result:', deleteResult.rowCount, 'rows affected', deleteResult.rows);
+    
+    // Verify deletion
+    if (deleteResult.rowCount === 0) {
+      console.error('🚨 DELETE OPERATION FAILED - No rows affected');
+      return res.status(500).json({ error: 'Failed to delete invoice - database did not confirm deletion' });
+    }
+    
+    // Double check deletion by trying to fetch the invoice again
+    const verifyQuery = 'SELECT id FROM invoices WHERE id = $1';
+    const verifyResult = await pool.query(verifyQuery, [id]);
+    if (verifyResult.rows.length > 0) {
+      console.error('🚨 VERIFICATION FAILED - Invoice still exists after deletion');
+      return res.status(500).json({ 
+        error: 'Database anomaly: Invoice still exists after deletion', 
+        invoice_id: id 
+      });
+    } else {
+      console.log('✅ DELETION VERIFIED - Invoice no longer exists in database');
+    }
     
     // If there was an appointment linked, update its has_invoice status
     if (appointment_id) {
@@ -415,10 +466,19 @@ const deleteInvoice = async (req, res) => {
       }
     }
     
-    return res.status(200).json({ message: 'Invoice deleted successfully' });
+    console.log('✅ DELETE OPERATION SUCCESSFUL');
+    return res.status(200).json({ 
+      message: 'Invoice deleted successfully',
+      deleted_invoice_id: id,
+      craftsman_id: craftsman_id
+    });
   } catch (err) {
     console.error('Error deleting invoice:', err);
-    return res.status(500).json({ error: 'Server error while deleting invoice' });
+    return res.status(500).json({ 
+      error: 'Server error while deleting invoice', 
+      message: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 };
 

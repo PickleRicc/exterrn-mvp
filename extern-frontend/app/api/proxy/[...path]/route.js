@@ -177,8 +177,18 @@ export async function DELETE(request) {
     const pathSegments = url.pathname.split('/api/proxy/');
     const path = pathSegments.length > 1 ? pathSegments[1] : '';
     
+    // Handle query params - important for DELETE requests
+    const searchParams = url.searchParams;
+    const queryString = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    
+    // Log all query parameters for debugging
+    console.log('DELETE request query parameters:');
+    searchParams.forEach((value, key) => {
+      console.log(`  ${key}: ${value}`);
+    });
+    
     const backendUrl = process.env.BACKEND_URL || 'http://63.178.22.180:3000';
-    const fullUrl = `${backendUrl}/${path}`;
+    const fullUrl = `${backendUrl}/${path}${queryString}`;
     
     console.log(`Proxying DELETE request to: ${fullUrl}`);
     

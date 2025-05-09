@@ -338,16 +338,29 @@ export const invoicesAPI = {
       throw new Error('Authentication error: No craftsman ID found');
     }
     
-    console.log(`Deleting invoice ${id} for craftsman ${craftsmanId}`);
+    console.log(`🗑️ DELETING INVOICE: id=${id}, craftsman_id=${craftsmanId}`);
     try {
       // Use the standard DELETE method with craftsman_id as a query parameter
-      // This matches the pattern used in appointments which is working
+      // Create the query parameters object
+      const params = { craftsman_id: craftsmanId };
+      console.log('DELETE query parameters:', params);
+      
+      // Make the delete request
       const response = await api.delete(`/invoices/${id}`, {
-        params: { craftsman_id: craftsmanId }
+        params: params
       });
+      
+      console.log(`DELETE response status: ${response.status}`);
+      console.log('DELETE response data:', response.data);
+      
       return response.data;
     } catch (error) {
       console.error('Error deleting invoice:', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
       throw error;
     }
   },
