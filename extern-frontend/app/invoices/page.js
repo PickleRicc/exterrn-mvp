@@ -50,7 +50,9 @@ export default function InvoicesPage() {
         
         if (extractedCraftsmanId) {
           // Ensure craftsman ID is stored as a string
-          setCraftsmanId(String(extractedCraftsmanId));
+          const craftsmanIdStr = String(extractedCraftsmanId);
+          console.log('Setting craftsman ID to:', craftsmanIdStr);
+          setCraftsmanId(craftsmanIdStr);
         } else {
           console.error('No craftsman ID found in token:', tokenData);
           setError('No craftsman ID found in your account. Please contact support.');
@@ -62,8 +64,9 @@ export default function InvoicesPage() {
     } else {
       console.error('No token found in localStorage');
       setError('You are not logged in. Please log in to view invoices.');
+      router.push('/auth/login');
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (craftsmanId) {
@@ -103,9 +106,34 @@ export default function InvoicesPage() {
   const fetchInvoices = async () => {
     try {
       setLoading(true);
-      console.log('Fetching invoices with craftsman_id:', craftsmanId);
+      
+      // Get fresh craftsman ID from token if not available
+      let currentCraftsmanId = craftsmanId;
+      if (!currentCraftsmanId) {
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            const tokenData = JSON.parse(atob(token.split('.')[1]));
+            if (tokenData.craftsmanId) {
+              currentCraftsmanId = String(tokenData.craftsmanId);
+              console.log('Retrieved craftsman ID from token:', currentCraftsmanId);
+            }
+          } catch (err) {
+            console.error('Error extracting craftsman ID from token:', err);
+          }
+        }
+      }
+      
+      if (!currentCraftsmanId) {
+        console.error('Cannot fetch invoices: No craftsman ID available');
+        setError('Authentication error: Please log in again');
+        return;
+      }
+      
+      console.log('Fetching invoices with craftsman_id:', currentCraftsmanId);
+      
       // Pass craftsman_id as an object parameter
-      const data = await invoicesAPI.getAll({ craftsman_id: craftsmanId });
+      const data = await invoicesAPI.getAll({ craftsman_id: currentCraftsmanId });
       console.log('Fetched invoices:', data);
       setInvoices(data);
       setError(null);
@@ -173,7 +201,7 @@ export default function InvoicesPage() {
     }
   };
 
-  // Simple invoice deletion handler
+  // Invoice deletion handler
   const handleDelete = async (id, e) => {
     if (e) {
       e.preventDefault();
@@ -187,28 +215,68 @@ export default function InvoicesPage() {
     try {
       setDeletingId(id);
       
+      // Get fresh craftsman ID from token if not available
+      let currentCraftsmanId = craftsmanId;
+      if (!currentCraftsmanId) {
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            const tokenData = JSON.parse(atob(token.split('.')[1]));
+            if (tokenData.craftsmanId) {
+              currentCraftsmanId = String(tokenData.craftsmanId);
+              console.log('Retrieved craftsman ID from token for deletion:', currentCraftsmanId);
+            }
+          } catch (err) {
+            console.error('Error extracting craftsman ID from token for deletion:', err);
+            throw new Error('Authentication error: Could not identify your account');
+          }
+        } else {
+          throw new Error('Authentication error: You must be logged in');
+        }
+      }
+      
+      if (!currentCraftsmanId) {
+        throw new Error('Authentication error: Could not identify your craftsman account');
+      }
+      
       // Get invoice details before deletion for the success message
       const invoice = invoices.find(inv => inv.id === id);
       const customerName = invoice?.customer_name || 'Customer';
       
-      console.log(`Attempting to delete invoice ${id}`);
+      console.log(`Attempting to delete invoice ${id} for customer ${customerName} (craftsman ${currentCraftsmanId})`);
+      
+      // First try to get the most up-to-date invoice to confirm it exists
+      try {
+        const invoiceDetails = await invoicesAPI.getById(id);
+        console.log('Invoice exists, proceeding with deletion:', invoiceDetails.id);
+      } catch (checkErr) {
+        console.warn('Could not verify invoice exists, proceeding anyway:', checkErr.message);
+      }
       
       // Call API to delete the invoice
-      await invoicesAPI.delete(id);
+      const result = await invoicesAPI.delete(id);
+      console.log('Server response for invoice deletion:', result);
       
-      console.log('Invoice deleted successfully');
+      // Force a refresh of all invoices to ensure our data is up-to-date
+      console.log('Refreshing invoice data after deletion');
+      const refreshPromise = fetchInvoices();
       
-      // Update local state
-      setInvoices(invoices.filter(inv => inv.id !== id));
-      
-      // Show success message
+      // Show success message right away
       setSuccess(`Invoice for ${customerName} has been deleted successfully`);
+      
+      // Wait for refresh to complete
+      await refreshPromise;
       
       // Clear success message after 5 seconds
       setTimeout(() => setSuccess(''), 5000);
     } catch (err) {
       console.error('Error deleting invoice:', err);
-      setError(err.response?.data?.error || 'Failed to delete invoice. Please try again.');
+      console.error('Error details:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data
+      });
+      setError(err.response?.data?.error || `Failed to delete invoice: ${err.message}`);
       
       // Clear error message after 5 seconds
       setTimeout(() => setError(null), 5000);
