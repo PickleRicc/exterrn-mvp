@@ -15,7 +15,7 @@ export default function InvoicesPage() {
   const [craftsmanId, setCraftsmanId] = useState(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [processingInvoiceId, setProcessingInvoiceId] = useState(null);
-  const [activeTab, setActiveTab] = useState('all');
+  // activeTab removed - only showing invoices
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredInvoices, setFilteredInvoices] = useState([]);
@@ -78,10 +78,8 @@ export default function InvoicesPage() {
     if (invoices.length > 0) {
       let filtered = [...invoices];
       
-      // Filter by type (tab)
-      if (activeTab !== 'all') {
-        filtered = filtered.filter(invoice => invoice.type === activeTab);
-      }
+      // Only show invoices (type=invoice), not quotes or drafts
+      filtered = filtered.filter(invoice => invoice.type === 'invoice');
       
       // Filter by status
       if (statusFilter !== 'all') {
@@ -101,7 +99,7 @@ export default function InvoicesPage() {
     } else {
       setFilteredInvoices([]);
     }
-  }, [invoices, activeTab, statusFilter, searchTerm]);
+  }, [invoices, statusFilter, searchTerm]);
 
   const fetchInvoices = async () => {
     try {
@@ -335,7 +333,7 @@ export default function InvoicesPage() {
       <div className="min-h-screen bg-[#0a1929] text-white">
         <main className="container mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Invoices & Quotes</h1>
+            <h1 className="text-2xl font-bold">Invoices</h1>
             <div className="flex space-x-2">
               <Link
                 href="/invoices/new"
@@ -367,49 +365,7 @@ export default function InvoicesPage() {
           {/* Filters and Search */}
           <div className="bg-[#132f4c] rounded-xl p-4 mb-6">
             <div className="flex flex-col md:flex-row gap-4 mb-4">
-              {/* Tabs for document types */}
-              <div className="flex bg-[#0a1929] rounded-lg p-1 flex-wrap">
-                <button
-                  onClick={() => setActiveTab('all')}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                    activeTab === 'all' 
-                      ? 'bg-[#e91e63] text-white' 
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  All
-                </button>
-                <button
-                  onClick={() => setActiveTab('invoice')}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                    activeTab === 'invoice' 
-                      ? 'bg-[#e91e63] text-white' 
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  Invoices
-                </button>
-                <button
-                  onClick={() => setActiveTab('quote')}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                    activeTab === 'quote' 
-                      ? 'bg-[#e91e63] text-white' 
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  Quotes
-                </button>
-                <button
-                  onClick={() => setActiveTab('draft')}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                    activeTab === 'draft' 
-                      ? 'bg-[#e91e63] text-white' 
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  Drafts
-                </button>
-              </div>
+              {/* Tabs removed - only showing invoices */}
               
               {/* Status filter */}
               <div className="flex-1">

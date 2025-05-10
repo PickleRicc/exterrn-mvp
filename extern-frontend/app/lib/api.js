@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { quotesAPI as quotesAPIModule } from '../../lib/api/quotesAPI';
 
 // Create an axios instance with default config
 const api = axios.create({
@@ -497,6 +498,9 @@ export const materialsAPI = {
     return response.data;
   }
 };
+
+// Export quotesAPI
+export const quotesAPI = quotesAPIModule;
 
 // Export the api instance as default
 export default api;

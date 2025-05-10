@@ -1,14 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { invoicesAPI, customersAPI, appointmentsAPI } from '../../lib/api';
+import { quotesAPI } from '../../../lib/api/quotesAPI';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { generateInvoicePdf, generateSimpleInvoicePdf } from '../../../lib/utils/pdfGenerator';
 
 export default function NewInvoicePage() {
+  const searchParams = useSearchParams();
+  const quoteId = searchParams.get('quote_id');
   const [formData, setFormData] = useState({
     craftsman_id: '',
     customer_id: '',
@@ -36,6 +39,49 @@ export default function NewInvoicePage() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const router = useRouter();
 
+  // Function to fetch quote data and pre-fill the form
+  const fetchQuoteData = async (quoteId, craftsmanId) => {
+    try {
+      setLoading(true);
+      console.log(`Fetching quote ${quoteId} for pre-filling invoice`);
+      
+      const quote = await quotesAPI.getById(quoteId, craftsmanId);
+      console.log('Quote data retrieved:', quote);
+      
+      if (quote) {
+        // Calculate default due date (14 days from now)
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 14);
+        const formattedDueDate = dueDate.toISOString().split('T')[0];
+        
+        // Pre-fill form with quote data
+        setFormData(prev => ({
+          ...prev,
+          customer_id: quote.customer_id || '',
+          amount: quote.amount || '',
+          tax_amount: quote.tax_amount || '',
+          total_amount: quote.total_amount || '',
+          notes: `Based on Quote #${quoteId}\n\n${quote.notes || ''}`,
+          due_date: formattedDueDate,
+          service_date: quote.service_date || '',
+          location: quote.location || '',
+          vat_exempt: quote.vat_exempt || false,
+          type: 'invoice', // Always set type to invoice
+        }));
+        
+        // If the quote has a customer ID, make sure we have the customer data
+        if (quote.customer_id) {
+          await fetchCustomers(craftsmanId);
+        }
+      }
+    } catch (err) {
+      console.error(`Error fetching quote ${quoteId}:`, err);
+      setError(`Failed to load quote data. Please try again later.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Get craftsman ID from token
     const token = localStorage.getItem('token');
@@ -59,12 +105,19 @@ export default function NewInvoicePage() {
         console.log('Extracted craftsman ID:', extractedCraftsmanId);
         
         if (extractedCraftsmanId) {
-          setFormData(prev => ({ ...prev, craftsman_id: String(extractedCraftsmanId) }));
-          fetchCustomers(extractedCraftsmanId);
-          fetchAppointments(extractedCraftsmanId);
+          const craftsmanIdStr = String(extractedCraftsmanId);
+          setFormData(prev => ({ ...prev, craftsman_id: craftsmanIdStr }));
+          fetchCustomers(craftsmanIdStr);
+          fetchAppointments(craftsmanIdStr);
+          
+          // Check if we need to pre-fill from a quote
+          if (quoteId) {
+            console.log(`Quote ID found in URL: ${quoteId}, pre-filling invoice form`);
+            fetchQuoteData(quoteId, craftsmanIdStr);
+          }
           
           // Check URL for pre-populated data from appointment
-          if (typeof window !== 'undefined') {
+          else if (typeof window !== 'undefined') {
             const urlParams = new URLSearchParams(window.location.search);
             
             if (urlParams.get('from_appointment') === 'true') {

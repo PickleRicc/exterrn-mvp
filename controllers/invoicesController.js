@@ -37,7 +37,13 @@ const getAllInvoices = async (req, res) => {
     const queryParams = [craftsman_id];
     let paramIndex = 2;
     
-    // Add any additional filters here if needed
+    // Add filter for type if provided
+    if (req.query.type) {
+      query += ` AND i.type = $${paramIndex}`;
+      queryParams.push(req.query.type);
+      paramIndex++;
+      console.log('Filtering by type:', req.query.type);
+    }
     
     query += ` ORDER BY i.created_at DESC`;
     
