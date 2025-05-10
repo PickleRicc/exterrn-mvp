@@ -27,23 +27,23 @@ export default function FinanceCard() {
   else if (progress < 80) progressColor = 'bg-orange-400';
 
   return (
-    <Link href="/finances" className="bg-[#132f4c] hover:bg-[#1a406a] transition-colors rounded-2xl shadow-xl border border-white/10 p-5 flex flex-col gap-3 min-w-[220px] flex-1">
+    <Link href="/finances" className="bg-white/5 hover:bg-white/10 transition-colors rounded-2xl shadow-xl border border-white/10 p-5 flex flex-col gap-3 min-w-[220px] flex-1">
       <div className="flex items-center gap-2 mb-1">
-        <div className="p-2 bg-[#00c2ff]/20 rounded-full">
-          <svg className="w-5 h-5 text-[#00c2ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <div className="p-2 bg-[#ffcb00]/20 rounded-full">
+          <svg className="w-5 h-5 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
         </div>
         <span className="font-bold text-white text-lg">Finanzen</span>
       </div>
       {loading ? (
-        <div className="text-blue-200 text-sm">Lädt...</div>
+        <div className="text-white/60 text-sm">Lädt...</div>
       ) : error ? (
         <div className="text-red-400 text-sm">{error}</div>
       ) : stats.goal ? (
         <>
-          <div className="text-pink-300 text-sm mb-1">Ziel: €{Number(stats.goal.goal_amount).toLocaleString('de-DE')}</div>
-          <div className="w-full h-2 bg-blue-900 rounded overflow-hidden mb-1">
+          <div className="text-white/80 text-sm mb-1">Ziel: €{Number(stats.goal.goal_amount).toLocaleString('de-DE')}</div>
+          <div className="w-full h-2 bg-white/10 rounded overflow-hidden mb-1">
             <div className={`${progressColor} h-2 transition-all duration-500`} style={{ width: `${progress}%` }} />
           </div>
           <div className="text-xs text-white mb-1">{progress}% erreicht</div>

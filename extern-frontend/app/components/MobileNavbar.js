@@ -42,7 +42,7 @@ export default function MobileNavbar() {
   // Hide on desktop/tablet
   // Safe area for iOS/Android
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-center h-16 bg-[#132f4c] border-t border-[#223a5e] text-white md:hidden" style={{paddingBottom: 'env(safe-area-inset-bottom)'}}>
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-center h-16 bg-[#121212] border-t border-white/10 text-white md:hidden" style={{paddingBottom: 'env(safe-area-inset-bottom)'}}>
       <div className="flex justify-around items-center h-16 w-full">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -50,7 +50,7 @@ export default function MobileNavbar() {
             <Link
               key={item.label}
               href={item.href}
-              className={`flex flex-col items-center justify-center flex-1 py-2 px-1 transition-colors ${isActive ? 'text-[#e91e63]' : 'text-white'} hover:text-[#e91e63] focus:text-[#e91e63]`}
+              className={`flex flex-col items-center justify-center flex-1 py-2 px-1 transition-colors ${isActive ? 'text-[#ffcb00]' : 'text-white'} hover:text-[#ffcb00] focus:text-[#ffcb00]`}
               aria-label={item.label}
             >
               {item.icon}

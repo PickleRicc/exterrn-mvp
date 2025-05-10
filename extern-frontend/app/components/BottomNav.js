@@ -47,7 +47,7 @@ export default function BottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#132f4c] border-t border-[#1e3a5f] z-50 mobile-nav">
+    <nav className="fixed bottom-0 left-0 right-0 bg-[#121212] border-t border-white/10 z-50 mobile-nav">
       <div className="flex justify-around items-center h-16">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
@@ -62,10 +62,10 @@ export default function BottomNav() {
               <div className={`${isActive ? 'relative' : ''}`}>
                 {item.icon}
                 {isActive && (
-                  <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-[#e91e63] rounded-full"></span>
+                  <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-[#ffcb00] rounded-full"></span>
                 )}
               </div>
-              <span className={`text-xs mt-1 ${isActive ? 'font-medium' : ''}`}>
+              <span className={`text-xs mt-1 ${isActive ? 'font-medium text-[#ffcb00]' : ''}`}>
                 {item.name}
               </span>
             </Link>
@@ -74,7 +74,7 @@ export default function BottomNav() {
       </div>
       
       {/* Add safe area padding for iOS devices */}
-      <div className="h-safe-bottom bg-[#132f4c]"></div>
+      <div className="h-safe-bottom bg-[#121212]"></div>
     </nav>
   );
 }

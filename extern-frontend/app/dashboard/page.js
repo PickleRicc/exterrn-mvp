@@ -137,30 +137,30 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#0a1929] to-[#132f4c]">
-      <main className="flex-grow container mx-auto px-5 py-8 max-w-7xl overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#121212] to-[#1a1a1a]">
+      <main className="flex-grow container mx-auto px-5 py-8 max-w-7xl overflow-hidden bg-gradient-to-b from-[#121212] to-[#1a1a1a]">
         {loading ? (
-          <div className="flex justify-center items-center h-64 my-8">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#00c2ff]"></div>
+          <div className="flex items-center justify-center h-screen animate-fade-in">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#ffcb00]"></div>
           </div>
         ) : !isLoggedIn ? (
           <div className="text-center py-16 animate-fade-in">
             <h1 className="text-4xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-[#00c2ff] to-[#7928ca] bg-clip-text text-transparent">Welcome to ZIMMR</span>
+              <span className="bg-gradient-to-r from-[#ffcb00] to-[#e6b800] bg-clip-text text-transparent">Welcome to ZIMMR</span>
             </h1>
             <p className="text-xl text-white/80 max-w-3xl mx-auto mb-10">
               The smart platform for tilesmen to manage appointments, customers, and materials.
             </p>
-            <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <div className="flex gap-4 justify-center">
               <Link 
                 href="/auth/login" 
-                className="px-8 py-3 bg-gradient-to-r from-[#0070f3] to-[#0050d3] hover:from-[#0060df] hover:to-[#0040c0] text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5"
+                className="px-8 py-3 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5"
               >
-                Log In
+                Sign In
               </Link>
               <Link 
                 href="/auth/register" 
-                className="px-8 py-3 border border-white/20 hover:bg-white/5 text-white font-medium rounded-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5"
+                className="px-8 py-3 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5"
               >
                 Register
               </Link>
@@ -172,7 +172,7 @@ export default function Home() {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
                 <div>
                   <h1 className="text-3xl font-bold mb-2">
-                    <span className="bg-gradient-to-r from-[#00c2ff] to-[#7928ca] bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-[#ffcb00] to-[#e6b800] bg-clip-text text-transparent">
                       {craftsman ? `Welcome, ${craftsman.name}` : 'Welcome'}
                     </span>
                   </h1>
@@ -189,8 +189,8 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 transition-all duration-300 hover:bg-white/10">
                   <div className="flex items-center mb-4">
-                    <div className="p-3 bg-[#0070f3]/20 rounded-full mr-4">
-                      <svg className="w-6 h-6 text-[#0070f3]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <div className="p-3 bg-[#ffcb00]/20 rounded-full mr-4">
+                      <svg className="w-6 h-6 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                       </svg>
                     </div>
@@ -198,7 +198,7 @@ export default function Home() {
                   </div>
                   <div className="text-3xl font-bold text-white mb-2">{upcomingAppointments.length}</div>
                   <p className="text-white/60 mb-4">Scheduled tiling projects</p>
-                  <Link href="/appointments" className="text-[#0070f3] hover:underline flex items-center text-sm">
+                  <Link href="/appointments" className="text-[#ffcb00] hover:underline flex items-center text-sm">
                     View All Appointments
                     <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
@@ -208,8 +208,8 @@ export default function Home() {
                 
                 <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 transition-all duration-300 hover:bg-white/10">
                   <div className="flex items-center mb-4">
-                    <div className="p-3 bg-[#7928ca]/20 rounded-full mr-4">
-                      <svg className="w-6 h-6 text-[#7928ca]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <div className="p-3 bg-[#ffcb00]/20 rounded-full mr-4">
+                      <svg className="w-6 h-6 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                       </svg>
                     </div>
@@ -217,7 +217,7 @@ export default function Home() {
                   </div>
                   <div className="text-3xl font-bold text-white mb-2">{customerCount}</div>
                   <p className="text-white/60 mb-4">Active clients</p>
-                  <Link href="/customers" className="text-[#7928ca] hover:underline flex items-center text-sm">
+                  <Link href="/customers" className="text-[#ffcb00] hover:underline flex items-center text-sm">
                     View All Customers
                     <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
@@ -229,8 +229,8 @@ export default function Home() {
                 
                 <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 transition-all duration-300 hover:bg-white/10">
                   <div className="flex items-center mb-4">
-                    <div className="p-3 bg-[#0070f3]/20 rounded-full mr-4">
-                      <svg className="w-6 h-6 text-[#0070f3]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <div className="p-3 bg-[#ffcb00]/20 rounded-full mr-4">
+                      <svg className="w-6 h-6 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                       </svg>
                     </div>
@@ -238,7 +238,7 @@ export default function Home() {
                   </div>
                   <div className="text-3xl font-bold text-white mb-2">{invoiceCount}</div>
                   <p className="text-white/60 mb-4">Client invoices</p>
-                  <Link href="/invoices" className="text-[#0070f3] hover:underline flex items-center text-sm">
+                  <Link href="/invoices" className="text-[#ffcb00] hover:underline flex items-center text-sm">
                     View All Invoices
                     <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
@@ -250,12 +250,11 @@ export default function Home() {
               {/* {upcomingAppointments.length > 0 && (
                 <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 mb-8">
                   <div className="flex items-center mb-6">
-                    <div className="p-3 bg-[#0070f3]/20 rounded-full mr-4">
-                      <svg className="w-6 h-6 text-[#0070f3]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    <div className="p-2 bg-[#ffcb00]/20 rounded-full">
+                      <svg className="w-6 h-6 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                       </svg>
                     </div>
-                    <h2 className="text-xl font-semibold text-white">Upcoming Tiling Projects</h2>
                   </div>
                   
                   <div className="space-y-4">
@@ -270,7 +269,7 @@ export default function Home() {
                             <h3 className="font-medium text-white">{appointment.customer_name || 'Customer'}</h3>
                             <p className="text-white/70 text-sm">{formatDate(appointment.scheduled_at)}</p>
                             {appointment.service_type && (
-                              <span className="inline-block mt-2 px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs">
+                              <span className="inline-block mt-2 px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-xs">
                                 {appointment.service_type}
                               </span>
                             )}
@@ -296,8 +295,8 @@ export default function Home() {
               
               <div className="mb-8">
                 {/* <div className="flex items-center mb-6">
-                  <div className="p-2 bg-[#00c2ff]/20 rounded-full">
-                    <svg className="w-6 h-6 text-[#00c2ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <div className="p-2 bg-[#ffcb00]/20 rounded-full">
+                    <svg className="w-6 h-6 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </svg>
                   </div>
@@ -307,8 +306,8 @@ export default function Home() {
                     href="/appointments/new" 
                     className="bg-white/5 hover:bg-white/10 text-white p-4 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-200 h-32"
                   >
-                    {/* <div className="p-3 bg-[#0070f3]/20 rounded-full mb-3">
-                      <svg className="w-6 h-6 text-[#0070f3]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    {/* <div className="p-3 bg-[#ffcb00]/20 rounded-full mb-3">
+                      <svg className="w-6 h-6 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                       </svg>
                     </div>
@@ -318,9 +317,9 @@ export default function Home() {
                     href="/customers/new" 
                     className="bg-white/5 hover:bg-white/10 text-white p-4 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-200 h-32"
                   > */}
-                    <div className="p-3 bg-[#7928ca]/20 rounded-full mb-3">
-                      <svg className="w-6 h-6 text-[#7928ca]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                    <div className="p-3 bg-[#ffcb00]/20 rounded-full mb-3">
+                      <svg className="w-6 h-6 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 0112 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
                       </svg>
                     </div>
                     <span className="font-medium">Add New Customer</span>
@@ -329,8 +328,8 @@ export default function Home() {
                     href="/materials/new" 
                     className="bg-white/5 hover:bg-white/10 text-white p-4 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-200 h-32"
                   >
-                    <div className="p-3 bg-[#00c2ff]/20 rounded-full mb-3">
-                      <svg className="w-6 h-6 text-[#00c2ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <div className="p-3 bg-[#ffcb00]/20 rounded-full mb-3">
+                      <svg className="w-6 h-6 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4"></path>
                       </svg>
                     </div>
@@ -340,8 +339,8 @@ export default function Home() {
                     href="/spaces/new" 
                     className="bg-white/5 hover:bg-white/10 text-white p-4 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-200 h-32"
                   >
-                    {/* <div className="p-3 bg-[#0070f3]/20 rounded-full mb-3">
-                      <svg className="w-6 h-6 text-[#0070f3]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    {/* <div className="p-3 bg-[#ffcb00]/20 rounded-full mb-3">
+                      <svg className="w-6 h-6 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                       </svg>
                     </div>
@@ -351,8 +350,8 @@ export default function Home() {
                     href="/invoices/new" 
                     className="bg-white/5 hover:bg-white/10 text-white p-4 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-200 h-32"
                   > */}
-                    <div className="p-3 bg-[#7928ca]/20 rounded-full mb-3">
-                      <svg className="w-6 h-6 text-[#7928ca]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <div className="p-3 bg-[#ffcb00]/20 rounded-full mb-3">
+                      <svg className="w-6 h-6 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                       </svg>
                     </div>

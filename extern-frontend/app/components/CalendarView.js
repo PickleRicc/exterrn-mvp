@@ -85,7 +85,7 @@ export default function CalendarView({ appointments }) {
               newDate.setMonth(Number(e.target.value));
               setDate(newDate);
             }}
-            className="rounded-lg bg-[#223a5e] text-white px-3 py-2 font-medium shadow focus:outline-none focus:ring-1 focus:ring-[#e91e6c] text-sm"
+            className="rounded-lg bg-white/5 text-white px-3 py-2 font-medium shadow focus:outline-none focus:ring-1 focus:ring-[#ffcb00] text-sm"
           >
             {months.map((m, idx) => (
               <option key={m} value={idx}>{m}</option>
@@ -98,7 +98,7 @@ export default function CalendarView({ appointments }) {
               newDate.setFullYear(Number(e.target.value));
               setDate(newDate);
             }}
-            className="rounded-lg bg-[#223a5e] text-white px-3 py-2 font-medium shadow focus:outline-none focus:ring-1 focus:ring-[#e91e6c] text-sm"
+            className="rounded-lg bg-white/5 text-white px-3 py-2 font-medium shadow focus:outline-none focus:ring-1 focus:ring-[#ffcb00] text-sm"
           >
             {years.map(yr => (
               <option key={yr} value={yr}>{yr}</option>
@@ -109,21 +109,21 @@ export default function CalendarView({ appointments }) {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 w-full">
           <div className="flex gap-2 mb-2 sm:mb-0 items-center">
             <button
-              className="rounded-full bg-[#192f4c] text-[#e91e6c] hover:bg-[#223a5e] px-3 py-1 font-bold shadow h-8 w-8 flex items-center justify-center"
+              className="rounded-full bg-white/5 text-[#ffcb00] hover:bg-white/10 px-3 py-1 font-bold shadow h-8 w-8 flex items-center justify-center"
               onClick={() => handleNavigate('PREV')}
               aria-label="Previous"
             >
               ←
             </button>
             <button
-              className="rounded-full bg-[#192f4c] text-[#e91e6c] hover:bg-[#223a5e] px-3 py-1 font-bold shadow h-8 w-8 flex items-center justify-center"
+              className="rounded-full bg-white/5 text-[#ffcb00] hover:bg-white/10 px-3 py-1 font-bold shadow h-8 w-8 flex items-center justify-center"
               onClick={() => handleNavigate('TODAY')}
               aria-label="Today"
             >
               •
             </button>
             <button
-              className="rounded-full bg-[#192f4c] text-[#e91e6c] hover:bg-[#223a5e] px-3 py-1 font-bold shadow h-8 w-8 flex items-center justify-center"
+              className="rounded-full bg-white/5 text-[#ffcb00] hover:bg-white/10 px-3 py-1 font-bold shadow h-8 w-8 flex items-center justify-center"
               onClick={() => handleNavigate('NEXT')}
               aria-label="Next"
             >
@@ -132,20 +132,32 @@ export default function CalendarView({ appointments }) {
           </div>
           <div className="flex gap-1 items-center">
             <button
-              className={`rounded-lg px-3 py-1 font-medium text-sm shadow ${view === 'month' ? 'bg-[#e91e6c] text-white' : 'bg-[#223a5e] text-white hover:bg-[#e91e6c]/70'}`}
               onClick={() => setView('month')}
+              className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                view === 'month' 
+                  ? 'bg-[#ffcb00] text-black shadow' 
+                  : 'bg-white/5 text-white hover:bg-white/10'
+              }`}
             >
               Monat
             </button>
             <button
-              className={`rounded-lg px-3 py-1 font-medium text-sm shadow ${view === 'week' ? 'bg-[#e91e6c] text-white' : 'bg-[#223a5e] text-white hover:bg-[#e91e6c]/70'}`}
               onClick={() => setView('week')}
+              className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                view === 'week' 
+                  ? 'bg-[#ffcb00] text-black shadow' 
+                  : 'bg-white/5 text-white hover:bg-white/10'
+              }`}
             >
               Woche
             </button>
             <button
-              className={`rounded-lg px-3 py-1 font-medium text-sm shadow ${view === 'day' ? 'bg-[#e91e6c] text-white' : 'bg-[#223a5e] text-white hover:bg-[#e91e6c]/70'}`}
               onClick={() => setView('day')}
+              className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                view === 'day' 
+                  ? 'bg-[#ffcb00] text-black shadow' 
+                  : 'bg-white/5 text-white hover:bg-white/10'
+              }`}
             >
               Tag
             </button>
@@ -157,10 +169,10 @@ export default function CalendarView({ appointments }) {
 
   // Helper: status color for dot
   function getDotColor(status) {
-    if (status === 'approved') return 'bg-green-500';
+    if (status === 'approved') return 'bg-green-400';
+    if (status === 'rejected') return 'bg-red-400';
     if (status === 'pending') return 'bg-yellow-400';
-    if (status === 'rejected') return 'bg-red-500';
-    return 'bg-[#e91e6c]';
+    return 'bg-[#ffcb00]';
   }
 
   // Custom month cell renderer: show dots for each appointment (match by YYYY-MM-DD)
@@ -173,11 +185,11 @@ export default function CalendarView({ appointments }) {
     return (
       <div
         className={`flex flex-col items-center justify-center min-h-[48px] transition-all duration-150 rounded-lg cursor-pointer 
-          ${isToday ? 'bg-[#e91e6c]/15' : 'hover:bg-[#223a5e]/60'}
+          ${isToday ? 'bg-[#ffcb00]/15' : 'hover:bg-[#223a5e]/60'}
         `}
         style={{ boxSizing: 'border-box', minHeight: 48, background: isToday ? null : 'none' }}
       >
-        <span className={`text-xs ${isToday ? 'text-[#e91e6c] font-bold' : 'text-blue-100'} mb-1 drop-shadow`}>
+        <span className={`text-xs ${isToday ? 'text-[#ffcb00] font-bold' : 'text-blue-100'} mb-1 drop-shadow`}>
           {date.getDate()}
         </span>
         <div className="flex flex-wrap gap-1 justify-center">
@@ -189,7 +201,7 @@ export default function CalendarView({ appointments }) {
             />
           ))}
           {todaysEvents.length > 3 && (
-            <span className="text-xs text-[#e91e6c] font-semibold ml-1">+{todaysEvents.length - 3}</span>
+            <span className="text-xs text-[#ffcb00] font-semibold ml-1">+{todaysEvents.length - 3}</span>
           )}
         </div>
       </div>
@@ -242,7 +254,7 @@ export default function CalendarView({ appointments }) {
             style: {
               backgroundColor: event.resource.approval_status === 'approved' ? '#4caf50' : 
                               event.resource.approval_status === 'pending' ? '#ff9800' : 
-                              event.resource.approval_status === 'rejected' ? '#f44336' : '#e91e6c',
+                              event.resource.approval_status === 'rejected' ? '#f44336' : '#ffcb00',
               color: 'white',
               border: 'none',
               borderRadius: '4px',
@@ -264,12 +276,12 @@ export default function CalendarView({ appointments }) {
         {/* Day popup */}
         {popupInfo.show && (
           <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-            <div className="bg-[#132f4c] rounded-xl shadow-xl p-5 w-full max-w-sm mx-auto">
+            <div className="bg-[#121212] rounded-xl shadow-xl p-5 w-full max-w-sm mx-auto border border-white/10">
               <div className="flex justify-between items-center mb-3">
                 <span className="text-lg font-bold text-white">{popupInfo.date && popupInfo.date.toLocaleDateString()}</span>
                 <button 
                   onClick={closePopup} 
-                  className="text-[#e91e6c] hover:text-pink-200 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10"
+                  className="text-[#ffcb00] hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10"
                 >
                   ×
                 </button>
@@ -288,7 +300,7 @@ export default function CalendarView({ appointments }) {
                         <span className={`
                           ${ev.resource.approval_status === 'approved' ? 'text-green-400' : 
                             ev.resource.approval_status === 'pending' ? 'text-yellow-400' : 
-                            ev.resource.approval_status === 'rejected' ? 'text-red-400' : 'text-[#e91e6c]'}
+                            ev.resource.approval_status === 'rejected' ? 'text-red-400' : 'text-[#ffcb00]'}
                           font-medium
                         `}>
                           {ev.resource.approval_status === 'approved' ? 'Genehmigt' : 
@@ -304,10 +316,10 @@ export default function CalendarView({ appointments }) {
                         <span className="text-blue-300">Ort:</span>
                         <span className="text-white">{ev.resource.location || 'Nicht angegeben'}</span>
                       </div>
-                      <div className="mt-2 pt-1 border-t border-[#223a5e]">
+                      <div className="mt-2 pt-1 border-t border-white/10">
                         <a 
                           href={`/appointments/${ev.id}`} 
-                          className="block w-full text-center text-[#e91e6c] hover:text-white bg-[#223a5e]/50 hover:bg-[#e91e6c]/20 py-1.5 rounded transition-colors"
+                          className="block w-full text-center text-black bg-[#ffcb00] hover:bg-[#e6b800] py-1.5 rounded transition-colors"
                         >
                           Details anzeigen
                         </a>

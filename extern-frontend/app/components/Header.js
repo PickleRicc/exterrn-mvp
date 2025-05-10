@@ -57,7 +57,7 @@ export default function Header({ minimal = false }) {
   // --- MINIMAL HEADER FOR PUBLIC/LANDING PAGE ---
   if (minimal || !isLoggedIn) {
     return (
-      <header className="bg-gradient-to-r from-[#0a1929] to-[#132f4c] text-white shadow-lg backdrop-blur-lg sticky top-0 z-50 transition-all duration-300 ease-in-out">
+      <header className="bg-gradient-to-r from-[#121212] to-[#1a1a1a] text-white shadow-lg backdrop-blur-lg sticky top-0 z-50 transition-all duration-300 ease-in-out">
         <div className="container mx-auto px-4 flex justify-between items-center py-4">
           <div className="flex items-center space-x-3">
             <a href="/">
@@ -72,8 +72,8 @@ export default function Header({ minimal = false }) {
             </a>
           </div>
           <div className="flex gap-2">
-            <a href="/auth/login" className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200 font-medium">Login</a>
-            <a href="/auth/register" className="px-4 py-2 rounded-full bg-[#e91e63] hover:bg-[#d81b60] transition-all duration-200 font-medium">Sign Up</a>
+            <a href="/auth/login" className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-[#ffcb00]/10 transition-all duration-200 font-medium">Login</a>
+            <a href="/auth/register" className="px-4 py-2 rounded-full bg-[#ffcb00] hover:bg-[#e6b800] text-black transition-all duration-200 font-medium">Sign Up</a>
           </div>
         </div>
       </header>
@@ -82,7 +82,7 @@ export default function Header({ minimal = false }) {
 
   // --- FULL HEADER FOR LOGGED-IN USERS ---
   return (
-    <header className="bg-gradient-to-r from-[#0a1929] to-[#132f4c] text-white shadow-lg backdrop-blur-lg sticky top-0 z-50 transition-all duration-300 ease-in-out">
+    <header className="bg-gradient-to-r from-[#121212] to-[#1a1a1a] text-white shadow-lg backdrop-blur-lg sticky top-0 z-50 transition-all duration-300 ease-in-out">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center space-x-3">
@@ -98,7 +98,7 @@ export default function Header({ minimal = false }) {
             </a>
           </div>
           <button 
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded-full bg-[#1e3a5f]/40 backdrop-blur-md text-white hover:bg-[#2c5282]/60 transition-all duration-300"
+            className="md:hidden flex items-center justify-center w-10 h-10 rounded-full bg-[#2a2a2a]/40 backdrop-blur-md text-white hover:bg-[#2a2a2a]/80 transition-all duration-300"
             onClick={toggleMenu}
             aria-label="Toggle menu"
           >
@@ -123,7 +123,7 @@ export default function Header({ minimal = false }) {
               <li>
                 <a 
                   href="/" 
-                  className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
+                  className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-[#ffcb00]/10 transition-all duration-200"
                 >
                   Dashboard
                 </a>
@@ -131,7 +131,7 @@ export default function Header({ minimal = false }) {
               <li>
                 <a 
                   href="/appointments" 
-                  className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
+                  className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-[#ffcb00]/10 transition-all duration-200"
                 >
                   Appointments
                 </a>
@@ -139,7 +139,7 @@ export default function Header({ minimal = false }) {
               <li>
                 <a 
                   href="/customers" 
-                  className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
+                  className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-[#ffcb00]/10 transition-all duration-200"
                 >
                   Customers
                 </a>
@@ -147,7 +147,7 @@ export default function Header({ minimal = false }) {
               <li>
                 <a 
                   href="/invoices" 
-                  className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
+                  className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-[#ffcb00]/10 transition-all duration-200"
                 >
                   Invoices
                 </a>
@@ -155,7 +155,7 @@ export default function Header({ minimal = false }) {
               <li>
                 <a 
                   href="/quotes" 
-                  className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
+                  className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-[#ffcb00]/10 transition-all duration-200"
                 >
                   Quotes
                 </a>
@@ -163,7 +163,7 @@ export default function Header({ minimal = false }) {
               <li>
                 <a 
                   href="/finances"
-                  className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200"
+                  className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-[#ffcb00]/10 transition-all duration-200"
                 >
                   Finanzen
                 </a>
@@ -172,12 +172,12 @@ export default function Header({ minimal = false }) {
                 <>
                   <li className="relative ml-2">
                     <button 
-                      className="flex items-center space-x-2 rounded-full pl-2 pr-3 py-1 hover:bg-white/10 transition-all duration-200"
+                      className="flex items-center space-x-2 rounded-full pl-2 pr-3 py-1 hover:bg-[#ffcb00]/10 transition-all duration-200"
                       onClick={toggleProfileMenu}
                       aria-expanded={showProfileMenu}
                       aria-haspopup="true"
                     >
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#0070f3] to-[#7928ca] flex items-center justify-center text-white font-medium text-sm shadow-lg">
+                      <div className="w-8 h-8 rounded-full bg-[#ffcb00] flex items-center justify-center text-black font-medium text-sm shadow-lg">
                         {userInitials}
                       </div>
                       <span className="text-sm text-white/90 hidden md:inline">
@@ -196,10 +196,10 @@ export default function Header({ minimal = false }) {
                     
                     {/* Profile dropdown menu */}
                     {showProfileMenu && (
-                      <div className="absolute right-0 mt-2 w-48 bg-[#1a2e3d]/90 backdrop-blur-lg rounded-xl shadow-xl py-1 z-10 ring-1 ring-white/10 animate-fade-in">
+                      <div className="absolute right-0 mt-2 w-48 bg-[#121212]/90 backdrop-blur-lg rounded-xl shadow-xl py-1 z-10 ring-1 ring-[#ffcb00]/20 animate-fade-in">
                         <a 
                           href="/profile" 
-                          className="flex items-center px-4 py-2 text-sm text-white/90 hover:text-white hover:bg-white/10 transition-all"
+                          className="flex items-center px-4 py-2 text-sm text-white/90 hover:text-white hover:bg-[#ffcb00]/10 transition-all"
                         >
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
@@ -208,7 +208,7 @@ export default function Header({ minimal = false }) {
                         </a>
                         <a 
                           href="/onboarding" 
-                          className="flex items-center px-4 py-2 text-sm text-white/90 hover:text-white hover:bg-white/10 transition-all"
+                          className="flex items-center px-4 py-2 text-sm text-white/90 hover:text-white hover:bg-[#ffcb00]/10 transition-all"
                         >
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -216,10 +216,10 @@ export default function Header({ minimal = false }) {
                           </svg>
                           Settings
                         </a>
-                        <div className="border-t border-white/10 my-1"></div>
+                        <div className="border-t border-[#ffcb00]/20 my-1"></div>
                         <button 
                           onClick={handleLogout}
-                          className="flex items-center w-full text-left px-4 py-2 text-sm text-white/90 hover:text-white hover:bg-white/10 transition-all"
+                          className="flex items-center w-full text-left px-4 py-2 text-sm text-white/90 hover:text-white hover:bg-[#ffcb00]/10 transition-all"
                         >
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>

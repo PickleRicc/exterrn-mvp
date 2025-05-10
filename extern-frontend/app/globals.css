@@ -1,40 +1,118 @@
 @import "tailwindcss";
 
 :root {
-  /* Modern color palette */
-  --primary: #0070f3;
-  --primary-dark: #0050d3;
-  --secondary: #00c2ff;
-  --accent: #7928ca;
-  --success: #0070f3;
-  --warning: #f5a623;
-  --error: #ff0000;
-  --background: #ffffff;
-  --foreground: #171717;
-  --card: #f7f7f7;
-  --card-foreground: #171717;
-  --border: #e5e5e5;
-  --input: #f3f3f3;
-  --ring: #0070f3;
+  /* ZIMMR dark theme with yellow accents */
+  --primary: #ffcb00;
+  --primary-dark: #e6b800;
+  --secondary: #1a1a1a;
+  --accent: #ffcb00;
+  --success: #4ade80;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --background: #121212;
+  --foreground: #ffffff;
+  --card: #1a1a1a;
+  --card-foreground: #ffffff;
+  --border: #2a2a2a;
+  --input: #1a1a1a;
+  --ring: #ffcb00;
   --radius: 0.5rem;
+}
+
+/* Animation classes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.animate-fade-in-left {
+  animation: fadeInLeft 0.8s ease-out forwards;
+}
+
+.animate-fade-in-right {
+  animation: fadeInRight 0.8s ease-out forwards;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 203, 0, 0.2), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-delay-100 {
+  animation-delay: 100ms;
+}
+
+.animate-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animate-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animate-delay-500 {
+  animation-delay: 500ms;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --primary: #0070f3;
-    --primary-dark: #0050d3;
-    --secondary: #00c2ff;
-    --accent: #9d4edd;
-    --success: #0070f3;
-    --warning: #f5a623;
-    --error: #ff4040;
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* ZIMMR dark theme with yellow accents - same values for dark mode */
+    --primary: #ffcb00;
+    --primary-dark: #e6b800;
+    --secondary: #1a1a1a;
+    --accent: #ffcb00;
+    --success: #4ade80;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --background: #121212;
+    --foreground: #ffffff;
     --card: #1a1a1a;
-    --card-foreground: #ededed;
-    --border: #333333;
+    --card-foreground: #ffffff;
+    --border: #2a2a2a;
     --input: #1a1a1a;
-    --ring: #0070f3;
+    --ring: #ffcb00;
   }
 }
 
@@ -86,26 +164,28 @@ body {
 
 .btn-primary {
   background: var(--primary);
-  color: white;
+  color: black;
   border: none;
 }
 
 .btn-primary:hover {
   background: var(--primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 112, 243, 0.15);
+  box-shadow: 0 4px 12px rgba(255, 203, 0, 0.25);
 }
 
 /* Card styles */
 .card {
   background: var(--card);
   border-radius: var(--radius);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border-color: var(--primary);
   transform: translateY(-2px);
 }
 
@@ -115,13 +195,14 @@ input, select, textarea {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0.75rem 1rem;
+  color: var(--foreground);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.2);
+  box-shadow: 0 0 0 2px rgba(255, 203, 0, 0.25);
 }
 
 /* Modern glassmorphism effect for cards */
@@ -218,6 +299,23 @@ input:focus, select:focus, textarea:focus {
 .focus-ring:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary);
+}
+
+/* Success, error, and warning text colors */
+.text-success {
+  color: var(--success);
+}
+
+.text-error {
+  color: var(--error);
+}
+
+.text-warning {
+  color: var(--warning);
+}
+
+.text-primary {
+  color: var(--primary);
 }
 
 /* Text gradient effect */

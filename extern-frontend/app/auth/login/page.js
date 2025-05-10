@@ -47,18 +47,18 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#0a1929] to-[#132f4c] px-5 py-10 overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#121212] to-[#1a1a1a] px-5 py-10 overflow-hidden">
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full opacity-10">
-          <div className="absolute top-10 left-10 w-72 h-72 bg-[#0070f3] rounded-full filter blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 w-72 h-72 bg-[#7928ca] rounded-full filter blur-3xl"></div>
+        <div className="absolute top-0 left-0 w-full h-full opacity-5">
+          <div className="absolute top-10 left-10 w-72 h-72 bg-[#ffcb00] rounded-full filter blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-72 h-72 bg-[#ffcb00] rounded-full filter blur-3xl"></div>
         </div>
       </div>
       
       <div className="w-full max-w-md z-10 animate-fade-in">
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-3">
-            <span className="bg-gradient-to-r from-[#00c2ff] to-[#7928ca] bg-clip-text text-transparent">ZIMMR</span>
+            <span className="text-[#ffcb00]">ZIMMR</span>
           </h1>
           <p className="text-white text-lg font-light">Sign in to your account</p>
         </div>
@@ -81,7 +81,7 @@ function LoginContent() {
           </div>
         )}
         
-        <div className="bg-[#132f4c]/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+        <div className="bg-[#1a1a1a]/70 backdrop-blur-md rounded-2xl shadow-xl border border-[#2a2a2a] overflow-hidden">
           <form onSubmit={handleSubmit} className="p-6 md:p-8">
             <div className="space-y-5">
               <div className="space-y-1">
@@ -99,7 +99,7 @@ function LoginContent() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full pl-10 pr-4 py-3.5 bg-white/10 border border-white/20 text-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00c2ff] focus:border-transparent transition-all duration-200"
+                    className="block w-full pl-10 pr-4 py-3.5 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200"
                     placeholder="your@email.com"
                     required
                   />
@@ -121,7 +121,7 @@ function LoginContent() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full pl-10 pr-4 py-3.5 bg-white/10 border border-white/20 text-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00c2ff] focus:border-transparent transition-all duration-200"
+                    className="block w-full pl-10 pr-4 py-3.5 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200"
                     placeholder="••••••••"
                     required
                   />
@@ -131,7 +131,7 @@ function LoginContent() {
             
             <button
               type="submit"
-              className="w-full py-3.5 px-4 mt-6 bg-gradient-to-r from-[#0070f3] to-[#0050d3] hover:from-[#0060df] hover:to-[#0040c0] text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0070f3] transition-all duration-300 transform hover:-translate-y-0.5"
+              className="w-full py-3.5 px-4 mt-6 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ffcb00] transition-all duration-300 transform hover:-translate-y-0.5"
               disabled={loading}
             >
               {loading ? (
@@ -151,7 +151,7 @@ function LoginContent() {
           <div className="px-6 md:px-8 pb-6 md:pb-8 pt-2 text-center">
             <p className="text-sm text-white">
               Don't have an account?{' '}
-              <a href="/auth/register" className="text-[#00c2ff] hover:text-white transition-colors font-medium">
+              <a href="/auth/register" className="text-[#ffcb00] hover:text-white transition-colors font-medium">
                 Register here
               </a>
             </p>
@@ -165,11 +165,11 @@ function LoginContent() {
 // Loading fallback for Suspense
 function LoginLoading() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#0a1929] to-[#132f4c] px-5 py-10">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#121212] to-[#1a1a1a] px-5 py-10">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-3">
-            <span className="bg-gradient-to-r from-[#00c2ff] to-[#7928ca] bg-clip-text text-transparent">ZIMMR</span>
+            <span className="text-[#ffcb00]">ZIMMR</span>
           </h1>
           <p className="text-white/80 text-lg font-light">Loading...</p>
         </div>

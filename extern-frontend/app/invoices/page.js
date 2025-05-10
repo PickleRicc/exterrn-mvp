@@ -329,185 +329,208 @@ export default function InvoicesPage() {
 
   return (
     <>
-      <Header />
-      <div className="min-h-screen bg-[#0a1929] text-white">
+      <Header title="Invoices" />
+      <div className="min-h-screen bg-gradient-to-b from-[#121212] to-[#1a1a1a] text-white">
         <main className="container mx-auto px-4 py-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Invoices</h1>
-            <div className="flex space-x-2">
-              <Link
-                href="/invoices/new"
-                className="px-4 py-2 bg-[#e91e63] hover:bg-[#d81b60] text-white font-medium rounded-xl transition-colors"
-              >
-                New Invoice
-              </Link>
-            </div>
-          </div>
-          
           {error && (
-            <div className="bg-red-500/20 text-red-400 p-4 rounded-xl mb-6">
+            <div className="bg-red-100/10 border border-red-200/20 text-red-400 p-4 rounded-lg mb-6">
               {error}
             </div>
           )}
           
           {success && (
-            <div className="bg-green-500/20 text-green-400 p-4 rounded-xl mb-6">
+            <div className="bg-green-100/10 border border-green-200/20 text-green-400 p-4 rounded-lg mb-6">
               {success}
             </div>
           )}
           
-          {error && (
-            <div className="bg-red-500/20 text-red-400 p-4 rounded-xl mb-6">
-              {error}
-            </div>
-          )}
-          
-          {/* Filters and Search */}
-          <div className="bg-[#132f4c] rounded-xl p-4 mb-6">
-            <div className="flex flex-col md:flex-row gap-4 mb-4">
-              {/* Tabs removed - only showing invoices */}
-              
-              {/* Status filter */}
-              <div className="flex-1">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full bg-[#0a1929] border border-[#2a4d76] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
-                >
-                  <option value="all">All Statuses</option>
-                  <option value="pending">Pending</option>
-                  <option value="paid">Paid</option>
-                  <option value="overdue">Overdue</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </div>
-            </div>
-            
-            {/* Search */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search by customer name or invoice number..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-[#0a1929] border border-[#2a4d76] rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
-              />
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-          </div>
-          
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#e91e63]"></div>
-            </div>
-          ) : filteredInvoices.length === 0 ? (
-            <div className="bg-[#132f4c] rounded-xl p-6 text-center">
-              <p className="text-lg mb-4">No invoices found</p>
+          <div className="bg-white/5 rounded-xl p-6 border border-white/10 mb-8">
+            <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+              <h1 className="text-2xl font-bold text-white">Invoices</h1>
               <Link 
                 href="/invoices/new" 
-                className="px-4 py-2 bg-[#e91e63] hover:bg-[#d81b60] text-white font-medium rounded-xl transition-colors"
+                className="bg-[#ffcb00] hover:bg-[#e6b800] text-black px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center"
               >
-                Create Your First Invoice
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                New Invoice
               </Link>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredInvoices.map((invoice) => (
-                <div key={invoice.id} className="bg-[#132f4c] rounded-xl p-4 shadow-lg">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h2 className="text-lg font-semibold">
-                        Invoice #{invoice.invoice_number || invoice.id}
-                      </h2>
-                      <p className="text-sm text-gray-300">
-                        {invoice.customer_name || 'Customer'}
-                      </p>
-                    </div>
-                    <span className={`px-2 py-1 rounded-xl text-xs font-medium ${getStatusBadgeClass(invoice.status)}`}>
-                      {invoice.status || 'pending'}
-                    </span>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Amount:</span>
-                      <span className="font-medium">€{parseFloat(invoice.total_amount).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Created:</span>
-                      <span>{formatDate(invoice.created_at)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Due Date:</span>
-                      <span>{formatDate(invoice.due_date)}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <Link 
-                      href={`/invoices/${invoice.id}`}
-                      className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-xl transition-colors"
-                    >
-                      View Details
-                    </Link>
-                    <div className="flex space-x-2">
-                      <div className="relative">
-                        <select
-                          value={invoice.status || 'pending'}
-                          onChange={(e) => handleStatusUpdate(invoice.id, e.target.value)}
-                          disabled={updatingStatus && statusUpdateId === invoice.id}
-                          className={`px-3 py-1 bg-[#1e3a5f]/50 hover:bg-[#1e3a5f] text-white text-sm font-medium rounded-xl transition-colors cursor-pointer appearance-none pr-8 ${updatingStatus && statusUpdateId === invoice.id ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          aria-label="Update invoice status"
-                        >
-                          <option value="pending" className="bg-[#132f4c]">Status: Pending</option>
-                          <option value="paid" className="bg-[#132f4c]">Status: Paid</option>
-                          <option value="overdue" className="bg-[#132f4c]">Status: Overdue</option>
-                          <option value="cancelled" className="bg-[#132f4c]">Status: Cancelled</option>
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-white">
-                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                          </svg>
-                        </div>
-                        {updatingStatus && statusUpdateId === invoice.id && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          </div>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => handleGeneratePdf(invoice)}
-                        disabled={pdfLoading && processingInvoiceId === invoice.id}
-                        className={`px-3 py-1 ${pdfLoading && processingInvoiceId === invoice.id ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed' : 'bg-[#e91e63]/20 hover:bg-[#e91e63]/30 text-[#e91e63] cursor-pointer'} text-sm font-medium rounded-xl transition-colors flex items-center`}
-                      >
-                        {pdfLoading && processingInvoiceId === invoice.id ? (
-                          <>
-                            <span className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
-                            Processing...
-                          </>
-                        ) : 'Download PDF'}
-                      </button>
-                      <button
-                        onClick={(e) => handleDelete(invoice.id, e)}
-                        disabled={deletingId === invoice.id}
-                        className="px-3 py-1 bg-red-700/20 hover:bg-red-700/40 text-red-400 text-sm font-medium rounded-xl transition-colors"
-                      >
-                        {deletingId === invoice.id ? 'Deleting...' : 'Delete'}
-                      </button>
-                    </div>
-                  </div>
+            
+            {/* Filters and Search */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="relative flex-grow">
+                <input
+                  type="text"
+                  placeholder="Search invoices..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 pl-10 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/30 focus:border-[#ffcb00]/30"
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
                 </div>
-              ))}
+              </div>
+              
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/30 focus:border-[#ffcb00]/30 w-full sm:w-auto"
+              >
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="paid">Paid</option>
+                <option value="overdue">Overdue</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
             </div>
-          )}
+            
+            {loading ? (
+              <div className="flex justify-center my-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#ffcb00]"></div>
+              </div>
+            ) : filteredInvoices.length === 0 ? (
+              <div className="text-center py-12">
+                {searchTerm || statusFilter !== 'all' ? (
+                  <div>
+                    <p className="text-white/70 text-lg mb-3">No invoices match your search criteria</p>
+                    <button
+                      onClick={() => {setSearchTerm(''); setStatusFilter('all');}}
+                      className="text-[#ffcb00] hover:underline"
+                    >
+                      Clear filters
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-white/70 text-lg mb-4">You don't have any invoices yet</p>
+                    <Link
+                      href="/invoices/new"
+                      className="bg-[#ffcb00] hover:bg-[#e6b800] text-black px-4 py-2 rounded-lg shadow text-sm font-medium inline-flex items-center"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                      </svg>
+                      Create Your First Invoice
+                    </Link>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredInvoices.map((invoice) => (
+                  <div key={invoice.id} className="bg-white/5 rounded-lg p-5 border border-white/10 hover:bg-white/10 transition-all">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <div className="flex items-center">
+                          <span className={`inline-block w-2 h-2 rounded-full mr-2 ${getStatusBadgeClass(invoice.status)}`}></span>
+                          <h3 className="text-white font-medium text-lg">{invoice.invoice_number || `Invoice #${invoice.id}`}</h3>
+                        </div>
+                        <p className="text-white/60 mt-1">{invoice.customer_name || 'Unknown Customer'}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-white text-xl font-semibold">€{parseFloat(invoice.total_amount).toFixed(2)}</div>
+                        <span className={`text-sm px-2 py-0.5 rounded ${getStatusBadgeClass(invoice.status)}`}>
+                          {invoice.status?.charAt(0).toUpperCase() + invoice.status?.slice(1) || 'Pending'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 mb-4 text-sm">
+                      <div className="text-white/60">
+                        <span className="text-white/40">Issue Date:</span>
+                        <div>{formatDate(invoice.issue_date || invoice.created_at)}</div>
+                      </div>
+                      <div className="text-white/60">
+                        <span className="text-white/40">Due Date:</span>
+                        <div>{formatDate(invoice.due_date)}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row justify-between gap-2 pt-3 border-t border-white/10">
+                      <Link 
+                        href={`/invoices/${invoice.id}`}
+                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center"
+                      >
+                        <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        View Details
+                      </Link>
+                      <div className="flex flex-wrap gap-2">
+                        <div className="relative flex-grow">
+                          <select
+                            value={invoice.status || 'pending'}
+                            onChange={(e) => handleStatusUpdate(invoice.id, e.target.value)}
+                            disabled={updatingStatus && statusUpdateId === invoice.id}
+                            className="w-full px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer appearance-none pr-8"
+                            aria-label="Update invoice status"
+                          >
+                            <option value="pending" className="bg-[#121212]">Status: Pending</option>
+                            <option value="paid" className="bg-[#121212]">Status: Paid</option>
+                            <option value="overdue" className="bg-[#121212]">Status: Overdue</option>
+                            <option value="cancelled" className="bg-[#121212]">Status: Cancelled</option>
+                          </select>
+                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-white">
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                          </div>
+                          {updatingStatus && statusUpdateId === invoice.id && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="h-4 w-4 border-2 border-[#ffcb00] border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleGeneratePdf(invoice)}
+                          disabled={pdfLoading && processingInvoiceId === invoice.id}
+                          className={`px-3 py-1.5 flex-grow sm:flex-grow-0 ${pdfLoading && processingInvoiceId === invoice.id ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed' : 'bg-[#ffcb00] hover:bg-[#e6b800] text-black cursor-pointer'} text-sm font-medium rounded-lg transition-colors flex items-center justify-center`}
+                        >
+                          {pdfLoading && processingInvoiceId === invoice.id ? (
+                            <>
+                              <span className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                              </svg>
+                              Download PDF
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={(e) => handleDelete(invoice.id, e)}
+                          disabled={deletingId === invoice.id}
+                          className="px-3 py-1.5 flex-grow sm:flex-grow-0 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-sm font-medium rounded-lg transition-colors flex items-center justify-center"
+                        >
+                          {deletingId === invoice.id ? (
+                            <>
+                              <span className="mr-2 h-4 w-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></span>
+                              Deleting...
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                              </svg>
+                              Delete
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </main>
       </div>
       <Footer />

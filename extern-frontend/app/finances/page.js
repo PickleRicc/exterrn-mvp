@@ -72,15 +72,15 @@ export default function FinancesPage() {
     : 0;
   
   // Use consistent brand colors for progress bar
-  let progressColor = 'bg-[#e91e63]';
+  let progressColor = 'bg-[#ffcb00]';
   if (progress < 30) progressColor = 'bg-red-500';
   else if (progress < 70) progressColor = 'bg-amber-500';
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#0a1929] to-[#132f4c]">
-      <Header />
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#121212] to-[#1a1a1a]">
+      <Header title="Finances" />
       <main className="flex-grow container mx-auto px-5 py-8">
-        <div className="bg-[#132f4c]/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/10 p-6 md:p-8 max-w-4xl mx-auto">
+        <div className="bg-white/5 backdrop-blur-xl rounded-2xl shadow-xl border border-white/10 p-6 md:p-8 max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold mb-2 text-white">
@@ -92,7 +92,7 @@ export default function FinancesPage() {
               {PERIODS.map(p => (
                 <button
                   key={p.value}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium focus:outline-none transition-colors ${period === p.value ? 'bg-[#e91e63] text-white' : 'bg-[#1e3a5f] text-white hover:bg-[#e91e63]/20'}`}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium focus:outline-none transition-colors ${period === p.value ? 'bg-[#ffcb00] text-black' : 'bg-white/5 text-white hover:bg-[#ffcb00]/20'}`}
                   onClick={() => setPeriod(p.value)}
                 >
                   {p.label}
@@ -109,45 +109,59 @@ export default function FinancesPage() {
           )}
           
           {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#e91e63]"></div>
+            <div className="flex justify-center py-10">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#ffcb00]"></div>
             </div>
           ) : (
             <>
-              <div className="bg-[#1e3a5f] rounded-xl p-5 shadow-md mb-6">
-                <div className="mb-4">
-                  <div className="flex items-center mb-2">
-                    <span className="text-lg font-semibold text-white mr-2">Revenue Goal:</span>
-                    {editing || !stats?.goal ? (
-                      <>
-                        <input
-                          type="number"
-                          min="0"
-                          value={goalInput}
-                          placeholder="Enter your goal (€)"
-                          onChange={e => setGoalInput(e.target.value)}
-                          className="px-3 py-1.5 rounded bg-[#132f4c] text-white border border-[#e91e63]/50 focus:border-[#e91e63] focus:outline-none w-32 mr-2"
-                        />
-                        <button 
-                          className="px-3 py-1.5 rounded-full bg-[#e91e63] hover:bg-[#d81b60] text-white font-medium transition-colors mr-2" 
-                          onClick={handleGoalSave}
-                        >
-                          Save
-                        </button>
-                        {stats?.goal && (
-                          <button 
-                            className="px-3 py-1.5 rounded-full bg-[#1e3a5f] border border-white/20 text-white/80 hover:text-white hover:border-white/40 transition-colors" 
-                            onClick={() => { setEditing(false); setGoalInput(stats.goal?.goal_amount || ''); }}
+              <div className="bg-white/5 rounded-xl p-5 shadow-md mb-6">
+                <div className="flex flex-col sm:flex-row gap-2 items-start">
+                  <div className="w-full">
+                    <h2 className="text-lg font-medium text-white mb-2">
+                      {period.charAt(0).toUpperCase() + period.slice(1)}ly Revenue Goal
+                    </h2>
+                    
+                    {editing ? (
+                      <div className="flex items-center">
+                        <div className="flex-1">
+                          <div className="relative rounded-md">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <span className="text-white">€</span>
+                            </div>
+                            <input
+                              type="number"
+                              value={goalInput}
+                              onChange={(e) => setGoalInput(e.target.value)}
+                              className="focus:ring-[#ffcb00] bg-white/5 border border-white/10 focus:border-[#ffcb00] block w-full pl-7 pr-3 py-2 sm:text-sm text-white rounded-md"
+                              placeholder="Enter goal amount"
+                            />
+                          </div>
+                        </div>
+                        <div className="ml-3 flex space-x-2">
+                          <button
+                            className="px-3 py-1.5 bg-[#ffcb00] hover:bg-[#e6b800] text-black rounded text-sm font-medium"
+                            onClick={handleGoalSave}
+                          >
+                            Save
+                          </button>
+                          <button
+                            className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded text-sm font-medium"
+                            onClick={() => {
+                              setEditing(false);
+                              setGoalInput(stats?.goal?.goal_amount || '');
+                            }}
                           >
                             Cancel
                           </button>
-                        )}
-                      </>
+                        </div>
+                      </div>
                     ) : (
                       <>
-                        <span className="text-[#e91e63] font-semibold">€{Number(stats.goal.goal_amount).toLocaleString('en-US')}</span>
+                        <div className="text-2xl font-bold text-white">
+                          {stats?.goal ? `€${Number(stats.goal.goal_amount).toLocaleString('en-US')}` : 'No goal set'}
+                        </div>
                         <button 
-                          className="ml-3 text-[#e91e63] hover:text-[#f06292] text-sm flex items-center" 
+                          className="ml-3 text-[#ffcb00] hover:text-[#e6b800] text-sm flex items-center" 
                           onClick={() => setEditing(true)}
                         >
                           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -159,7 +173,7 @@ export default function FinancesPage() {
                     )}
                   </div>
                   {stats?.goal && (
-                    <div className="w-full h-3 bg-[#132f4c] rounded-full overflow-hidden mt-3">
+                    <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden mt-3">
                       <div
                         className={`${progressColor} h-3 transition-all duration-500`}
                         style={{ width: `${progress}%` }}
@@ -175,20 +189,20 @@ export default function FinancesPage() {
                   )}
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 mt-6">
-                  <div className="flex-1 bg-[#132f4c] rounded-lg p-4 text-center">
+                  <div className="flex-1 bg-white/5 rounded-lg p-4 text-center">
                     <div className="text-xs text-white/70 mb-1 uppercase tracking-wider">Revenue (paid)</div>
-                    <div className="text-xl font-bold text-white">€{stats ? Number(stats.totalRevenue).toLocaleString('en-US') : '0'}</div>
+                    <div className="text-xl font-bold text-[#ffcb00]">€{stats ? Number(stats.totalRevenue).toLocaleString('en-US') : '0'}</div>
                   </div>
-                  <div className="flex-1 bg-[#132f4c] rounded-lg p-4 text-center">
+                  <div className="flex-1 bg-white/5 rounded-lg p-4 text-center">
                     <div className="text-xs text-white/70 mb-1 uppercase tracking-wider">Outstanding (unpaid)</div>
-                    <div className="text-xl font-bold text-white">€{stats && stats.totalOpen ? Number(stats.totalOpen).toLocaleString('en-US') : '0'}</div>
+                    <div className="text-xl font-bold text-[#ffcb00]">€{stats && stats.totalOpen ? Number(stats.totalOpen).toLocaleString('en-US') : '0'}</div>
                   </div>
                 </div>
               </div>
 
               {/* Monthly breakdown chart (only show for yearly view) */}
               {period === 'year' && stats?.monthlyRevenueData && stats.monthlyRevenueData.length > 0 && (
-                <div className="bg-[#1e3a5f] rounded-xl p-5 shadow-md">
+                <div className="bg-white/5 rounded-xl p-5 shadow-md">
                   <h2 className="text-lg font-semibold text-white mb-4">Monthly Revenue Breakdown</h2>
                   <div className="h-60 flex items-end justify-between gap-1">
                     {stats.monthlyRevenueData.map((item, index) => {
@@ -201,7 +215,7 @@ export default function FinancesPage() {
                       return (
                         <div key={index} className="flex flex-col items-center flex-1">
                           <div 
-                            className="w-full bg-[#e91e63] rounded-t-md transition-all duration-300 hover:bg-[#f06292]"
+                            className="w-full bg-[#ffcb00] rounded-t-md transition-all duration-300 hover:bg-[#e6b800]"
                             style={{ height: `${heightPercent}%` }}
                           ></div>
                           <div className="text-xs text-white mt-2">{formatMonth(item.month)}</div>

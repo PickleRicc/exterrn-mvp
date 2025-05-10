@@ -67,7 +67,7 @@ export default function AvailabilityEditor({ availability, onChange }) {
               />
               <button
                 type="button"
-                className="text-red-500 text-xs px-2 py-1 hover:underline"
+                className="text-[#ffcb00] text-xs px-2 py-1 hover:underline"
                 onClick={() => handleRemoveSlot(day, idx)}
               >
                 Remove
@@ -76,7 +76,7 @@ export default function AvailabilityEditor({ availability, onChange }) {
           ))}
           <button
             type="button"
-            className="mt-2 text-blue-600 hover:underline text-xs"
+            className="mt-2 text-[#ffcb00] hover:underline text-xs"
             onClick={() => handleAddSlot(day)}
           >
             Add time slot
