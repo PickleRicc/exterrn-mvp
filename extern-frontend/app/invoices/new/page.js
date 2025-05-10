@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { invoicesAPI, customersAPI, appointmentsAPI } from '../../lib/api';
@@ -9,7 +9,8 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { generateInvoicePdf, generateSimpleInvoicePdf } from '../../../lib/utils/pdfGenerator';
 
-export default function NewInvoicePage() {
+function InvoicePageContent() {
+  // This component uses useSearchParams which requires Suspense
   const searchParams = useSearchParams();
   const quoteId = searchParams.get('quote_id');
   const [formData, setFormData] = useState({
@@ -715,5 +716,14 @@ export default function NewInvoicePage() {
       </div>
       <Footer />
     </>
+  );
+}
+
+// Wrapper component with Suspense boundary
+export default function NewInvoicePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0a1929] text-white flex items-center justify-center">Loading...</div>}>
+      <InvoicePageContent />
+    </Suspense>
   );
 }
