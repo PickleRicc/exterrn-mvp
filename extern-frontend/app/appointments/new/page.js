@@ -189,52 +189,50 @@ export default function NewAppointmentPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#0a1929] to-[#132f4c]">
+    <div className="min-h-screen text-white flex flex-col">
       <Header />
-      <main className="flex-grow container mx-auto px-5 py-8">
-        <div className="max-w-2xl mx-auto bg-[#132f4c]/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 p-6 md:p-8 animate-fade-in">
+      <main className="flex-grow container mx-auto px-5 py-8 min-h-screen bg-dark">
+        <div className="max-w-2xl mx-auto bg-dark-lighter rounded-2xl shadow-xl p-6 md:p-8 animate-fade-in">
           <div className="mb-6 flex items-center justify-between">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold mb-2">
-                <span className="bg-gradient-to-r from-[#00c2ff] to-[#7928ca] bg-clip-text text-transparent">
-                  New Appointment
-                </span>
+              <h1 className="text-2xl md:text-3xl font-bold mb-2 text-primary">
+                New Appointment
               </h1>
-              <p className="text-white">Schedule a new appointment with a customer</p>
+              <p className="text-gray-400">Schedule a new appointment with a customer</p>
             </div>
-            <div className="p-2 bg-[#0070f3]/20 rounded-full">
-              <svg className="w-6 h-6 text-[#0070f3]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <div className="p-2 bg-primary/20 rounded-full">
+              <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
               </svg>
             </div>
           </div>
           
           {error && (
-            <div className="mb-6 p-4 bg-red-100/90 backdrop-blur-sm text-red-700 rounded-xl border border-red-200/50 shadow-lg animate-slide-up">
+            <div className="mb-6 p-4 bg-red-900/30 text-red-400 rounded-xl border border-red-800/50 shadow-lg animate-slide-up">
               {error}
             </div>
           )}
           
           {success && (
-            <div className="mb-6 p-4 bg-green-100/90 backdrop-blur-sm text-green-700 rounded-xl border border-green-200/50 shadow-lg animate-slide-up">
+            <div className="mb-6 p-4 bg-green-900/30 text-green-400 rounded-xl border border-green-800/50 shadow-lg animate-slide-up">
               {success}
             </div>
           )}
           
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <svg className="animate-spin h-12 w-12 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-12 w-12 text-[#FFD200] mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <p className="text-white text-lg">Loading customers...</p>
+              <p className="text-gray-300 text-lg">Loading customers...</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-5">
                 <div className="relative">
-                  <label htmlFor="customer" className="block mb-2 text-sm font-medium text-white">
-                    Customer <span className="text-[#00c2ff]">*</span>
+                  <label htmlFor="customer" className="block mb-2 text-sm font-medium text-gray-300">
+                    Customer <span className="text-[#FFD200]">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute top-3 left-3 flex items-center pointer-events-none">
@@ -246,7 +244,7 @@ export default function NewAppointmentPage() {
                       id="customer"
                       value={customerId}
                       onChange={handleCustomerChange}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                     >
                       <option value="">Select a customer</option>
                       {customers.map((customer) => (
@@ -260,8 +258,8 @@ export default function NewAppointmentPage() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="relative">
-                    <label htmlFor="scheduledAt" className="block mb-2 text-sm font-medium text-white">
-                      Date <span className="text-[#00c2ff]">*</span>
+                    <label htmlFor="scheduledAt" className="block mb-2 text-sm font-medium text-gray-300">
+                      Date <span className="text-[#FFD200]">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute top-3 left-3 flex items-center pointer-events-none">
@@ -274,15 +272,15 @@ export default function NewAppointmentPage() {
                         type="date"
                         value={scheduledAt}
                         onChange={(e) => setScheduledAt(e.target.value)}
-                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                         required
                       />
                     </div>
                   </div>
                   
                   <div className="relative">
-                    <label htmlFor="scheduledTime" className="block mb-2 text-sm font-medium text-white">
-                      Time <span className="text-[#00c2ff]">*</span>
+                    <label htmlFor="scheduledTime" className="block mb-2 text-sm font-medium text-gray-300">
+                      Time <span className="text-[#FFD200]">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute top-3 left-3 flex items-center pointer-events-none">
@@ -295,7 +293,7 @@ export default function NewAppointmentPage() {
                         type="time"
                         value={scheduledTime}
                         onChange={(e) => setScheduledTime(e.target.value)}
-                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                         required
                       />
                     </div>
@@ -303,7 +301,7 @@ export default function NewAppointmentPage() {
                 </div>
                 
                 <div className="relative">
-                  <label htmlFor="duration" className="block mb-2 text-sm font-medium text-white">
+                  <label htmlFor="duration" className="block mb-2 text-sm font-medium text-gray-300">
                     Duration (minutes)
                   </label>
                   <div className="relative">
@@ -316,7 +314,7 @@ export default function NewAppointmentPage() {
                       id="duration"
                       value={duration}
                       onChange={(e) => setDuration(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                     >
                       <option value="30">30 minutes</option>
                       <option value="60">1 hour</option>
@@ -329,7 +327,7 @@ export default function NewAppointmentPage() {
                 </div>
                 
                 <div className="relative">
-                  <label htmlFor="status" className="block mb-2 text-sm font-medium text-white">
+                  <label htmlFor="status" className="block mb-2 text-sm font-medium text-gray-300">
                     Status
                   </label>
                   <div className="relative">
@@ -342,7 +340,7 @@ export default function NewAppointmentPage() {
                       id="status"
                       value={status}
                       onChange={(e) => setStatus(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                     >
                       <option value="scheduled">Scheduled</option>
                       <option value="completed">Completed</option>
@@ -354,13 +352,13 @@ export default function NewAppointmentPage() {
                 <div className="relative">
                   <div className="flex justify-between items-center mb-2">
                     <label htmlFor="location" className="block text-sm font-medium text-white">
-                      Location <span className="text-[#00c2ff]">*</span>
+                      Location <span className="text-[#FFD200]">*</span>
                     </label>
                     {selectedCustomer?.address && (
                       <button 
                         type="button" 
                         onClick={handleToggleCustomLocation}
-                        className="text-xs text-[#00c2ff] hover:text-[#00a0ff] transition-colors"
+                        className="text-xs text-[#FFD200] hover:text-[#FFD200] transition-colors"
                       >
                         {showCustomLocation ? 'Use Customer Address' : 'Change Address'}
                       </button>
@@ -378,7 +376,7 @@ export default function NewAppointmentPage() {
                       type="text"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                       placeholder="Customer's home, your workshop, etc."
                       disabled={selectedCustomer?.address && !showCustomLocation}
                     />
@@ -386,7 +384,7 @@ export default function NewAppointmentPage() {
                 </div>
                 
                 <div className="relative">
-                  <label htmlFor="notes" className="block mb-2 text-sm font-medium text-white">
+                  <label htmlFor="notes" className="block mb-2 text-sm font-medium text-gray-300">
                     Notes
                   </label>
                   <div className="relative">
@@ -399,7 +397,7 @@ export default function NewAppointmentPage() {
                       id="notes"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                       rows="3"
                       placeholder="Details about the appointment..."
                     ></textarea>
@@ -418,11 +416,11 @@ export default function NewAppointmentPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-5 py-2.5 bg-gradient-to-r from-[#0070f3] to-[#0050d3] hover:from-[#0060df] hover:to-[#0040c0] text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:transform-none"
+                  className="w-full py-3 px-4 bg-[#ffcb00] hover:bg-[#ffcb00]/90 text-black font-semibold rounded-xl shadow-lg transform hover:scale-[1.01] transition-all flex justify-center items-center disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   {saving ? (
                     <div className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>

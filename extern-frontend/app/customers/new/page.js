@@ -173,23 +173,21 @@ export default function NewCustomerPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#0a1929] to-[#132f4c]">
+    <div className="min-h-screen text-white flex flex-col">
       <Header />
-      <main className="flex-grow container mx-auto px-5 py-8">
-        <div className="max-w-2xl mx-auto bg-white/5 backdrop-blur-xl rounded-2xl shadow-xl border border-white/10 p-6 md:p-8 animate-fade-in">
+      <main className="flex-grow container mx-auto px-5 py-8 min-h-screen bg-dark">
+        <div className="max-w-2xl mx-auto bg-dark-lighter rounded-2xl shadow-xl p-6 md:p-8 animate-fade-in">
           <div className="mb-6 flex items-center justify-between">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold mb-2">
-                <span className="bg-gradient-to-r from-[#00c2ff] to-[#7928ca] bg-clip-text text-transparent">
-                  Add New Customer
-                </span>
+              <h1 className="text-2xl md:text-3xl font-bold mb-2 text-primary">
+                Add New Customer
               </h1>
-              <p className="text-white/70">Create a new customer profile</p>
+              <p className="text-gray-400">Create a new customer profile</p>
             </div>
             <button
               type="button"
               onClick={() => router.back()}
-              className="text-white/70 hover:text-white flex items-center transition-colors"
+              className="text-gray-400 hover:text-primary transition-colors"
             >
               <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
@@ -199,13 +197,13 @@ export default function NewCustomerPage() {
           </div>
           
           {error && (
-            <div className="mb-6 p-4 bg-red-100/90 backdrop-blur-sm text-red-700 rounded-xl border border-red-200/50 shadow-lg animate-slide-up">
+            <div className="mb-6 p-4 bg-red-900/30 text-red-400 rounded-xl border border-red-800/50 shadow-lg animate-slide-up">
               {error}
             </div>
           )}
           
           {success && (
-            <div className="mb-6 p-4 bg-green-100/90 backdrop-blur-sm text-green-700 rounded-xl border border-green-200/50 shadow-lg animate-slide-up">
+            <div className="mb-6 p-4 bg-green-900/30 text-green-400 rounded-xl border border-green-800/50 shadow-lg animate-slide-up">
               {success}
             </div>
           )}
@@ -243,7 +241,7 @@ export default function NewCustomerPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {!isCompany && (
                   <div className="relative">
-                    <label htmlFor="title" className="block mb-2 text-sm font-medium text-white">
+                    <label htmlFor="title" className="block mb-2 text-sm font-medium text-gray-300">
                       Title/Salutation
                     </label>
                     <div className="relative">
@@ -251,7 +249,7 @@ export default function NewCustomerPage() {
                         id="title"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        className="w-full p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all"
                       >
                         <option value="">Select...</option>
                         <option value="Mr">Mr</option>
@@ -265,12 +263,12 @@ export default function NewCustomerPage() {
                 )}
                 
                 <div className={`relative ${isCompany ? 'md:col-span-3' : 'md:col-span-2'}`}>
-                  <label htmlFor="firstName" className="block mb-2 text-sm font-medium text-white">
-                    {isCompany ? 'Company Name' : 'First Name'} {!isCompany && <span className="text-[#00c2ff]">*</span>}
+                  <label htmlFor="firstName" className="block mb-2 text-sm font-medium text-gray-300">
+                    {isCompany ? 'Company Name' : 'First Name'} {!isCompany && <span className="text-[#FFD200]">*</span>}
                   </label>
                   <div className="relative">
                     <div className="absolute top-3 left-3 flex items-center pointer-events-none">
-                      <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         {isCompany ? (
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                         ) : (
@@ -283,7 +281,7 @@ export default function NewCustomerPage() {
                       type="text"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full pl-10 p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all"
                       placeholder={isCompany ? "Company name" : "First name"}
                       required
                     />
@@ -292,8 +290,8 @@ export default function NewCustomerPage() {
                 
                 {!isCompany && (
                   <div className="relative">
-                    <label htmlFor="lastName" className="block mb-2 text-sm font-medium text-white">
-                      Last Name <span className="text-[#00c2ff]">*</span>
+                    <label htmlFor="lastName" className="block mb-2 text-sm font-medium text-gray-300">
+                      Last Name <span className="text-[#FFD200]">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -301,7 +299,7 @@ export default function NewCustomerPage() {
                         type="text"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
-                        className="w-full p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all"
                         placeholder="Last name"
                         required
                       />
@@ -311,8 +309,8 @@ export default function NewCustomerPage() {
               </div>
               
               <div className="relative">
-                <label htmlFor="phone" className="block mb-2 text-sm font-medium text-white">
-                  Phone Number <span className="text-[#00c2ff]">*</span>
+                <label htmlFor="phone" className="block mb-2 text-sm font-medium text-gray-300">
+                  Phone Number <span className="text-[#FFD200]">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute top-3 left-3 flex items-center pointer-events-none">
@@ -325,7 +323,7 @@ export default function NewCustomerPage() {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    className="w-full pl-10 p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all"
                     placeholder="+49 123 456789"
                     required
                   />
@@ -333,7 +331,7 @@ export default function NewCustomerPage() {
               </div>
               
               <div className="relative">
-                <label htmlFor="email" className="block mb-2 text-sm font-medium text-white">
+                <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-300">
                   Email Address
                 </label>
                 <div className="relative">
@@ -347,7 +345,7 @@ export default function NewCustomerPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    className="w-full pl-10 p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all"
                     placeholder="example@email.com"
                   />
                 </div>
@@ -359,7 +357,7 @@ export default function NewCustomerPage() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div className="relative">
-                    <label htmlFor="street" className="block mb-2 text-sm font-medium text-white">
+                    <label htmlFor="street" className="block mb-2 text-sm font-medium text-gray-300">
                       Street
                     </label>
                     <div className="relative">
@@ -373,14 +371,14 @@ export default function NewCustomerPage() {
                         type="text"
                         value={street}
                         onChange={(e) => setStreet(e.target.value)}
-                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="w-full pl-10 p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all"
                         placeholder="Street name"
                       />
                     </div>
                   </div>
                   
                   <div className="relative">
-                    <label htmlFor="houseNumber" className="block mb-2 text-sm font-medium text-white">
+                    <label htmlFor="houseNumber" className="block mb-2 text-sm font-medium text-gray-300">
                       House Number
                     </label>
                     <input
@@ -388,14 +386,14 @@ export default function NewCustomerPage() {
                       type="text"
                       value={houseNumber}
                       onChange={(e) => setHouseNumber(e.target.value)}
-                      className="w-full p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all"
                       placeholder="123"
                     />
                   </div>
                 </div>
                 
                 <div className="relative mb-4">
-                  <label htmlFor="addressLine2" className="block mb-2 text-sm font-medium text-white">
+                  <label htmlFor="addressLine2" className="block mb-2 text-sm font-medium text-gray-300">
                     Additional Address Information
                   </label>
                   <input
@@ -403,14 +401,14 @@ export default function NewCustomerPage() {
                     type="text"
                     value={addressLine2}
                     onChange={(e) => setAddressLine2(e.target.value)}
-                    className="w-full p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all"
                     placeholder="Apartment, floor, c/o, etc."
                   />
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="relative">
-                    <label htmlFor="postalCode" className="block mb-2 text-sm font-medium text-white">
+                    <label htmlFor="postalCode" className="block mb-2 text-sm font-medium text-gray-300">
                       Postal Code
                     </label>
                     <input
@@ -418,13 +416,13 @@ export default function NewCustomerPage() {
                       type="text"
                       value={postalCode}
                       onChange={(e) => setPostalCode(e.target.value)}
-                      className="w-full p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all"
                       placeholder="12345"
                     />
                   </div>
                   
                   <div className="relative">
-                    <label htmlFor="city" className="block mb-2 text-sm font-medium text-white">
+                    <label htmlFor="city" className="block mb-2 text-sm font-medium text-gray-300">
                       City
                     </label>
                     <input
@@ -432,7 +430,7 @@ export default function NewCustomerPage() {
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="w-full p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all"
                       placeholder="City"
                     />
                   </div>
@@ -440,7 +438,7 @@ export default function NewCustomerPage() {
               </div>
               
               <div className="relative">
-                <label htmlFor="notes" className="block mb-2 text-sm font-medium text-white">
+                <label htmlFor="notes" className="block mb-2 text-sm font-medium text-gray-300">
                   Notes
                 </label>
                 <div className="relative">
@@ -453,7 +451,7 @@ export default function NewCustomerPage() {
                     id="notes"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                    className="w-full pl-10 p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all"
                     rows="3"
                     placeholder="Additional notes about the customer..."
                   ></textarea>
@@ -472,11 +470,11 @@ export default function NewCustomerPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="px-5 py-2.5 bg-gradient-to-r from-[#0070f3] to-[#0050d3] hover:from-[#0060df] hover:to-[#0040c0] text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:transform-none"
+                className="px-5 py-2.5 bg-[#ffcb00] hover:bg-[#ffcb00]/90 text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:transform-none"
               >
                 {saving ? (
                   <div className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
