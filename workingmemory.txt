@@ -1,5 +1,29 @@
 # Extern MVP - Implementation Summary (May 10, 2025)
 
+## Design System Updates
+
+1. **New Dark Theme Implementation**
+   - Updated color scheme across all pages to a dark gradient background (#121212 to #1a1a1a)
+   - Replaced previous blue-based theme (#0a1929 to #132f4c) with a more modern dark aesthetic
+   - Improved contrast and readability throughout the application
+
+2. **Yellow Accent Color**
+   - Changed accent color from hot pink (#e91e63) to yellow (#ffcb00)
+   - Added hover state using slightly darker yellow (#e6b800)
+   - Applied yellow accents to buttons, price displays, and interactive elements
+   - Used subtle yellow tints for hover states on dark elements
+
+3. **Consistent Visual Elements**
+   - Standardized card components with bg-white/5 background and white/10 borders
+   - Unified button styles across all pages (yellow for primary actions)
+   - Improved form control styling with consistent focus states
+   - Updated loading spinners with yellow color for brand consistency
+
+4. **Updated Pages**
+   - Invoices page: Complete redesign with improved mobile responsiveness and new color scheme
+   - Quotes page: Matched styling to invoices page, fixed syntax errors
+   - Finances page: Updated all components to match the new theme
+
 ## Quotes Management Improvements
 
 1. **Created Dedicated Quotes Page**
@@ -20,6 +44,6 @@
 4. **Enhanced User Experience**
    - Improved appointment dropdown with better date formatting
    - Added German date format (DD.MM.YYYY) for better regional support
-   - Maintained consistent dark blue (#0a1929) and hot pink (#e91e63) color scheme
+   - Improved visual design with the new dark theme and yellow accent colors
 
-These changes make it easier for craftsmen to manage quotes separately from invoices while maintaining the mobile-first, clean design that defines the Extern platform.
+These changes make it easier for craftsmen to manage quotes separately from invoices while maintaining the mobile-first, clean design that defines the Extern platform. The updated color scheme gives the application a more modern look while maintaining excellent readability and contrast for users working in various lighting conditions.

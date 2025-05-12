@@ -6,7 +6,7 @@
  */
 
 import api from '../../app/lib/api';
-import { generateInvoicePdf } from '../utils/pdfGenerator';
+import { generateGermanQuotePdf } from '../utils/pdfGenerator';
 
 export const quotesAPI = {
   /**
@@ -199,23 +199,36 @@ export const quotesAPI = {
   },
   
   /**
-   * Generate a PDF for a quote
+   * Generate a PDF for a quote in German format
    * @param {Object} quote - Quote data
    * @param {Object} craftsmanData - Craftsman data
    * @returns {Promise<boolean>} Success indicator
    */
   generatePdf: async (quote, craftsmanData = {}) => {
     try {
-      // Use the existing PDF generator but modify the title
+      console.log('Generating German format quote PDF for quote:', quote.id);
+      
+      // Add validity period if not present (30 days is standard in Germany)
+      const validUntilDate = new Date(quote.created_at);
+      validUntilDate.setDate(validUntilDate.getDate() + 30);
+      
+      // Format the quote number properly (change INV prefix to ANG)
+      let quoteNumber = quote.invoice_number || quote.id;
+      if (quoteNumber && quoteNumber.startsWith('INV-')) {
+        quoteNumber = 'ANG-' + quoteNumber.substring(4);
+      }
+      
       const modifiedQuote = {
         ...quote,
-        // Add a _documentType property that the PDF generator can use
-        _documentType: 'quote'
+        invoice_number: quoteNumber,
+        valid_until: quote.valid_until || validUntilDate.toISOString()
       };
       
-      return await generateInvoicePdf(modifiedQuote, craftsmanData);
+      console.log('Modified quote number:', quoteNumber);
+      
+      return await generateGermanQuotePdf(modifiedQuote, craftsmanData);
     } catch (error) {
-      console.error('Error generating quote PDF:', error);
+      console.error('Error generating German quote PDF:', error);
       throw error;
     }
   }

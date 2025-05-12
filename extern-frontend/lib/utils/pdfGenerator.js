@@ -210,7 +210,228 @@ export const generateSimpleInvoicePdf = (invoice, craftsmanData = {}) => {
   }
 };
 
+/**
+ * Generate a German-style quote PDF following standard formats
+ * This implements the format shown in the example German quotes
+ * 
+ * @param {Object} quote - The quote data
+ * @param {Object} craftsmanData - Craftsman data
+ * @returns {Promise<boolean>} Success indicator
+ */
+export const generateGermanQuotePdf = (quote, craftsmanData = {}) => {
+  try {
+    // Format dates in German style (DD.MM.YYYY)
+    const formatGermanDate = (dateString) => {
+      const date = new Date(dateString);
+      return `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}`;
+    };
+    
+    // Create a new PDF document
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    // Add craftsman business information at top
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    
+    // Business name and address top line
+    const businessHeaderText = `${craftsmanData.name || 'ZIMMR Craftsman'}, ${craftsmanData.address || ''}`;
+    pdf.text(businessHeaderText, 20, 20);
+    
+    // Recipient address block
+    pdf.text('', 20, 30); // Space
+    pdf.text(quote.customer_name || 'Customer', 20, 35);
+    if (quote.customer_address) {
+      const addressLines = quote.customer_address.split(',');
+      let yPos = 40;
+      addressLines.forEach(line => {
+        pdf.text(line.trim(), 20, yPos);
+        yPos += 5;
+      });
+    }
+    
+    // Title block with metadata
+    pdf.setFillColor(240, 240, 240); // Light gray background for header
+    pdf.rect(20, 60, 170, 10, 'F');
+    
+    // Bold "Angebot" title
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Angebot', 25, 67);
+    
+    // Quote information with clear columns - improved spacing
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Angebotsnr.:', 60, 67);
+    
+    // Format quote number if needed (ensure it starts with ANG instead of INV)
+    let quoteNumber = String(quote.invoice_number || quote.id);
+    if (quoteNumber.startsWith('INV-')) {
+      quoteNumber = 'ANG-' + quoteNumber.substring(4);
+    }
+    pdf.text(quoteNumber, 90, 67);
+    
+    pdf.text('Kundennr.:', 120, 67);
+    pdf.text(String(quote.customer_id || ''), 145, 67);
+    
+    // Draw the date on a second line to avoid cramping
+    pdf.text('Datum:', 60, 75);
+    pdf.text(formatGermanDate(quote.created_at), 90, 75);
+    
+    // Calculate validity date (30 days from creation by default)
+    const validUntilDate = new Date(quote.created_at);
+    validUntilDate.setDate(validUntilDate.getDate() + 30);
+    const validUntil = quote.valid_until ? formatGermanDate(quote.valid_until) : formatGermanDate(validUntilDate);
+    
+    // Add validity date (Gültig bis) on the second line
+    pdf.text('gültig bis:', 145, 75);
+    pdf.text(validUntil, 170, 75);
+    
+    // Draw validity line
+    pdf.setDrawColor(200, 200, 200);
+    pdf.line(20, 82, 190, 82);
+    
+    // Add standard German greeting
+    pdf.text('Sehr geehrte Damen & Herren,', 20, 85);
+    pdf.text('Herzlichen Dank für Ihr Interesse. Wie besprochen, erlauben wir uns, Ihnen folgendes Angebot', 20, 95);
+    pdf.text('zu unterbreiten.', 20, 100);
+    
+    // Add project reference if available
+    if (quote.project_reference || quote.location) {
+      pdf.text('BV:', 20, 110);
+      pdf.text(quote.project_reference || quote.location || '', 35, 110);
+    }
+    
+    // Draw table headers
+    pdf.setFillColor(240, 240, 240);
+    pdf.rect(20, 120, 170, 8, 'F');
+    
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Pos.', 25, 126);
+    pdf.text('Bezeichnung', 40, 126);
+    pdf.text('Menge', 115, 126);
+    pdf.text('Einheit', 135, 126);
+    pdf.text('Einzel €', 155, 126);
+    pdf.text('Gesamt €', 175, 126);
+    
+    // Parse and add line items
+    let yPos = 134;
+    let itemNumber = 1;
+    
+    // If we have line items, use them
+    if (quote.line_items && Array.isArray(quote.line_items) && quote.line_items.length > 0) {
+      quote.line_items.forEach(item => {
+        // Position number
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(String(itemNumber), 25, yPos);
+        
+        // Description (handle multi-line)
+        const description = item.description || '';
+        const descriptionLines = pdf.splitTextToSize(description, 70);
+        pdf.text(descriptionLines, 40, yPos);
+        
+        // Quantity, unit, price, total
+        pdf.text(String(item.quantity || '1'), 115, yPos);
+        pdf.text(String(item.unit || 'Stück'), 135, yPos);
+        pdf.text(String(parseFloat(item.price || 0).toFixed(2)), 155, yPos);
+        
+        const itemTotal = (parseFloat(item.price || 0) * parseFloat(item.quantity || 1)).toFixed(2);
+        pdf.text(String(itemTotal), 175, yPos);
+        
+        // Move Y position based on description length
+        yPos += Math.max(descriptionLines.length * 5, 8);
+        itemNumber++;
+      });
+    } else {
+      // Fallback to a single line item based on quote notes
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('1', 25, yPos);
+      
+      const description = quote.notes || 'Dienstleistungen gemäß Angebot';
+      const descriptionLines = pdf.splitTextToSize(description, 70);
+      pdf.text(descriptionLines, 40, yPos);
+      
+      pdf.text('1', 115, yPos);
+      pdf.text('Pauschal', 135, yPos);
+      pdf.text(String(parseFloat(quote.amount || 0).toFixed(2)), 155, yPos);
+      pdf.text(String(parseFloat(quote.amount || 0).toFixed(2)), 175, yPos);
+      
+      yPos += Math.max(descriptionLines.length * 5, 8);
+    }
+    
+    // Draw subtotal line
+    pdf.setDrawColor(0, 0, 0);
+    pdf.line(20, yPos + 3, 190, yPos + 3);
+    
+    // Add subtotal, VAT, and total
+    yPos += 13;
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Zwischensumme (netto)', 130, yPos);
+    pdf.text(String(parseFloat(quote.amount || 0).toFixed(2)), 175, yPos);
+    
+    yPos += 7;
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Umsatzsteuer 19 %', 130, yPos);
+    pdf.text(String(parseFloat(quote.tax_amount || 0).toFixed(2)), 175, yPos);
+    
+    yPos += 7;
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Gesamtbetrag', 130, yPos);
+    pdf.text(String(parseFloat(quote.total_amount || 0).toFixed(2)), 175, yPos);
+    
+    // Add footer with business information
+    const footerY = 270;
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    
+    // Log craftsman data to debug what's available
+    console.log('Craftsman data for PDF:', craftsmanData);
+    
+    // Extract craftsman profile details with better fallbacks
+    const craftsmanName = craftsmanData.name || craftsmanData.business_name || craftsmanData.user?.name || 'ZIMMR Craftsman';
+    const craftsmanAddress = craftsmanData.address || craftsmanData.business_address || '';
+    const craftsmanPhone = craftsmanData.phone || craftsmanData.contact_phone || craftsmanData.user?.phone || '';
+    const craftsmanEmail = craftsmanData.email || craftsmanData.contact_email || craftsmanData.user?.email || '';
+    const taxId = craftsmanData.tax_id || craftsmanData.vat_number || craftsmanData.steuer_nr || '';
+    const ownerName = craftsmanData.owner_name || craftsmanData.geschaeftsfuehrer || craftsmanName;
+    const bankName = craftsmanData.bank_name || craftsmanData.bank || 'Bank';
+    const iban = craftsmanData.iban || '';
+    const bic = craftsmanData.bic || craftsmanData.swift || '';
+    
+    // Company details on left
+    pdf.text(craftsmanName, 20, footerY);
+    pdf.text(craftsmanAddress, 20, footerY + 4);
+    pdf.text(`Tel.: ${craftsmanPhone}`, 20, footerY + 8);
+    pdf.text(craftsmanEmail, 20, footerY + 12);
+    
+    // Tax and registration info in middle
+    pdf.text(`Steuernummer: ${taxId}`, 80, footerY);
+    pdf.text(`Geschäftsführer: ${ownerName}`, 80, footerY + 4);
+    
+    // Banking info on right
+    pdf.text(bankName, 140, footerY);
+    pdf.text(`IBAN: ${iban}`, 140, footerY + 4);
+    pdf.text(`BIC: ${bic}`, 140, footerY + 8);
+    
+    // Page number at bottom
+    pdf.text('Seite 1/1', 100, footerY + 16);
+    
+    // Generate a filename using the formatted quote number
+    const filename = `angebot_${quoteNumber}_${new Date().toISOString().split('T')[0]}.pdf`;
+    
+    // Download the PDF
+    pdf.save(filename);
+    
+    return true;
+  } catch (error) {
+    console.error('Error generating German quote PDF:', error);
+    throw error;
+  }
+};
+
 export default {
   generateInvoicePdf,
-  generateSimpleInvoicePdf
+  generateSimpleInvoicePdf,
+  generateGermanQuotePdf
 };
