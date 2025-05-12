@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { invoicesAPI } from '../lib/api';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { generateInvoicePdf } from '../../lib/utils/pdfGenerator';
 import { useRouter } from 'next/navigation';
 
 export default function InvoicesPage() {
@@ -143,7 +142,7 @@ export default function InvoicesPage() {
     }
   };
 
-  // Direct client-side PDF generation without server request
+  // Use German-style invoice PDF generator
   const handleGeneratePdf = async (invoice) => {
     try {
       setPdfLoading(true);
@@ -153,15 +152,22 @@ export default function InvoicesPage() {
       const craftsmanData = {
         name: localStorage.getItem('userName') || 'ZIMMR Craftsman',
         email: localStorage.getItem('userEmail') || '',
-        phone: '',
-        address: ''
+        phone: localStorage.getItem('userPhone') || '',
+        address: localStorage.getItem('userAddress') || '',
+        // Add tax and banking information for German invoices
+        tax_id: localStorage.getItem('userTaxId') || '',
+        iban: localStorage.getItem('userIban') || '',
+        bic: localStorage.getItem('userBic') || '',
+        bank_name: localStorage.getItem('userBank') || 'Bank',
+        owner_name: localStorage.getItem('userName') || ''
       };
       
-      // Generate PDF directly using our client-side utility
-      await generateInvoicePdf(invoice, craftsmanData);
+      // Make sure we pass the full invoice object properly
+      await invoicesAPI.generatePdf(invoice, craftsmanData);
+      console.log('German-style invoice PDF generated successfully');
       
     } catch (err) {
-      console.error('Error generating PDF:', err);
+      console.error('Error generating German PDF:', err);
       alert('Failed to generate PDF. Please try again later.');
     } finally {
       setPdfLoading(false);

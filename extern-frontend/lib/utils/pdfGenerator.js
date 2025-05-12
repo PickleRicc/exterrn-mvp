@@ -430,8 +430,237 @@ export const generateGermanQuotePdf = (quote, craftsmanData = {}) => {
   }
 };
 
+/**
+ * Generate a German-style invoice PDF following standard formats
+ * Similar to the German quote format but with invoice-specific terminology
+ * 
+ * @param {Object} invoice - The invoice data
+ * @param {Object} craftsmanData - Craftsman data
+ * @returns {Promise<boolean>} Success indicator
+ */
+export const generateGermanInvoicePdf = (invoice, craftsmanData = {}) => {
+  try {
+    // Format dates in German style (DD.MM.YYYY)
+    const formatGermanDate = (dateString) => {
+      const date = new Date(dateString);
+      return `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}`;
+    };
+    
+    // Create a new PDF document
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    // Add craftsman business information at top
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    
+    // Business name and address top line
+    const businessHeaderText = `${craftsmanData.name || 'ZIMMR Craftsman'}, ${craftsmanData.address || ''}`;
+    pdf.text(businessHeaderText, 20, 20);
+    
+    // Recipient address block
+    pdf.text('', 20, 30); // Space
+    pdf.text(invoice.customer_name || 'Customer', 20, 35);
+    if (invoice.customer_address) {
+      const addressLines = invoice.customer_address.split(',');
+      let yPos = 40;
+      addressLines.forEach(line => {
+        pdf.text(line.trim(), 20, yPos);
+        yPos += 5;
+      });
+    }
+    
+    // Title block with metadata
+    pdf.setFillColor(240, 240, 240); // Light gray background for header
+    pdf.rect(20, 60, 170, 10, 'F');
+    
+    // Bold "Rechnung" title (German for Invoice)
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Rechnung', 25, 67);
+    
+    // Invoice information with clear columns - improved spacing
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Rechnungsnr.:', 60, 67);
+    
+    // Ensure invoice number format
+    let invoiceNumber = String(invoice.invoice_number || invoice.id);
+    if (invoiceNumber.startsWith('ANG-')) {
+      invoiceNumber = 'INV-' + invoiceNumber.substring(4);
+    }
+    pdf.text(invoiceNumber, 90, 67);
+    
+    pdf.text('Kundennr.:', 120, 67);
+    pdf.text(String(invoice.customer_id || ''), 145, 67);
+    
+    // Draw date and due date on a second line
+    pdf.text('Datum:', 60, 75);
+    pdf.text(formatGermanDate(invoice.created_at), 90, 75);
+    
+    // Add due date (specific to invoices)
+    pdf.text('Fällig bis:', 145, 75);
+    
+    // Calculate due date if not provided (14 days is standard in Germany)
+    const dueDateString = invoice.due_date || (() => {
+      const dueDate = new Date(invoice.created_at);
+      dueDate.setDate(dueDate.getDate() + 14);
+      return dueDate.toISOString();
+    })();
+    pdf.text(formatGermanDate(dueDateString), 170, 75);
+    
+    // Draw line under header
+    pdf.setDrawColor(200, 200, 200);
+    pdf.line(20, 82, 190, 82);
+    
+    // Add standard German greeting
+    pdf.text('Sehr geehrte Damen & Herren,', 20, 85);
+    pdf.text('vielen Dank für Ihren Auftrag. Hiermit stellen wir Ihnen folgende Leistungen in Rechnung:', 20, 95);
+    
+    // Add project reference if available
+    if (invoice.project_reference || invoice.location) {
+      pdf.text('BV:', 20, 110);
+      pdf.text(invoice.project_reference || invoice.location || '', 35, 110);
+    }
+    
+    // Draw table headers
+    pdf.setFillColor(240, 240, 240);
+    pdf.rect(20, 120, 170, 8, 'F');
+    
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Pos.', 25, 126);
+    pdf.text('Bezeichnung', 40, 126);
+    pdf.text('Menge', 115, 126);
+    pdf.text('Einheit', 135, 126);
+    pdf.text('Einzel €', 155, 126);
+    pdf.text('Gesamt €', 175, 126);
+    
+    // Parse and add line items
+    let yPos = 134;
+    let itemNumber = 1;
+    
+    // If we have line items, use them
+    if (invoice.line_items && Array.isArray(invoice.line_items) && invoice.line_items.length > 0) {
+      invoice.line_items.forEach(item => {
+        // Position number
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(String(itemNumber), 25, yPos);
+        
+        // Description (handle multi-line)
+        const description = item.description || '';
+        const descriptionLines = pdf.splitTextToSize(description, 70);
+        pdf.text(descriptionLines, 40, yPos);
+        
+        // Quantity, unit, price, total
+        pdf.text(String(item.quantity || '1'), 115, yPos);
+        pdf.text(String(item.unit || 'Stück'), 135, yPos);
+        pdf.text(String(parseFloat(item.price || 0).toFixed(2)), 155, yPos);
+        
+        const itemTotal = (parseFloat(item.price || 0) * parseFloat(item.quantity || 1)).toFixed(2);
+        pdf.text(String(itemTotal), 175, yPos);
+        
+        // Move Y position based on description length
+        yPos += Math.max(descriptionLines.length * 5, 8);
+        itemNumber++;
+      });
+    } else {
+      // Fallback to a single line item based on invoice notes
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('1', 25, yPos);
+      
+      const description = invoice.notes || 'Erbrachte Leistungen';
+      const descriptionLines = pdf.splitTextToSize(description, 70);
+      pdf.text(descriptionLines, 40, yPos);
+      
+      pdf.text('1', 115, yPos);
+      pdf.text('Pauschal', 135, yPos);
+      pdf.text(String(parseFloat(invoice.amount || 0).toFixed(2)), 155, yPos);
+      pdf.text(String(parseFloat(invoice.amount || 0).toFixed(2)), 175, yPos);
+      
+      yPos += Math.max(descriptionLines.length * 5, 8);
+    }
+    
+    // Draw subtotal line
+    pdf.setDrawColor(0, 0, 0);
+    pdf.line(20, yPos + 3, 190, yPos + 3);
+    
+    // Add subtotal, VAT, and total
+    yPos += 13;
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Zwischensumme (netto)', 130, yPos);
+    pdf.text(String(parseFloat(invoice.amount || 0).toFixed(2)), 175, yPos);
+    
+    yPos += 7;
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Umsatzsteuer 19 %', 130, yPos);
+    pdf.text(String(parseFloat(invoice.tax_amount || 0).toFixed(2)), 175, yPos);
+    
+    yPos += 7;
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Gesamtbetrag', 130, yPos);
+    pdf.text(String(parseFloat(invoice.total_amount || 0).toFixed(2)), 175, yPos);
+    
+    // Add invoice-specific payment instructions
+    yPos += 20;
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Bitte überweisen Sie den Rechnungsbetrag unter Angabe der Rechnungsnummer bis zum', 20, yPos);
+    pdf.text(formatGermanDate(dueDateString) + '.', 20, yPos + 5);
+    pdf.text('Bei Zahlung nach diesem Datum behalten wir uns vor, Verzugszinsen zu berechnen.', 20, yPos + 10);
+    
+    // Add footer with business information
+    const footerY = 260; // Move up to make room for payment instructions
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    
+    // Log craftsman data to debug what's available
+    console.log('Craftsman data for Invoice PDF:', craftsmanData);
+    
+    // Extract craftsman profile details with better fallbacks
+    const craftsmanName = craftsmanData.name || craftsmanData.business_name || craftsmanData.user?.name || 'ZIMMR Craftsman';
+    const craftsmanAddress = craftsmanData.address || craftsmanData.business_address || '';
+    const craftsmanPhone = craftsmanData.phone || craftsmanData.contact_phone || craftsmanData.user?.phone || '';
+    const craftsmanEmail = craftsmanData.email || craftsmanData.contact_email || craftsmanData.user?.email || '';
+    const taxId = craftsmanData.tax_id || craftsmanData.vat_number || craftsmanData.steuer_nr || '';
+    const ownerName = craftsmanData.owner_name || craftsmanData.geschaeftsfuehrer || craftsmanName;
+    const bankName = craftsmanData.bank_name || craftsmanData.bank || 'Bank';
+    const iban = craftsmanData.iban || '';
+    const bic = craftsmanData.bic || craftsmanData.swift || '';
+    
+    // Company details on left
+    pdf.text(craftsmanName, 20, footerY);
+    pdf.text(craftsmanAddress, 20, footerY + 4);
+    pdf.text(`Tel.: ${craftsmanPhone}`, 20, footerY + 8);
+    pdf.text(craftsmanEmail, 20, footerY + 12);
+    
+    // Tax and registration info in middle
+    pdf.text(`Steuernummer: ${taxId}`, 80, footerY);
+    pdf.text(`Geschäftsführer: ${ownerName}`, 80, footerY + 4);
+    
+    // Banking info on right
+    pdf.text(bankName, 140, footerY);
+    pdf.text(`IBAN: ${iban}`, 140, footerY + 4);
+    pdf.text(`BIC: ${bic}`, 140, footerY + 8);
+    
+    // Page number at bottom
+    pdf.text('Seite 1/1', 100, footerY + 16);
+    
+    // Generate a filename
+    const filename = `rechnung_${invoiceNumber}_${new Date().toISOString().split('T')[0]}.pdf`;
+    
+    // Download the PDF
+    pdf.save(filename);
+    
+    return true;
+  } catch (error) {
+    console.error('Error generating German invoice PDF:', error);
+    throw error;
+  }
+};
+
 export default {
   generateInvoicePdf,
   generateSimpleInvoicePdf,
-  generateGermanQuotePdf
+  generateGermanQuotePdf,
+  generateGermanInvoicePdf
 };

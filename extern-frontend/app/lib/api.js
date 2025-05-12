@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { quotesAPI as quotesAPIModule } from '../../lib/api/quotesAPI';
+import { generateGermanInvoicePdf } from '../../lib/utils/pdfGenerator';
 
 // Create an axios instance with default config
 const api = axios.create({
@@ -370,12 +371,50 @@ export const invoicesAPI = {
     return response.data;
   },
   
-  // Generate PDF for download
-  generatePdf: async (id, craftsmanId) => {
-    // Instead of opening a new window, use axios to get the PDF as a blob
-    // This ensures the JWT token is included in the request
+  // Generate PDF using our client-side German-style generator
+  generatePdf: async (invoice, craftsmanData = {}) => {
     try {
-      console.log(`Requesting PDF download for invoice ${id} with craftsman ID ${craftsmanId}`);
+      console.log('Using client-side German invoice PDF generator');
+      
+      // If we got an ID instead of a full invoice object, fetch the invoice first
+      if (typeof invoice === 'string' || typeof invoice === 'number') {
+        const craftsmanId = craftsmanData.craftsman_id || craftsmanData;
+        console.log(`Fetching invoice ${invoice} for PDF generation`);
+        invoice = await invoicesAPI.getById(invoice, craftsmanId);
+      }
+      
+      // Calculate due date if not present (14 days is standard in Germany)
+      if (!invoice.due_date) {
+        const dueDateDate = new Date(invoice.created_at);
+        dueDateDate.setDate(dueDateDate.getDate() + 14);
+        invoice.due_date = dueDateDate.toISOString();
+      }
+      
+      // Get craftsman data either from parameters or localStorage
+      const finalCraftsmanData = {
+        name: craftsmanData.name || localStorage.getItem('userName') || 'ZIMMR Craftsman',
+        email: craftsmanData.email || localStorage.getItem('userEmail') || '',
+        phone: craftsmanData.phone || localStorage.getItem('userPhone') || '',
+        address: craftsmanData.address || localStorage.getItem('userAddress') || '',
+        tax_id: craftsmanData.tax_id || localStorage.getItem('userTaxId') || '',
+        iban: craftsmanData.iban || localStorage.getItem('userIban') || '',
+        bic: craftsmanData.bic || localStorage.getItem('userBic') || '',
+        bank_name: craftsmanData.bank_name || localStorage.getItem('userBank') || 'Bank',
+        owner_name: craftsmanData.owner_name || localStorage.getItem('userName') || ''
+      };
+      
+      // Generate the German-style PDF directly
+      return await generateGermanInvoicePdf(invoice, finalCraftsmanData);
+    } catch (error) {
+      console.error('Error generating German invoice PDF:', error);
+      throw error;
+    }
+  },
+  
+  // Legacy method to download PDF from server (for backward compatibility)
+  downloadPdfFromServer: async (id, craftsmanId) => {
+    try {
+      console.log(`Requesting PDF download for invoice ${id} from server`);
       
       // Create a direct link to the PDF with authentication
       const token = localStorage.getItem('token');
@@ -429,7 +468,7 @@ export const invoicesAPI = {
       
       return true;
     } catch (error) {
-      console.error('Error downloading PDF:', error);
+      console.error('Error downloading PDF from server:', error);
       throw error;
     }
   },

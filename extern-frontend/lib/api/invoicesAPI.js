@@ -1,7 +1,33 @@
 import api from '../../app/lib/api';
-import { generateInvoicePdf, generateSimpleInvoicePdf } from '../utils/pdfGenerator';
+import { generateGermanInvoicePdf } from '../utils/pdfGenerator';
 
 export const invoicesAPI = {
+  /**
+   * Generate a German-style PDF for an invoice
+   * @param {Object} invoice - Invoice data
+   * @param {Object} craftsmanData - Craftsman data
+   * @returns {Promise<boolean>} Success indicator
+   */
+  generatePdf: async (invoice, craftsmanData = {}) => {
+    try {
+      console.log('Generating German format invoice PDF for invoice:', invoice.id);
+      
+      // Calculate due date if not present (14 days is standard in Germany)
+      const dueDateDate = new Date(invoice.created_at);
+      dueDateDate.setDate(dueDateDate.getDate() + 14);
+      
+      // Ensure invoice has proper format
+      const modifiedInvoice = {
+        ...invoice,
+        due_date: invoice.due_date || dueDateDate.toISOString()
+      };
+      
+      return await generateGermanInvoicePdf(modifiedInvoice, craftsmanData);
+    } catch (error) {
+      console.error('Error generating German invoice PDF:', error);
+      throw error;
+    }
+  },
   // Get all invoices with optional filters
   getAll: async (filters = {}) => {
     try {

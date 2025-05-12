@@ -7,7 +7,6 @@ import { invoicesAPI, customersAPI, appointmentsAPI } from '../../lib/api';
 import { quotesAPI } from '../../../lib/api/quotesAPI';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
-import { generateInvoicePdf, generateSimpleInvoicePdf } from '../../../lib/utils/pdfGenerator';
 
 function InvoicePageContent() {
   // This component uses useSearchParams which requires Suspense
@@ -360,15 +359,22 @@ function InvoicePageContent() {
       const craftsmanData = {
         name: localStorage.getItem('userName') || 'ZIMMR Craftsman',
         email: localStorage.getItem('userEmail') || '',
-        phone: '',
-        address: ''
+        phone: localStorage.getItem('userPhone') || '',
+        address: localStorage.getItem('userAddress') || '',
+        // Add tax and banking information for German invoices
+        tax_id: localStorage.getItem('userTaxId') || '',
+        iban: localStorage.getItem('userIban') || '',
+        bic: localStorage.getItem('userBic') || '',
+        bank_name: localStorage.getItem('userBank') || 'Bank',
+        owner_name: localStorage.getItem('userName') || ''
       };
       
-      // Generate PDF directly
-      await generateInvoicePdf(invoiceData, craftsmanData);
+      // Generate German-style PDF using our new API method
+      await invoicesAPI.generatePdf(invoiceData, craftsmanData);
+      console.log('German-style invoice PDF generated successfully');
       
     } catch (err) {
-      console.error('Error generating PDF:', err);
+      console.error('Error generating German PDF:', err);
       alert('Failed to generate PDF. Please try again later.');
     } finally {
       setPdfLoading(false);
