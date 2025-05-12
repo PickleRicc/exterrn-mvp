@@ -5,6 +5,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'heading': ['Archivo Black'],
+      },
       colors: {
         primary: '#ffcb00',     // Yellow accent color
         secondary: '#1a1a1a',   // Dark gray for secondary elements

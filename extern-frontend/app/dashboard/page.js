@@ -145,8 +145,8 @@ export default function Home() {
           </div>
         ) : !isLoggedIn ? (
           <div className="text-center py-16 animate-fade-in">
-            <h1 className="text-4xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-[#ffcb00] to-[#e6b800] bg-clip-text text-transparent">Welcome to ZIMMR</span>
+            <h1 className="text-4xl font-bold mb-6 font-heading">
+              <span className="bg-gradient-to-r from-[#ffcb00] to-[#e6b800] bg-clip-text text-transparent">Welcome to EXTERN</span>
             </h1>
             <p className="text-xl text-white/80 max-w-3xl mx-auto mb-10">
               The smart platform for tilesmen to manage appointments, customers, and materials.

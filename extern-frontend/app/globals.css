@@ -137,7 +137,7 @@ img, video, iframe, embed, object {
 }
 
 /* Fix for long words and URLs */
-p, h1, h2, h3, h4, h5, h6, a, span, div {
+p, a, span, div {
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
@@ -149,6 +149,14 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Apply Archivo Black font to all headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Archivo Black', sans-serif;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  letter-spacing: -0.02em;
 }
 
 /* Modern button styles */

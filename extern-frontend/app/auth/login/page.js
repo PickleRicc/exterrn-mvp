@@ -57,7 +57,7 @@ function LoginContent() {
       
       <div className="w-full max-w-md z-10 animate-fade-in">
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-3">
+          <h1 className="text-3xl md:text-4xl font-bold mb-3 font-heading">
             <span className="text-[#ffcb00]">ZIMMR</span>
           </h1>
           <p className="text-white text-lg font-light">Sign in to your account</p>
@@ -168,7 +168,7 @@ function LoginLoading() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#121212] to-[#1a1a1a] px-5 py-10">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-3">
+          <h1 className="text-3xl md:text-4xl font-bold mb-3 font-heading">
             <span className="text-[#ffcb00]">ZIMMR</span>
           </h1>
           <p className="text-white/80 text-lg font-light">Loading...</p>

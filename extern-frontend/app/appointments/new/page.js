@@ -195,7 +195,7 @@ export default function NewAppointmentPage() {
         <div className="max-w-2xl mx-auto bg-dark-lighter rounded-2xl shadow-xl p-6 md:p-8 animate-fade-in">
           <div className="mb-6 flex items-center justify-between">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold mb-2 text-primary">
+              <h1 className="text-2xl md:text-3xl font-bold mb-2 text-primary font-heading">
                 New Appointment
               </h1>
               <p className="text-gray-400">Schedule a new appointment with a customer</p>

@@ -497,7 +497,7 @@ function InvoicePageContent() {
           {/* Header Section */}
           <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 transition-all duration-300 mb-6">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-2 text-white">Create New {getDocumentTypeName()}</h2>
+              <h2 className="text-2xl md:text-3xl font-bold mb-2 text-primary font-heading">Create New {getDocumentTypeName()}</h2>
               <p className="text-gray-400">Fill in the details below or select a completed appointment to pre-fill information.</p>
             </div>
             <Link
