@@ -345,117 +345,161 @@ export default function NewQuotePage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-[#0a1929] text-white p-6">
-        <main className="max-w-3xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold">Create New Quote</h1>
+      <div className="min-h-screen bg-gradient-to-b from-[#121212] to-[#1a1a1a] text-white">
+        <main className="container mx-auto px-4 py-8">
+          {/* Page Title and Back Link */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold">Create New Quote</h1>
+              <p className="text-gray-400">Fill out the form to create a new quote</p>
+            </div>
             <Link 
               href="/quotes" 
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg flex items-center transition-colors"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-              </svg>
               Back to Quotes
             </Link>
           </div>
-          
-          {error && (
-            <div className="bg-red-900/20 border border-red-800 text-red-400 p-4 rounded-lg mb-6">
-              {error}
-            </div>
-          )}
-          
-          {success && (
-            <div className="bg-green-900/20 border border-green-800 text-green-400 p-4 rounded-lg mb-6 flex flex-col">
-              <p className="mb-4">Quote created successfully!</p>
-              <div className="flex space-x-4">
-                <button 
+
+          {/* Success Message */}
+          {success && createdQuote && (
+            <div className="bg-green-900/50 border border-green-500 text-white p-4 rounded-xl mb-6">
+              <h2 className="font-bold text-lg mb-2">Quote Created Successfully!</h2>
+              <p className="mb-4">Your quote has been created and saved to the system.</p>
+              <div className="flex flex-wrap gap-3">
+                <button
                   onClick={handleGeneratePdf}
                   disabled={pdfLoading}
-                  className={`px-4 py-2 ${pdfLoading ? 'bg-gray-700 cursor-not-allowed' : 'bg-[#e91e63] hover:bg-[#d81b60]'} text-white font-medium rounded-xl transition-colors`}
+                  className={`px-4 py-2 ${pdfLoading ? 'bg-gray-600 cursor-not-allowed' : 'bg-[#ffcb00] hover:bg-[#e6b800]'} text-black font-semibold rounded-xl transition-colors flex items-center justify-center`}
                 >
-                  {pdfLoading ? 'Generating PDF...' : 'Download PDF'}
+                  {pdfLoading ? (
+                    <>
+                      <span className="mr-2 h-4 w-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                      Generating PDF...
+                    </>
+                  ) : (
+                    'Generate PDF'
+                  )}
                 </button>
-                <button 
+                <button
                   onClick={handleRedirectToQuotes}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors"
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors"
                 >
                   View All Quotes
                 </button>
               </div>
             </div>
           )}
-          
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-900/50 border border-red-500 text-white p-4 rounded-xl mb-6">
+              <h2 className="font-bold text-lg mb-2">Error</h2>
+              <p>{error}</p>
+            </div>
+          )}
+
+          {/* Form Container */}
           {!success && (
-            <div className="bg-[#132f4c] rounded-lg p-6">
+            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
               <form onSubmit={handleSubmit}>
-                {/* Select appointment (optional) */}
+                {/* Appointment Selection */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-1">
-                    Pre-fill from appointment (optional)
+                    Select Appointment (Optional)
                   </label>
-                  <select
-                    name="appointment_id"
-                    value={formData.appointment_id}
-                    onChange={handleAppointmentChange}
-                    className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
-                    disabled={loadingAppointments || success}
-                  >
-                    <option value="">Select an appointment...</option>
-                    {loadingAppointments ? (
-                      <option disabled>Loading appointments...</option>
-                    ) : appointments.length > 0 ? (
-                      appointments.map(appointment => (
+                  <div className="relative">
+                    <select
+                      name="appointment_id"
+                      value={formData.appointment_id}
+                      onChange={handleAppointmentChange}
+                      className="w-full bg-[#1e3a5f] border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#ffcb00] appearance-none"
+                      disabled={loadingAppointments || success}
+                    >
+                      <option value="">-- Select an appointment --</option>
+                      {appointments.map(appointment => (
                         <option key={appointment.id} value={appointment.id}>
-                          {formatAppointmentDate(appointment.date)} | {appointment.customer_name || 'Customer'} | {appointment.service_type || 'Service'} {appointment.status ? `(${appointment.status})` : ''}
+                          {formatAppointmentDate(appointment.date)} - {appointment.customer_name || 'No customer name'}
                         </option>
-                      ))
-                    ) : (
-                      <option disabled>No appointments found</option>
-                    )}
-                  </select>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                  {loadingAppointments && (
+                    <p className="text-sm text-gray-400 mt-1 flex items-center">
+                      <span className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
+                      Loading appointments...
+                    </p>
+                  )}
                 </div>
-                
+
+                {/* Selected Appointment Card */}
+                {selectedAppointment && (
+                  <div className="mb-6 p-4 bg-[#1e3a5f]/50 rounded-xl border border-white/10">
+                    <h3 className="font-medium mb-2">Selected Appointment</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-400">Date:</span> {formatAppointmentDate(selectedAppointment.date)}
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Customer:</span> {selectedAppointment.customer_name || 'N/A'}
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Location:</span> {selectedAppointment.location || 'N/A'}
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Status:</span> {selectedAppointment.status || 'N/A'}
+                      </div>
+                      {selectedAppointment.notes && (
+                        <div className="col-span-1 md:col-span-2">
+                          <span className="text-gray-400">Notes:</span> {selectedAppointment.notes}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Form Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Customer */}
-                  <div>
+                  {/* Customer Selection */}
+                  <div className="col-span-1 md:col-span-2">
                     <label className="block text-sm font-medium mb-1">
                       Customer *
                     </label>
-                    <select
-                      name="customer_id"
-                      value={formData.customer_id}
-                      onChange={handleChange}
-                      className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
-                      required
-                      disabled={loading || success}
-                    >
-                      <option value="">Select a customer...</option>
-                      {loading ? (
-                        <option disabled>Loading customers...</option>
-                      ) : customers.length > 0 ? (
-                        customers.map(customer => (
-                          <option key={customer.id} value={customer.id}>
-                            {customer.name}
-                          </option>
-                        ))
-                      ) : (
-                        <option disabled>No customers found</option>
-                      )}
-                    </select>
-                    <div className="text-xs text-gray-400 mt-1 flex justify-between">
-                      <span>Required field</span>
-                      <Link 
-                        href="/customers/new" 
-                        target="_blank"
-                        className="text-[#e91e63] hover:text-[#f06292]"
+                    <div className="relative">
+                      <select
+                        name="customer_id"
+                        value={formData.customer_id}
+                        onChange={handleChange}
+                        className="w-full bg-[#1e3a5f] border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#ffcb00] appearance-none"
+                        required
+                        disabled={loading || success}
                       >
-                        Add New Customer
-                      </Link>
+                        <option value="">-- Select a customer --</option>
+                        {customers.map(customer => (
+                          <option key={customer.id} value={customer.id}>
+                            {customer.name} {customer.email ? `(${customer.email})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      </div>
                     </div>
+                    {loading && (
+                      <p className="text-sm text-gray-400 mt-1 flex items-center">
+                        <span className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
+                        Loading customers...
+                      </p>
+                    )}
                   </div>
-                  
+
                   {/* Service Date */}
                   <div>
                     <label className="block text-sm font-medium mb-1">
@@ -466,77 +510,88 @@ export default function NewQuotePage() {
                       name="service_date"
                       value={formData.service_date}
                       onChange={handleChange}
-                      className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                      className="w-full bg-[#1e3a5f] border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]"
                       disabled={success}
                     />
                   </div>
-                  
+
                   {/* Location */}
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Service Location
+                      Location
                     </label>
                     <input
                       type="text"
                       name="location"
                       value={formData.location}
                       onChange={handleChange}
-                      className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
-                      placeholder="Customer's address or service location"
+                      className="w-full bg-[#1e3a5f] border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]"
                       disabled={success}
                     />
                   </div>
-                  
-                  {/* VAT Exempt */}
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="vat_exempt"
-                      id="vat_exempt"
-                      checked={formData.vat_exempt}
-                      onChange={handleChange}
-                      className="w-4 h-4 bg-[#1e3a5f] border border-[#2a4d76] rounded focus:ring-[#e91e63] focus:ring-2"
-                      disabled={success}
-                    />
-                    <label htmlFor="vat_exempt" className="ml-2 text-sm font-medium">
-                      VAT Exempt
-                    </label>
+
+                  {/* VAT Exempt Checkbox */}
+                  <div className="col-span-1 md:col-span-2">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="vat_exempt"
+                        name="vat_exempt"
+                        checked={formData.vat_exempt}
+                        onChange={(e) => setFormData({...formData, vat_exempt: e.target.checked})}
+                        className="h-5 w-5 text-[#ffcb00] focus:ring-[#ffcb00] border-white/30 rounded"
+                        disabled={success}
+                      />
+                      <label htmlFor="vat_exempt" className="ml-2 block text-sm">
+                        VAT exempt (no tax will be calculated)
+                      </label>
+                    </div>
                   </div>
-                  
+
                   {/* Amount (Net) */}
                   <div>
                     <label className="block text-sm font-medium mb-1">
                       Amount (Net) *
                     </label>
-                    <input
-                      type="number"
-                      name="amount"
-                      value={formData.amount}
-                      onChange={handleChange}
-                      step="0.01"
-                      min="0"
-                      className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
-                      required
-                      disabled={success}
-                    />
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        €
+                      </span>
+                      <input
+                        type="number"
+                        name="amount"
+                        value={formData.amount}
+                        onChange={handleChange}
+                        step="0.01"
+                        min="0"
+                        className="w-full bg-[#1e3a5f] border border-white/10 rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]"
+                        required
+                        disabled={success}
+                      />
+                    </div>
                   </div>
-                  
+
                   {/* Tax Amount (calculated) */}
                   {!formData.vat_exempt && (
                     <div>
                       <label className="block text-sm font-medium mb-1">
                         Tax Amount (19% VAT)
                       </label>
-                      <input
-                        type="number"
-                        name="tax_amount"
-                        value={formData.tax_amount}
-                        onChange={handleChange}
-                        step="0.01"
-                        min="0"
-                        className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
-                        disabled={success}
-                      />
+                      <div className="relative">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                          €
+                        </span>
+                        <input
+                          type="number"
+                          name="tax_amount"
+                          value={formData.tax_amount}
+                          onChange={handleChange}
+                          step="0.01"
+                          min="0"
+                          className="w-full bg-[#1e3a5f] border border-white/10 rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]"
+                          disabled={success}
+                        />
+                      </div>
                       <p className="text-xs text-gray-400 mt-1">
                         Automatically calculated as 19% of the amount
                       </p>
@@ -548,18 +603,23 @@ export default function NewQuotePage() {
                     <label className="block text-sm font-medium mb-1">
                       Total Amount (Gross) *
                     </label>
-                    <input
-                      type="number"
-                      name="total_amount"
-                      value={formData.total_amount}
-                      onChange={handleChange}
-                      step="0.01"
-                      min="0"
-                      className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63] bg-opacity-50"
-                      required
-                      readOnly
-                      disabled={success}
-                    />
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        €
+                      </span>
+                      <input
+                        type="number"
+                        name="total_amount"
+                        value={formData.total_amount}
+                        onChange={handleChange}
+                        step="0.01"
+                        min="0"
+                        className="w-full bg-[#1e3a5f] border border-white/10 rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]"
+                        required
+                        readOnly
+                        disabled={success}
+                      />
+                    </div>
                     <p className="text-xs text-gray-400 mt-1">
                       Automatically calculated from amount + tax
                     </p>
@@ -575,7 +635,7 @@ export default function NewQuotePage() {
                       name="due_date"
                       value={formData.due_date}
                       onChange={handleChange}
-                      className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                      className="w-full bg-[#1e3a5f] border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]"
                       disabled={success}
                     />
                   </div>
@@ -590,27 +650,28 @@ export default function NewQuotePage() {
                       value={formData.notes}
                       onChange={handleChange}
                       rows="4"
-                      className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                      className="w-full bg-[#1e3a5f] border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]"
                       disabled={success}
                     ></textarea>
                   </div>
                 </div>
                 
-                <div className="mt-6 flex justify-end">
-                  <Link 
-                    href="/quotes" 
-                    className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors mr-3"
-                  >
-                    Cancel
-                  </Link>
+                {/* Submit Button */}
+                <div className="mt-8 pt-6 border-t border-white/10 flex justify-end">
                   <button
                     type="submit"
-                    disabled={submitting || success}
-                    className={`px-4 py-2 bg-[#e91e63] hover:bg-[#d81b60] text-white font-medium rounded-xl transition-colors ${
-                      (submitting || success) ? 'opacity-70 cursor-not-allowed' : ''
-                    }`}
+                    disabled={submitting || loading || !formData.customer_id || !formData.amount} // Disable on submit/load/missing required fields
+                    className={`px-6 py-2.5 ${submitting ? 'bg-gray-600 cursor-not-allowed' : 'bg-[#ffcb00] hover:bg-[#e6b800]'} text-black font-semibold rounded-xl transition-colors flex items-center justify-center disabled:opacity-60`}
+                    style={{ minWidth: '150px' }} // Ensure minimum width
                   >
-                    {submitting ? 'Creating...' : 'Create Quote'}
+                    {submitting ? (
+                      <>
+                        <span className="mr-2 h-4 w-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                        Creating...
+                      </>
+                    ) : (
+                      'Create Quote'
+                    )}
                   </button>
                 </div>
               </form>

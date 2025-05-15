@@ -251,10 +251,10 @@ export default function AppointmentDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#071a2b] to-[#132f4c]">
+      <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#121212] to-[#1a1a1a]">
         <Header />
         <main className="flex-grow container mx-auto px-4 py-8 flex justify-center items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00c2ff]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </main>
         <Footer />
       </div>
@@ -263,10 +263,10 @@ export default function AppointmentDetailPage() {
 
   if (!appointment) {
     return (
-      <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#071a2b] to-[#132f4c]">
+      <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#121212] to-[#1a1a1a]">
         <Header />
         <main className="flex-grow container mx-auto px-4 py-8">
-          <div className="bg-[#132f4c]/50 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl p-6 mb-8">
+          <div className="bg-dark-lighter rounded-xl shadow-xl p-6 mb-8">
             <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">Appointment Not Found</h1>
             {error && (
               <div className="bg-red-900/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6">
@@ -275,7 +275,7 @@ export default function AppointmentDetailPage() {
             )}
             <a
               href="/appointments"
-              className="inline-flex items-center px-4 py-2 bg-[#071a2b] hover:bg-[#0a2540] text-white rounded-lg border border-white/10 transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-dark-lighter hover:bg-dark-border text-white font-medium rounded-xl transition-all duration-200 border border-dark-border"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -290,11 +290,11 @@ export default function AppointmentDetailPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#071a2b] to-[#132f4c]">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#121212] to-[#1a1a1a] text-white">
       <Header />
       
       <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="bg-[#132f4c]/50 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl p-6 mb-8">
+        <div className="bg-dark rounded-xl shadow-xl p-6 mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <div>
               <div className="flex items-center mb-2">
@@ -322,7 +322,7 @@ export default function AppointmentDetailPage() {
               <div className="flex space-x-3">
                 <button
                   onClick={openCompleteModal}
-                  className="mt-4 md:mt-0 px-4 py-2 bg-gradient-to-r from-[#0070f3] to-[#0050d3] text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300"
+                  className="mt-4 md:mt-0 px-4 py-2 bg-primary hover:bg-[#e6b800] text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5"
                 >
                   <div className="flex items-center">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -333,7 +333,7 @@ export default function AppointmentDetailPage() {
                 </button>
                 <button
                   onClick={openEditModal}
-                  className="mt-4 md:mt-0 px-4 py-2 bg-[#071a2b] hover:bg-[#0a2540] text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300"
+                  className="mt-4 md:mt-0 px-4 py-2 bg-dark-lighter hover:bg-dark-border text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300"
                 >
                   <div className="flex items-center">
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -359,7 +359,7 @@ export default function AppointmentDetailPage() {
           )}
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            <div className="bg-[#071a2b]/50 rounded-xl border border-white/10 p-6">
+            <div className="bg-dark rounded-xl shadow-xl p-6">
               <h2 className="text-xl font-semibold text-white mb-4">Appointment Details</h2>
               
               <div className="space-y-3">
@@ -399,7 +399,7 @@ export default function AppointmentDetailPage() {
               {appointment.notes && (
                 <div className="mt-6">
                   <h3 className="text-white font-medium mb-2">Notes:</h3>
-                  <p className="text-white/80 bg-[#071a2b]/70 p-3 rounded-lg border border-white/5 whitespace-pre-line">
+                  <p className="text-white/80 bg-dark p-3 rounded-lg whitespace-pre-line">
                     {appointment.notes}
                   </p>
                 </div>
@@ -407,7 +407,7 @@ export default function AppointmentDetailPage() {
             </div>
             
             {customer && (
-              <div className="bg-[#071a2b]/50 rounded-xl border border-white/10 p-6">
+              <div className="bg-dark rounded-xl shadow-xl p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Customer Information</h2>
                 
                 <div className="space-y-3">
@@ -436,9 +436,9 @@ export default function AppointmentDetailPage() {
                   <div className="flex justify-between">
                     <a
                       href={`/customers/${customer.id}`}
-                      className="text-[#00c2ff] hover:text-white transition-colors inline-flex items-center"
+                      className="text-primary hover:text-[#e6b800] transition-colors inline-flex items-center"
                     >
-                      <span>View Customer Profile</span>
+                      <span className="text-primary">View Customer Profile</span>
                       <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                       </svg>
@@ -454,7 +454,7 @@ export default function AppointmentDetailPage() {
       {/* Complete Appointment Modal */}
       {showCompleteModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#132f4c] rounded-xl shadow-2xl border border-white/10 p-6 max-w-3xl w-full animate-scale-in overflow-y-auto max-h-[90vh]">
+          <div className="bg-dark rounded-xl shadow-2xl p-6 max-w-3xl w-full animate-scale-in overflow-y-auto max-h-[90vh]">
             <h3 className="text-xl font-bold text-white mb-4">Complete Appointment & Generate Invoice</h3>
             
             {error && (
@@ -481,7 +481,7 @@ export default function AppointmentDetailPage() {
                 value={servicePrice}
                 onChange={(e) => setServicePrice(e.target.value)}
                 placeholder="Enter service price"
-                className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                className="w-full p-3 border border-dark-border rounded-xl bg-dark text-white focus:ring-2 focus:ring-primary focus:border-primary transition-all"
               />
             </div>
             
@@ -494,7 +494,7 @@ export default function AppointmentDetailPage() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Add any notes for the invoice..."
-                className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                className="w-full p-3 border border-dark-border rounded-xl bg-dark text-white focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                 rows="3"
               ></textarea>
             </div>
@@ -502,14 +502,14 @@ export default function AppointmentDetailPage() {
             <div className="flex justify-end space-x-3">
               <button
                 onClick={closeCompleteModal}
-                className="px-4 py-2 border border-white/20 rounded-lg text-white hover:bg-white/5 transition-all"
+                className="px-4 py-2 border border-dark-border rounded-xl text-white hover:bg-white/10 transition-all duration-200"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCompleteAppointment}
                 disabled={processingAction === 'complete'}
-                className="px-4 py-2 bg-gradient-to-r from-[#0070f3] to-[#0050d3] text-white rounded-lg shadow hover:shadow-lg transition-all flex items-center"
+                className="px-4 py-2 bg-primary hover:bg-[#e6b800] text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 flex items-center"
               >
                 {processingAction === 'complete' ? (
                   <>
@@ -536,7 +536,7 @@ export default function AppointmentDetailPage() {
       {/* Edit Appointment Modal */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#132f4c] rounded-xl shadow-2xl border border-white/10 p-6 max-w-3xl w-full animate-scale-in overflow-y-auto max-h-[90vh]">
+          <div className="bg-dark rounded-xl shadow-2xl p-6 max-w-3xl w-full animate-scale-in overflow-y-auto max-h-[90vh]">
             <h3 className="text-xl font-bold text-white mb-4">Edit Appointment</h3>
             
             {error && (
@@ -561,7 +561,7 @@ export default function AppointmentDetailPage() {
                 value={editForm.scheduled_at}
                 onChange={handleEditFormChange}
                 name="scheduled_at"
-                className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                className="w-full p-3 border border-dark-border rounded-xl bg-dark text-white focus:ring-2 focus:ring-primary focus:border-primary transition-all"
               />
             </div>
             
@@ -575,7 +575,7 @@ export default function AppointmentDetailPage() {
                 onChange={handleEditFormChange}
                 name="notes"
                 placeholder="Add any notes for the appointment..."
-                className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                className="w-full p-3 border border-dark-border rounded-xl bg-dark text-white focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                 rows="3"
               ></textarea>
             </div>
@@ -591,7 +591,7 @@ export default function AppointmentDetailPage() {
                 value={editForm.duration}
                 onChange={handleEditFormChange}
                 name="duration"
-                className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                className="w-full p-3 border border-dark-border rounded-xl bg-dark text-white focus:ring-2 focus:ring-primary focus:border-primary transition-all"
               />
             </div>
             
@@ -605,21 +605,21 @@ export default function AppointmentDetailPage() {
                 value={editForm.location}
                 onChange={handleEditFormChange}
                 name="location"
-                className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                className="w-full p-3 border border-dark-border rounded-xl bg-dark text-white focus:ring-2 focus:ring-primary focus:border-primary transition-all"
               />
             </div>
             
             <div className="flex justify-end space-x-3">
               <button
                 onClick={closeEditModal}
-                className="px-4 py-2 border border-white/20 rounded-lg text-white hover:bg-white/5 transition-all"
+                className="px-4 py-2 border border-dark-border rounded-xl text-white hover:bg-white/10 transition-all duration-200"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveAppointment}
                 disabled={processingAction === 'edit'}
-                className="px-4 py-2 bg-[#071a2b] hover:bg-[#0a2540] text-white rounded-lg shadow hover:shadow-lg transition-all flex items-center"
+                className="px-4 py-2 bg-primary hover:bg-[#e6b800] text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 flex items-center"
               >
                 {processingAction === 'edit' ? (
                   <>
