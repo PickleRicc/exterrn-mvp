@@ -92,23 +92,23 @@ export default function CustomerDetailsPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#0a1929] to-[#132f4c]">
+    <div className="min-h-screen bg-black text-white">
       <Header />
-      <main className="flex-grow container mx-auto px-5 py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
               <Link 
                 href="/customers" 
-                className="text-white/70 hover:text-white flex items-center mb-2 transition-colors"
+                className="text-[#ffcb00] hover:text-[#e6b800] flex items-center mb-2 transition-colors"
               >
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
                 Back to Customers
               </Link>
-              <h1 className="text-3xl font-bold mb-2">
-                <span className="bg-gradient-to-r from-[#00c2ff] to-[#7928ca] bg-clip-text text-transparent">
+              <h1 className="text-[#e6b800] font-bold mb-2">
+                <span className="bg-gradient-to-r from-[#e6b800] to-[#e6b800] bg-clip-text text-transparent">
                   {editMode ? 'Edit Customer' : (customer?.name || 'Customer Details')}
                 </span>
               </h1>
@@ -117,10 +117,10 @@ export default function CustomerDetailsPage() {
               <div className="mt-4 md:mt-0 flex space-x-3">
                 <button 
                   onClick={() => setEditMode(true)}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center"
+                  className="px-4 py-2 bg-[#ffcb00] hover:bg-[#e6b800] text-black rounded-lg transition-colors flex items-center"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                   </svg>
                   Edit Customer
                 </button>
@@ -129,13 +129,13 @@ export default function CustomerDetailsPage() {
           </div>
           
           {error && (
-            <div className="bg-red-100/20 backdrop-blur-sm text-red-500 p-4 rounded-xl mb-6">
+            <div className="bg-red-900/30 text-red-400 p-4 rounded-xl mb-6 border border-red-800/50">
               <p>{error}</p>
             </div>
           )}
           
           {success && (
-            <div className="bg-green-100/20 backdrop-blur-sm text-green-500 p-4 rounded-xl mb-6 flex items-center">
+            <div className="bg-green-900/30 text-green-400 p-4 rounded-xl mb-6 border border-green-800/50 flex items-center">
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
@@ -145,15 +145,15 @@ export default function CustomerDetailsPage() {
           
           {loading && !customer ? (
             <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#ffcb00]"></div>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2">
-                <div className="bg-white/5 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 mb-8">
+                <div className="bg-[#2a2a2a]/70 backdrop-blur-md rounded-2xl shadow-xl border border-[#2a2a2a] overflow-hidden p-6">
                   <div className="p-6">
                     <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-                      <svg className="w-5 h-5 mr-2 text-[#00c2ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-5 h-5 mr-2 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                       </svg>
                       Customer Information
@@ -172,7 +172,7 @@ export default function CustomerDetailsPage() {
                             required
                             value={formData.name}
                             onChange={handleInputChange}
-                            className="appearance-none relative block w-full px-3 py-2.5 border border-white/10 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-transparent sm:text-sm"
+                            className="appearance-none relative block w-full px-3 py-2.5 border border-white/10 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/50 focus:border-transparent sm:text-sm"
                           />
                         </div>
                         
@@ -186,7 +186,7 @@ export default function CustomerDetailsPage() {
                             type="email"
                             value={formData.email}
                             onChange={handleInputChange}
-                            className="appearance-none relative block w-full px-3 py-2.5 border border-white/10 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-transparent sm:text-sm"
+                            className="appearance-none relative block w-full px-3 py-2.5 border border-white/10 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/50 focus:border-transparent sm:text-sm"
                           />
                         </div>
                         
@@ -201,7 +201,7 @@ export default function CustomerDetailsPage() {
                             required
                             value={formData.phone}
                             onChange={handleInputChange}
-                            className="appearance-none relative block w-full px-3 py-2.5 border border-white/10 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-transparent sm:text-sm"
+                            className="appearance-none relative block w-full px-3 py-2.5 border border-white/10 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/50 focus:border-transparent sm:text-sm"
                           />
                         </div>
                         
@@ -215,7 +215,7 @@ export default function CustomerDetailsPage() {
                             rows="3"
                             value={formData.address}
                             onChange={handleInputChange}
-                            className="appearance-none relative block w-full px-3 py-2.5 border border-white/10 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-transparent sm:text-sm"
+                            className="appearance-none relative block w-full px-3 py-2.5 border border-white/10 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/50 focus:border-transparent sm:text-sm"
                           ></textarea>
                         </div>
                         
@@ -228,7 +228,7 @@ export default function CustomerDetailsPage() {
                             name="service_type"
                             value={formData.service_type}
                             onChange={handleInputChange}
-                            className="appearance-none relative block w-full px-3 py-2.5 border border-white/10 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-transparent sm:text-sm"
+                            className="appearance-none relative block w-full px-3 py-2.5 border border-white/10 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/50 focus:border-transparent sm:text-sm"
                           >
                             <option value="">Select service type</option>
                             <option value="Bathroom Tiling">Bathroom Tiling</option>
@@ -247,13 +247,13 @@ export default function CustomerDetailsPage() {
                           <button
                             type="button"
                             onClick={() => setEditMode(false)}
-                            className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+                            className="px-5 py-2.5 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5"
                           >
                             Cancel
                           </button>
                           <button
                             type="submit"
-                            className="px-4 py-2.5 bg-gradient-to-r from-[#0070f3] to-[#0050d3] hover:from-[#0060df] hover:to-[#0040c0] text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300"
+                            className="px-4 py-2.5 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300"
                             disabled={loading}
                           >
                             {loading ? 'Saving...' : 'Save Changes'}
@@ -294,10 +294,10 @@ export default function CustomerDetailsPage() {
               </div>
               
               <div className="lg:col-span-1">
-                <div className="bg-white/5 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 mb-6">
+                <div className="bg-[#2a2a2a]/70 backdrop-blur-md rounded-2xl shadow-xl border border-[#2a2a2a] overflow-hidden">
                   <div className="p-6">
                     <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-                      <svg className="w-5 h-5 mr-2 text-[#00c2ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-5 h-5 mr-2 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                       </svg>
                       Quick Actions
@@ -306,9 +306,9 @@ export default function CustomerDetailsPage() {
                     <div className="space-y-3">
                       <Link
                         href={`/spaces/new?customer_id=${customerId}`}
-                        className="block w-full px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center"
+                        className="block w-full px-4 py-3 bg-[#2a2a2a]/50 hover:bg-[#2a2a2a]/70 text-white rounded-xl transition-colors flex items-center border border-[#2a2a2a]"
                       >
-                        <svg className="w-5 h-5 mr-2 text-[#00c2ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="w-5 h-5 mr-2 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                         </svg>
                         Add New Space
@@ -316,9 +316,9 @@ export default function CustomerDetailsPage() {
                       
                       <Link
                         href={`/appointments/new?customer_id=${customerId}`}
-                        className="block w-full px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center"
+                        className="block w-full px-4 py-3 bg-[#2a2a2a]/50 hover:bg-[#2a2a2a]/70 text-white rounded-xl transition-colors flex items-center border border-[#2a2a2a]"
                       >
-                        <svg className="w-5 h-5 mr-2 text-[#00c2ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="w-5 h-5 mr-2 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
                         Schedule Appointment
@@ -326,9 +326,9 @@ export default function CustomerDetailsPage() {
                       
                       <Link
                         href={`/customers`}
-                        className="block w-full px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors flex items-center"
+                        className="block w-full px-4 py-3 bg-[#2a2a2a]/50 hover:bg-[#2a2a2a]/70 text-white rounded-xl transition-colors flex items-center border border-[#2a2a2a]"
                       >
-                        <svg className="w-5 h-5 mr-2 text-[#00c2ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="w-5 h-5 mr-2 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                         </svg>
                         All Customers
@@ -340,7 +340,7 @@ export default function CustomerDetailsPage() {
             </div>
           )}
         </div>
-      </main>
+      </div>
       <Footer />
     </div>
   );

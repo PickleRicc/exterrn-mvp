@@ -1,6 +1,30 @@
-# Extern MVP - Implementation Summary (May 10, 2025)
+# Extern MVP - Implementation Summary (Updated May 15, 2025)
 
-## Design System Updates
+## Recent UI Improvements (May 15, 2025)
+
+1. **Input Field Refinements**
+   - Removed icons from input fields across multiple pages to prevent text overlap
+   - Improved spacing and layout in form elements for better usability
+   - Fixed styling inconsistencies in form inputs across the application
+
+2. **Detail Page Enhancements**
+   - Updated customers/[id] and invoices/[id] pages to match current style guide
+   - Improved spacing in details sections for better readability
+   - Removed duplicate invoice title for cleaner UI
+   - Enhanced linked appointment section with consistent styling
+
+3. **Navigation Improvements**
+   - Added View button to appointment cards for easier navigation to details
+   - Ensured consistent button styling across all pages
+   - Improved overall navigation flow between related pages
+
+4. **Style Guide Consistency**
+   - Updated remaining pages to use black background and yellow accent colors
+   - Fixed inconsistent button styles and hover states
+   - Ensured proper spacing in all UI elements
+   - Added proper padding to detail sections to prevent content from touching edges
+
+## Design System Updates (May 10, 2025)
 
 1. **New Dark Theme Implementation**
    - Updated color scheme across all pages to a dark gradient background (#121212 to #1a1a1a)

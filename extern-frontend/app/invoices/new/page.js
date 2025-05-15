@@ -155,7 +155,12 @@ function InvoicePageContent() {
                 location: location || '',
                 service_date: serviceDate || '',
                 notes: notes || '',
-                due_date: formattedDueDate
+                due_date: prev.due_date || formattedDueDate, // Keep existing due date or set default
+                // Decide if you want to reset amount/tax/total when selecting an appointment
+                // amount: '',
+                // tax_amount: '',
+                // total_amount: '',
+                // vat_exempt: false, // Or keep existing?
               }));
             }
           }
@@ -724,22 +729,19 @@ function InvoicePageContent() {
                     <label htmlFor="amount" className="block text-sm font-medium mb-1 text-gray-300">
                       Amount (Net) *
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">€</span>
-                      <input
-                        id="amount"
-                        type="number"
-                        name="amount"
-                        value={formData.amount}
-                        onChange={handleChange}
-                        step="0.01"
-                        min="0"
-                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 pl-7 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/50 focus:border-[#ffcb00]/50 text-white disabled:opacity-50"
-                        required
-                        disabled={submitting}
-                        placeholder="0.00"
-                      />
-                    </div>
+                    <input
+                      id="amount"
+                      type="number"
+                      name="amount"
+                      value={formData.amount}
+                      onChange={handleChange}
+                      step="0.01"
+                      min="0"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/50 focus:border-[#ffcb00]/50 text-white disabled:opacity-50"
+                      required
+                      disabled={submitting}
+                      placeholder="0.00"
+                    />
                     <p className="text-xs text-gray-400 mt-1">
                       Amount before tax.
                     </p>
@@ -773,21 +775,18 @@ function InvoicePageContent() {
                       <label htmlFor="tax_amount" className="block text-sm font-medium mb-1 text-gray-300">
                         Tax Amount {formData.vat_exempt ? '(VAT Exempt)' : '(19% VAT)'}
                       </label>
-                       <div className="relative">
-                           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">€</span>
-                           <input
-                               id="tax_amount"
-                               type="number"
-                               name="tax_amount"
-                               value={formData.tax_amount}
-                               onChange={handleChange} // Allow manual override but recalculate total
-                               step="0.01"
-                               min="0"
-                               className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 pl-7 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/50 focus:border-[#ffcb00]/50 text-white disabled:opacity-50 bg-opacity-70" // Slightly dimmer if calculated
-                               disabled={submitting || formData.vat_exempt} // Disable if exempt
-                               readOnly={!formData.vat_exempt} // ReadOnly if standard VAT to encourage relying on calculation, but allow override if needed
-                           />
-                       </div>
+                       <input
+                           id="tax_amount"
+                           type="number"
+                           name="tax_amount"
+                           value={formData.tax_amount}
+                           onChange={handleChange} // Allow manual override but recalculate total
+                           step="0.01"
+                           min="0"
+                           className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/50 focus:border-[#ffcb00]/50 text-white disabled:opacity-50 bg-opacity-70" // Slightly dimmer if calculated
+                           disabled={submitting || formData.vat_exempt} // Disable if exempt
+                           readOnly={!formData.vat_exempt} // ReadOnly if standard VAT to encourage relying on calculation, but allow override if needed
+                       />
                        <p className="text-xs text-gray-400 mt-1">
                            {formData.vat_exempt ? 'Set to 0.00' : 'Auto-calculated (19% default).'}
                        </p>
@@ -799,22 +798,19 @@ function InvoicePageContent() {
                     <label htmlFor="total_amount" className="block text-sm font-medium mb-1 text-gray-300">
                       Total Amount (Gross) *
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">€</span>
-                      <input
-                        id="total_amount"
-                        type="number"
-                        name="total_amount"
-                        value={formData.total_amount}
-                        readOnly // Always calculated
-                        step="0.01"
-                        min="0"
-                        className="w-full bg-gray-900/60 border border-gray-700 rounded-xl px-4 py-2 pl-7 focus:outline-none text-white font-semibold" // Clearly indicate read-only/calculated
-                        required
-                        disabled={submitting} // Technically covered by readOnly, but good practice
-                        placeholder="0.00"
-                      />
-                    </div>
+                    <input
+                      id="total_amount"
+                      type="number"
+                      name="total_amount"
+                      value={formData.total_amount}
+                      readOnly // Always calculated
+                      step="0.01"
+                      min="0"
+                      className="w-full bg-gray-900/60 border border-gray-700 rounded-xl px-4 py-2 focus:outline-none text-white font-semibold" // Clearly indicate read-only/calculated
+                      required
+                      disabled={submitting} // Technically covered by readOnly, but good practice
+                      placeholder="0.00"
+                    />
                     <p className="text-xs text-gray-400 mt-1">
                       Automatically calculated (Amount + Tax).
                     </p>

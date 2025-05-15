@@ -241,57 +241,54 @@ export default function InvoiceDetailPage({ params }) {
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case 'paid':
-        return 'bg-green-900/30 text-green-400';
+        return 'bg-green-900/30 text-green-400 border border-green-800/50';
       case 'overdue':
-        return 'bg-red-900/30 text-red-400 animate-pulse';
+        return 'bg-red-900/30 text-red-400 border border-red-800/50 animate-pulse';
       case 'pending':
-        return 'bg-blue-900/30 text-blue-400';
+        return 'bg-[#2a2a2a]/70 text-[#ffcb00] border border-[#2a2a2a]';
       case 'cancelled':
-        return 'bg-gray-900/30 text-gray-400';
+        return 'bg-gray-900/30 text-gray-400 border border-gray-800/50';
       case 'draft':
-        return 'bg-yellow-900/30 text-yellow-400';
+        return 'bg-[#2a2a2a]/70 text-white/70 border border-[#2a2a2a]';
       default:
-        return 'bg-blue-900/30 text-blue-400';
+        return 'bg-[#2a2a2a]/70 text-white/70 border border-[#2a2a2a]';
     }
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-black text-white">
       <Header />
-      <div className="min-h-screen bg-[#0a1929] text-white">
-        <main className="container mx-auto px-4 py-8">
+      <div className="min-h-screen px-4 py-8">
+        <main className="container mx-auto">
           <div className="mb-6">
             <Link 
               href="/invoices" 
-              className="text-[#e91e63] hover:text-[#d81b60] transition-colors"
+              className="text-[#ffcb00] hover:text-[#e6b800] transition-colors"
             >
               &larr; Back to Invoices
             </Link>
-            <h1 className="text-2xl font-bold mt-2">
-              {editing ? 'Edit Invoice' : invoice ? `Invoice #${invoice.invoice_number || invoice.id}` : 'Invoice Details'}
-            </h1>
           </div>
           
           {error && (
-            <div className="bg-red-500/20 text-red-400 p-4 rounded-xl mb-6">
+            <div className="bg-[#2a2a2a]/70 backdrop-blur-md rounded-2xl shadow-xl border border-[#2a2a2a] overflow-hidden">
               {error}
             </div>
           )}
           
           {success && (
-            <div className="bg-green-500/20 text-green-400 p-4 rounded-xl mb-6">
+            <div className="bg-[#2a2a2a]/70 backdrop-blur-md rounded-2xl shadow-xl border border-[#2a2a2a] overflow-hidden">
               Invoice updated successfully!
             </div>
           )}
           
           {loading ? (
             <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#e91e63]"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#ffcb00]"></div>
             </div>
           ) : invoice ? (
             <>
               {editing ? (
-                <div className="bg-[#132f4c] rounded-xl p-6 shadow-lg">
+                <div className="bg-[#2a2a2a]/70 backdrop-blur-md rounded-2xl shadow-xl border border-[#2a2a2a] overflow-hidden">
                   <form onSubmit={handleSubmit}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Customer Selection */}
@@ -303,7 +300,7 @@ export default function InvoiceDetailPage({ params }) {
                           name="customer_id"
                           value={formData.customer_id}
                           onChange={handleChange}
-                          className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                          className="w-full bg-[#2a2a2a]/50 border border-[#2a2a2a] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200"
                           required
                         >
                           <option value="">Select a customer</option>
@@ -327,7 +324,7 @@ export default function InvoiceDetailPage({ params }) {
                           onChange={handleChange}
                           step="0.01"
                           min="0"
-                          className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                          className="w-full bg-[#2a2a2a]/50 border border-[#2a2a2a] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200"
                           required
                         />
                       </div>
@@ -344,7 +341,7 @@ export default function InvoiceDetailPage({ params }) {
                           onChange={handleChange}
                           step="0.01"
                           min="0"
-                          className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                          className="w-full bg-[#2a2a2a]/50 border border-[#2a2a2a] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200"
                         />
                       </div>
                       
@@ -379,7 +376,7 @@ export default function InvoiceDetailPage({ params }) {
                           name="due_date"
                           value={formData.due_date}
                           onChange={handleChange}
-                          className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                          className="w-full bg-[#2a2a2a]/50 border border-[#2a2a2a] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200"
                         />
                       </div>
                       
@@ -392,7 +389,7 @@ export default function InvoiceDetailPage({ params }) {
                           name="status"
                           value={formData.status}
                           onChange={handleChange}
-                          className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                          className="w-full bg-[#2a2a2a]/50 border border-[#2a2a2a] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200"
                         >
                           <option value="pending">Pending</option>
                           <option value="paid">Paid</option>
@@ -410,7 +407,7 @@ export default function InvoiceDetailPage({ params }) {
                           value={formData.notes}
                           onChange={handleChange}
                           rows="4"
-                          className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                          className="w-full bg-[#2a2a2a]/50 border border-[#2a2a2a] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200"
                         ></textarea>
                       </div>
                     </div>
@@ -419,16 +416,14 @@ export default function InvoiceDetailPage({ params }) {
                       <button
                         type="button"
                         onClick={() => setEditing(false)}
-                        className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors mr-3"
+                        className="px-5 py-2.5 border border-white/20 rounded-xl text-white hover:bg-white/5 transition-colors"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={submitting}
-                        className={`px-4 py-2 bg-[#e91e63] hover:bg-[#d81b60] text-white font-medium rounded-xl transition-colors ${
-                          submitting ? 'opacity-70 cursor-not-allowed' : ''
-                        }`}
+                        className="px-5 py-2.5 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:transform-none"
                       >
                         {submitting ? 'Saving...' : 'Save Changes'}
                       </button>
@@ -436,144 +431,153 @@ export default function InvoiceDetailPage({ params }) {
                   </form>
                 </div>
               ) : (
-                <div className="bg-[#132f4c] rounded-xl p-6 shadow-lg">
-                  <div className="flex justify-between items-start mb-6">
-                    <div>
-                      <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-semibold">Invoice #{invoice.invoice_number || invoice.id}</h2>
-                        <span className={`px-3 py-1 rounded-xl text-sm font-medium ${getStatusBadgeClass(invoice.status)}`}>
-                          {invoice.status === 'overdue' ? 'OVERDUE' : invoice.status?.charAt(0).toUpperCase() + invoice.status?.slice(1) || 'Pending'}
+                <div className="bg-[#2a2a2a]/70 backdrop-blur-md rounded-2xl shadow-xl border border-[#2a2a2a] overflow-hidden">
+                  <div className="p-6">
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-xl font-semibold text-[#ffcb00]">Invoice #{invoice.invoice_number || invoice.id}</h2>
+                      <span className={`px-3 py-1 rounded-xl text-sm font-medium ${getStatusBadgeClass(invoice.status)}`}>
+                        {invoice.status === 'overdue' ? 'OVERDUE' : invoice.status?.charAt(0).toUpperCase() + invoice.status?.slice(1) || 'Pending'}
+                      </span>
+                    </div>
+                    
+                    {invoice.status === 'overdue' && (
+                      <div className="mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-xl flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-400 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-[#ffcb00]">
+                          This invoice is past due. The payment was due on {formatDate(invoice.due_date)}.
                         </span>
                       </div>
+                    )}
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                      <div className="p-2">
+                        <h3 className="text-sm font-medium text-white/60 mb-2">Customer</h3>
+                        <p className="text-white">{invoice.customer_name || 'N/A'}</p>
+                      </div>
                       
-                      {invoice.status === 'overdue' && (
-                        <div className="mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-xl flex items-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-400 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          <span className="text-red-400">
-                            This invoice is past due. The payment was due on {formatDate(invoice.due_date)}.
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setEditing(true)}
-                        className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-xl transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={handleGeneratePdf}
-                        disabled={pdfLoading}
-                        className={`px-3 py-1 ${pdfLoading ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed' : 'bg-[#e91e63]/20 hover:bg-[#e91e63]/30 text-[#e91e63] cursor-pointer'} text-sm font-medium rounded-xl transition-colors flex items-center`}
-                      >
-                        {pdfLoading ? (
-                          <>
-                            <span className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
-                            Processing...
-                          </>
-                        ) : 'Download PDF'}
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                      <h3 className="text-lg font-medium mb-3">Customer Information</h3>
-                      <div className="bg-[#1e3a5f] rounded-xl p-4">
-                        <p className="font-medium">{invoice.customer_name || 'N/A'}</p>
-                        {invoice.customer_email && <p className="text-gray-300">{invoice.customer_email}</p>}
-                        {invoice.customer_phone && <p className="text-gray-300">{invoice.customer_phone}</p>}
-                        {invoice.customer_address && <p className="text-gray-300">{invoice.customer_address}</p>}
+                      <div className="p-2">
+                        <h3 className="text-sm font-medium text-white/60 mb-2">Invoice Date</h3>
+                        <p className="text-white">{formatDate(invoice.created_at)}</p>
+                      </div>
+                      
+                      <div className="p-2">
+                        <h3 className="text-sm font-medium text-white/60 mb-2">Due Date</h3>
+                        <p className="text-white">{formatDate(invoice.due_date)}</p>
+                      </div>
+                      
+                      <div className="p-2">
+                        <h3 className="text-sm font-medium text-white/60 mb-2">Service Date</h3>
+                        <p className="text-white">{formatDate(invoice.service_date)}</p>
+                      </div>
+                      
+                      <div className="p-2">
+                        <h3 className="text-sm font-medium text-white/60 mb-2">Amount</h3>
+                        <p className="text-white">€{parseFloat(invoice.amount).toFixed(2)}</p>
+                      </div>
+                      
+                      <div className="p-2">
+                        <h3 className="text-sm font-medium text-white/60 mb-2">Tax</h3>
+                        <p className="text-white">€{parseFloat(invoice.tax_amount || 0).toFixed(2)}</p>
+                      </div>
+                      
+                      <div className="p-2">
+                        <h3 className="text-sm font-medium text-white/60 mb-2">Total</h3>
+                        <p className="text-white font-medium">€{parseFloat(invoice.total_amount).toFixed(2)}</p>
                       </div>
                     </div>
                     
-                    <div>
-                      <h3 className="text-lg font-medium mb-3">Invoice Details</h3>
-                      <div className="bg-[#1e3a5f] rounded-xl p-4">
-                        <div className="flex justify-between mb-2">
-                          <span className="text-gray-300">Created:</span>
-                          <span>{formatDate(invoice.created_at)}</span>
-                        </div>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-gray-300">Due Date:</span>
-                          <span>{formatDate(invoice.due_date)}</span>
-                        </div>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-gray-300">Amount:</span>
-                          <span>€{parseFloat(invoice.amount).toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-gray-300">Tax:</span>
-                          <span>€{parseFloat(invoice.tax_amount || 0).toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between font-medium">
-                          <span>Total:</span>
-                          <span>€{parseFloat(invoice.total_amount).toFixed(2)}</span>
+                    {invoice.notes && (
+                      <div className="mt-6">
+                        <h3 className="text-sm font-medium text-white/60 mb-2">Notes</h3>
+                        <p className="text-white whitespace-pre-line bg-[#2a2a2a]/50 p-4 rounded-xl border border-[#2a2a2a]">{invoice.notes}</p>
+                      </div>
+                    )}
+                    
+                    {appointment && (
+                      <div className="mt-8">
+                        <h3 className="text-sm font-medium text-white/60 mb-3 flex items-center">
+                          <svg className="w-4 h-4 mr-2 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                          </svg>
+                          Linked Appointment
+                        </h3>
+                        <div className="bg-[#2a2a2a]/50 rounded-xl p-4 border border-[#2a2a2a]">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="p-2">
+                              <span className="text-white/60 text-sm">Date:</span>{' '}
+                              <span className="text-white">{formatDate(appointment.scheduled_at)}</span>
+                            </div>
+                            <div className="p-2">
+                              <span className="text-white/60 text-sm">Time:</span>{' '}
+                              <span className="text-white">{new Date(appointment.scheduled_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            </div>
+                            <div className="p-2">
+                              <span className="text-white/60 text-sm">Status:</span>{' '}
+                              <span className={`px-2 py-0.5 text-xs rounded-full ${
+                                appointment.status === 'completed' ? 'bg-green-900/30 text-green-400 border border-green-800/50' :
+                                appointment.status === 'cancelled' ? 'bg-red-900/30 text-red-400 border border-red-800/50' :
+                                'bg-[#2a2a2a]/70 text-[#ffcb00] border border-[#2a2a2a]'
+                              }`}>
+                                {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                              </span>
+                            </div>
+                            {appointment.service_type && (
+                              <div className="p-2">
+                                <span className="text-white/60 text-sm">Service:</span>{' '}
+                                <span className="text-white">{appointment.service_type}</span>
+                              </div>
+                            )}
+                            {appointment.location && (
+                              <div className="p-2 col-span-1 md:col-span-2">
+                                <span className="text-white/60 text-sm">Location:</span>{' '}
+                                <span className="text-white">{appointment.location}</span>
+                              </div>
+                            )}
+                            <div className="p-2 col-span-1 md:col-span-2 mt-3">
+                              <Link
+                                href={`/appointments/${appointment.id}`}
+                                className="text-sm text-[#ffcb00] hover:text-[#e6b800] transition-colors flex items-center w-fit"
+                              >
+                                <span>View Appointment Details</span>
+                                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                </svg>
+                              </Link>
+                            </div>
+                          </div>
                         </div>
                       </div>
+                    )}
+                    
+                    <div className="mt-8 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditing(true)}
+                        className="px-5 py-2.5 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5"
+                      >
+                        Edit Invoice
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={handleGeneratePdf}
+                        disabled={pdfLoading}
+                        className="px-5 py-2.5 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:transform-none"
+                      >
+                        {pdfLoading ? 'Generating PDF...' : 'Generate PDF'}
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => router.back()}
+                        className="px-5 py-2.5 border border-white/20 rounded-xl text-white hover:bg-white/5 transition-all duration-300"
+                      >
+                        Back
+                      </button>
                     </div>
                   </div>
-                  
-                  {invoice.notes && (
-                    <div className="mb-6">
-                      <h3 className="text-lg font-medium mb-3">Notes</h3>
-                      <div className="bg-[#1e3a5f] rounded-xl p-4">
-                        <p className="whitespace-pre-wrap">{invoice.notes}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Linked Appointment Section */}
-                  {appointment && (
-                    <div className="mb-6">
-                      <h3 className="text-lg font-medium mb-3">Linked Appointment</h3>
-                      <div className="bg-[#1e3a5f] rounded-xl p-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <div>
-                            <span className="text-gray-300">Date:</span>{' '}
-                            {formatDate(appointment.scheduled_at)}
-                          </div>
-                          <div>
-                            <span className="text-gray-300">Time:</span>{' '}
-                            {new Date(appointment.scheduled_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                          </div>
-                          <div>
-                            <span className="text-gray-300">Status:</span>{' '}
-                            <span className={`px-2 py-0.5 text-xs rounded-full ${
-                              appointment.status === 'completed' ? 'bg-green-900/30 text-green-400' :
-                              appointment.status === 'cancelled' ? 'bg-red-900/30 text-red-400' :
-                              'bg-blue-900/30 text-blue-400'
-                            }`}>
-                              {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                            </span>
-                          </div>
-                          {appointment.service_type && (
-                            <div>
-                              <span className="text-gray-300">Service:</span>{' '}
-                              {appointment.service_type}
-                            </div>
-                          )}
-                          {appointment.location && (
-                            <div className="col-span-1 md:col-span-2">
-                              <span className="text-gray-300">Location:</span>{' '}
-                              {appointment.location}
-                            </div>
-                          )}
-                          <div className="col-span-1 md:col-span-2 mt-2">
-                            <Link
-                              href={`/appointments/${appointment.id}`}
-                              className="text-sm text-[#e91e63] hover:text-[#f06292] transition-colors"
-                            >
-                              View Appointment Details →
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
             </>
@@ -591,6 +595,6 @@ export default function InvoiceDetailPage({ params }) {
         </main>
       </div>
       <Footer />
-    </>
+    </div>
   );
 }

@@ -234,26 +234,19 @@ export default function NewAppointmentPage() {
                   <label htmlFor="customer" className="block mb-2 text-sm font-medium text-gray-300">
                     Customer <span className="text-[#FFD200]">*</span>
                   </label>
-                  <div className="relative">
-                    <div className="absolute top-3 left-3 flex items-center pointer-events-none">
-                      <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                      </svg>
-                    </div>
-                    <select
-                      id="customer"
-                      value={customerId}
-                      onChange={handleCustomerChange}
-                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-                    >
-                      <option value="">Select a customer</option>
-                      {customers.map((customer) => (
-                        <option key={customer.id} value={customer.id}>
-                          {customer.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <select
+                    id="customer"
+                    value={customerId}
+                    onChange={handleCustomerChange}
+                    className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                  >
+                    <option value="">Select a customer</option>
+                    {customers.map((customer) => (
+                      <option key={customer.id} value={customer.id}>
+                        {customer.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -261,42 +254,28 @@ export default function NewAppointmentPage() {
                     <label htmlFor="scheduledAt" className="block mb-2 text-sm font-medium text-gray-300">
                       Date <span className="text-[#FFD200]">*</span>
                     </label>
-                    <div className="relative">
-                      <div className="absolute top-3 left-3 flex items-center pointer-events-none">
-                        <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                      </div>
-                      <input
-                        id="scheduledAt"
-                        type="date"
-                        value={scheduledAt}
-                        onChange={(e) => setScheduledAt(e.target.value)}
-                        className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-                        required
-                      />
-                    </div>
+                    <input
+                      id="scheduledAt"
+                      type="date"
+                      value={scheduledAt}
+                      onChange={(e) => setScheduledAt(e.target.value)}
+                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                      required
+                    />
                   </div>
                   
                   <div className="relative">
                     <label htmlFor="scheduledTime" className="block mb-2 text-sm font-medium text-gray-300">
                       Time <span className="text-[#FFD200]">*</span>
                     </label>
-                    <div className="relative">
-                      <div className="absolute top-3 left-3 flex items-center pointer-events-none">
-                        <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                      </div>
-                      <input
-                        id="scheduledTime"
-                        type="time"
-                        value={scheduledTime}
-                        onChange={(e) => setScheduledTime(e.target.value)}
-                        className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-                        required
-                      />
-                    </div>
+                    <input
+                      id="scheduledTime"
+                      type="time"
+                      value={scheduledTime}
+                      onChange={(e) => setScheduledTime(e.target.value)}
+                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                      required
+                    />
                   </div>
                 </div>
                 
@@ -304,49 +283,35 @@ export default function NewAppointmentPage() {
                   <label htmlFor="duration" className="block mb-2 text-sm font-medium text-gray-300">
                     Duration (minutes)
                   </label>
-                  <div className="relative">
-                    <div className="absolute top-3 left-3 flex items-center pointer-events-none">
-                      <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                    </div>
-                    <select
-                      id="duration"
-                      value={duration}
-                      onChange={(e) => setDuration(e.target.value)}
-                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-                    >
-                      <option value="30">30 minutes</option>
-                      <option value="60">1 hour</option>
-                      <option value="90">1.5 hours</option>
-                      <option value="120">2 hours</option>
-                      <option value="180">3 hours</option>
-                      <option value="240">4 hours</option>
-                    </select>
-                  </div>
+                  <select
+                    id="duration"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                  >
+                    <option value="30">30 minutes</option>
+                    <option value="60">1 hour</option>
+                    <option value="90">1.5 hours</option>
+                    <option value="120">2 hours</option>
+                    <option value="180">3 hours</option>
+                    <option value="240">4 hours</option>
+                  </select>
                 </div>
                 
                 <div className="relative">
                   <label htmlFor="status" className="block mb-2 text-sm font-medium text-gray-300">
                     Status
                   </label>
-                  <div className="relative">
-                    <div className="absolute top-3 left-3 flex items-center pointer-events-none">
-                      <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                    </div>
-                    <select
-                      id="status"
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-                    >
-                      <option value="scheduled">Scheduled</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                  </div>
+                  <select
+                    id="status"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                  >
+                    <option value="scheduled">Scheduled</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
                 </div>
                 
                 <div className="relative">
@@ -364,44 +329,29 @@ export default function NewAppointmentPage() {
                       </button>
                     )}
                   </div>
-                  <div className="relative">
-                    <div className="absolute top-3 left-3 flex items-center pointer-events-none">
-                      <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                      </svg>
-                    </div>
-                    <input
-                      id="location"
-                      type="text"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-                      placeholder="Customer's home, your workshop, etc."
-                      disabled={selectedCustomer?.address && !showCustomLocation}
-                    />
-                  </div>
+                  <input
+                    id="location"
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                    placeholder="Customer's home, your workshop, etc."
+                    disabled={selectedCustomer?.address && !showCustomLocation}
+                  />
                 </div>
                 
                 <div className="relative">
                   <label htmlFor="notes" className="block mb-2 text-sm font-medium text-gray-300">
                     Notes
                   </label>
-                  <div className="relative">
-                    <div className="absolute top-3 left-3 flex items-start pointer-events-none">
-                      <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                      </svg>
-                    </div>
-                    <textarea
-                      id="notes"
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-                      rows="3"
-                      placeholder="Details about the appointment..."
-                    ></textarea>
-                  </div>
+                  <textarea
+                    id="notes"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                    rows="3"
+                    placeholder="Details about the appointment..."
+                  ></textarea>
                 </div>
               </div>
               

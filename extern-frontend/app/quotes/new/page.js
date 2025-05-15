@@ -396,6 +396,7 @@ export default function NewQuotePage() {
                     Pre-fill from appointment (optional)
                   </label>
                   <select
+                    name="appointment_id"
                     value={formData.appointment_id}
                     onChange={handleAppointmentChange}
                     className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
@@ -507,20 +508,17 @@ export default function NewQuotePage() {
                     <label className="block text-sm font-medium mb-1">
                       Amount (Net) *
                     </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        name="amount"
-                        value={formData.amount}
-                        onChange={handleChange}
-                        step="0.01"
-                        min="0"
-                        className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63] pl-7"
-                        required
-                        disabled={success}
-                      />
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">€</span>
-                    </div>
+                    <input
+                      type="number"
+                      name="amount"
+                      value={formData.amount}
+                      onChange={handleChange}
+                      step="0.01"
+                      min="0"
+                      className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                      required
+                      disabled={success}
+                    />
                   </div>
                   
                   {/* Tax Amount (calculated) */}
@@ -529,19 +527,16 @@ export default function NewQuotePage() {
                       <label className="block text-sm font-medium mb-1">
                         Tax Amount (19% VAT)
                       </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          name="tax_amount"
-                          value={formData.tax_amount}
-                          onChange={handleChange}
-                          step="0.01"
-                          min="0"
-                          className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63] pl-7"
-                          disabled={success}
-                        />
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">€</span>
-                      </div>
+                      <input
+                        type="number"
+                        name="tax_amount"
+                        value={formData.tax_amount}
+                        onChange={handleChange}
+                        step="0.01"
+                        min="0"
+                        className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63]"
+                        disabled={success}
+                      />
                       <p className="text-xs text-gray-400 mt-1">
                         Automatically calculated as 19% of the amount
                       </p>
@@ -553,21 +548,18 @@ export default function NewQuotePage() {
                     <label className="block text-sm font-medium mb-1">
                       Total Amount (Gross) *
                     </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        name="total_amount"
-                        value={formData.total_amount}
-                        onChange={handleChange}
-                        step="0.01"
-                        min="0"
-                        className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63] pl-7 bg-opacity-50"
-                        required
-                        readOnly
-                        disabled={success}
-                      />
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">€</span>
-                    </div>
+                    <input
+                      type="number"
+                      name="total_amount"
+                      value={formData.total_amount}
+                      onChange={handleChange}
+                      step="0.01"
+                      min="0"
+                      className="w-full bg-[#1e3a5f] border border-[#2a4d76] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e91e63] bg-opacity-50"
+                      required
+                      readOnly
+                      disabled={success}
+                    />
                     <p className="text-xs text-gray-400 mt-1">
                       Automatically calculated from amount + tax
                     </p>

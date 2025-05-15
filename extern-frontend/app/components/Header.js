@@ -122,7 +122,7 @@ export default function Header({ minimal = false }) {
             <ul className="flex items-center space-x-1">
               <li>
                 <a 
-                  href="/" 
+                  href="/dashboard" 
                   className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-[#ffcb00]/10 transition-all duration-200"
                 >
                   Dashboard

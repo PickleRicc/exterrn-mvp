@@ -200,25 +200,25 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#0a1929] to-[#132f4c] px-5 py-10 overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#121212] to-[#1a1a1a] px-5 py-10 overflow-hidden">
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full opacity-10">
-          <div className="absolute top-10 left-10 w-72 h-72 bg-[#0070f3] rounded-full filter blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 w-72 h-72 bg-[#7928ca] rounded-full filter blur-3xl"></div>
+        <div className="absolute top-0 left-0 w-full h-full opacity-5">
+          <div className="absolute top-10 left-10 w-72 h-72 bg-[#ffcb00] rounded-full filter blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-72 h-72 bg-[#ffcb00] rounded-full filter blur-3xl"></div>
         </div>
       </div>
       
       <div className="w-full max-w-md z-10 animate-fade-in">
         <div className="text-center mb-6">
           <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            <span className="bg-gradient-to-r from-[#00c2ff] to-[#7928ca] bg-clip-text text-transparent">ZIMMR</span>
+            <span className="text-[#ffcb00]">ZIMMR</span>
           </h1>
           <p className="text-white text-lg font-light">
             {currentStep === 1 ? 'Create your account' : 'Set your availability'}
           </p>
         </div>
         
-        <div className="bg-[#132f4c]/70 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+        <div className="bg-black/70 backdrop-blur-md rounded-2xl shadow-xl border border-[#2a2a2a] overflow-hidden">
           {error && (
             <div className="m-6 p-4 bg-red-100/90 backdrop-blur-sm text-red-700 rounded-xl border border-red-200/50 shadow-lg animate-slide-up">
               {error}
@@ -234,42 +234,7 @@ export default function RegisterPage() {
           {currentStep === 1 && (
             <div className="p-6 md:p-8">
               <div className="mb-6">
-                <div className="flex justify-center space-x-4 mb-6">
-                  <button
-                    type="button"
-                    onClick={() => setRole('craftsman')}
-                    className={`flex-1 py-3 px-4 rounded-xl text-center transition-all duration-300 ${
-                      role === 'craftsman'
-                        ? 'bg-gradient-to-r from-[#0070f3] to-[#0050d3] text-white shadow-lg'
-                        : 'bg-white/10 text-white border border-white/20 hover:bg-white/15'
-                    }`}
-                  >
-                    <div className="flex flex-col items-center">
-                      <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                      </svg>
-                      <span className="font-medium">Craftsman</span>
-                    </div>
-                  </button>
-                  
-                  <button
-                    type="button"
-                    onClick={() => setRole('customer')}
-                    className={`flex-1 py-3 px-4 rounded-xl text-center transition-all duration-300 ${
-                      role === 'customer'
-                        ? 'bg-gradient-to-r from-[#0070f3] to-[#0050d3] text-white shadow-lg'
-                        : 'bg-white/10 text-white border border-white/20 hover:bg-white/15'
-                    }`}
-                  >
-                    <div className="flex flex-col items-center">
-                      <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                      </svg>
-                      <span className="font-medium">Customer</span>
-                    </div>
-                  </button>
-                </div>
+                {/* Customer/Craftsman toggle removed as app is only for Craftsmen */}
               </div>
               
               <form onSubmit={handleSubmit} className="space-y-5">
@@ -284,7 +249,7 @@ export default function RegisterPage() {
                         type="text"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
-                        className="w-full p-3 pl-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="block w-full p-3 pl-3 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 relative z-10"
                         placeholder="First name"
                         required
                       />
@@ -301,7 +266,7 @@ export default function RegisterPage() {
                         type="text"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
-                        className="w-full p-3 pl-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="block w-full p-3 pl-3 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 relative z-10"
                         placeholder="Last name"
                         required
                       />
@@ -314,7 +279,7 @@ export default function RegisterPage() {
                     Email <span className="text-[#00c2ff]">*</span>
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-[-1]">
                       <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
                       </svg>
@@ -324,7 +289,7 @@ export default function RegisterPage() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="block w-full pl-12 pr-4 py-3.5 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 relative z-10"
                       placeholder="your@email.com"
                       required
                     />
@@ -336,7 +301,7 @@ export default function RegisterPage() {
                     Phone <span className="text-[#00c2ff]">*</span>
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-[-1]">
                       <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
                       </svg>
@@ -346,7 +311,7 @@ export default function RegisterPage() {
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="block w-full pl-12 pr-4 py-3.5 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 relative z-10"
                       placeholder="+49 123 456 7890"
                       required
                     />
@@ -359,7 +324,7 @@ export default function RegisterPage() {
                       Specialty <span className="text-[#00c2ff]">*</span>
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-[-1]">
                         <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -369,18 +334,17 @@ export default function RegisterPage() {
                         id="specialty"
                         value={specialty}
                         onChange={(e) => setSpecialty(e.target.value)}
-                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all appearance-none"
+                        className="block w-full pl-12 pr-4 py-3.5 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 appearance-none relative z-10"
                         required
                       >
                         <option value="">Select your specialty</option>
-                        <option value="Plumber">Plumber</option>
-                        <option value="Electrician">Electrician</option>
-                        <option value="Carpenter">Carpenter</option>
-                        <option value="Painter">Painter</option>
-                        <option value="HVAC">HVAC</option>
-                        <option value="Roofer">Roofer</option>
-                        <option value="Landscaper">Landscaper</option>
-                        <option value="General Contractor">General Contractor</option>
+                        <option value="Tile Setter">Tile Setter</option>
+                        <option value="Tile Installer">Tile Installer</option>
+                        <option value="Ceramic Tiler">Ceramic Tiler</option>
+                        <option value="Porcelain Tiler">Porcelain Tiler</option>
+                        <option value="Mosaic Tiler">Mosaic Tiler</option>
+                        <option value="Bathroom Tiler">Bathroom Tiler</option>
+                        <option value="Kitchen Tiler">Kitchen Tiler</option>
                       </select>
                       <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                         <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -397,7 +361,7 @@ export default function RegisterPage() {
                       Company Name (Optional)
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-[-1]">
                         <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                         </svg>
@@ -407,7 +371,7 @@ export default function RegisterPage() {
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                        className="block w-full pl-12 pr-4 py-3.5 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 relative z-10"
                         placeholder="Your company (if applicable)"
                       />
                     </div>
@@ -419,7 +383,7 @@ export default function RegisterPage() {
                     Password <span className="text-[#00c2ff]">*</span>
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-[-1]">
                       <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                       </svg>
@@ -429,7 +393,7 @@ export default function RegisterPage() {
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="block w-full pl-12 pr-4 py-3.5 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 relative z-10"
                       placeholder="••••••••"
                       required
                     />
@@ -441,7 +405,7 @@ export default function RegisterPage() {
                     Confirm Password <span className="text-[#00c2ff]">*</span>
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-[-1]">
                       <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                       </svg>
@@ -451,7 +415,7 @@ export default function RegisterPage() {
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full pl-10 p-3 border border-white/20 rounded-xl bg-white/10 text-gray-700 focus:ring-2 focus:ring-[#00c2ff]/50 focus:border-[#00c2ff]/50 transition-all"
+                      className="block w-full pl-12 pr-4 py-3.5 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 relative z-10"
                       placeholder="••••••••"
                       required
                     />
@@ -461,7 +425,7 @@ export default function RegisterPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 px-4 mt-4 bg-gradient-to-r from-[#0070f3] to-[#0050d3] hover:from-[#0060df] hover:to-[#0040c0] text-white font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0070f3] transition-all duration-300 transform hover:-translate-y-0.5"
+                  className="w-full py-3.5 px-4 mt-6 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ffcb00] transition-all duration-300 transform hover:-translate-y-0.5"
                 >
                   {loading ? (
                     <div className="flex items-center justify-center">
@@ -513,7 +477,7 @@ export default function RegisterPage() {
                                 <select
                                   value={start}
                                   onChange={(e) => handleTimeSlotChange(day, index, 'start', e.target.value)}
-                                  className="w-full p-2 border border-white/20 rounded-lg bg-[#132f4c] text-gray-700 appearance-none pl-3 pr-8"
+                                  className="w-full p-2 border border-[#2a2a2a] rounded-lg bg-[#2a2a2a]/50 text-white appearance-none pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 relative z-10"
                                 >
                                   {timeSlots.map(time => (
                                     <option key={time} value={time}>{time}</option>
@@ -532,7 +496,7 @@ export default function RegisterPage() {
                                 <select
                                   value={end}
                                   onChange={(e) => handleTimeSlotChange(day, index, 'end', e.target.value)}
-                                  className="w-full p-2 border border-white/20 rounded-lg bg-[#132f4c] text-gray-700 appearance-none pl-3 pr-8"
+                                  className="w-full p-2 border border-[#2a2a2a] rounded-lg bg-[#2a2a2a]/50 text-white appearance-none pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 relative z-10"
                                 >
                                   {timeSlots.map(time => (
                                     <option key={time} value={time}>{time}</option>
