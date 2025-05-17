@@ -73,9 +73,9 @@ export default function AppointmentDetailPage() {
       
       // Check if it's a 404 error
       if (err.response && err.response.status === 404) {
-        setError('Appointment not found. It may have been deleted or you do not have permission to view it.');
+        setError('Der Termin wurde nicht gefunden. Es ist möglich, dass er gelöscht wurde oder Sie keine Berechtigung haben, ihn zu sehen.');
       } else {
-        setError('Failed to load appointment. Please try again.');
+        setError('Fehler beim Laden des Termins. Bitte versuchen Sie es erneut.');
       }
       
       setLoading(false);
@@ -189,12 +189,12 @@ export default function AppointmentDetailPage() {
           setNotes(result.notes);
         }
         
-        setSuccess('Appointment updated successfully');
+        setSuccess('Der Termin wurde erfolgreich aktualisiert');
         setShowEditModal(false);
       }
     } catch (err) {
       console.error('Error updating appointment:', err);
-      setError('Failed to update appointment. Please try again.');
+      setError('Fehler beim Aktualisieren des Termins. Bitte versuchen Sie es erneut.');
     } finally {
       setProcessingAction(null);
     }
@@ -204,7 +204,7 @@ export default function AppointmentDetailPage() {
     try {
       // Validate required fields
       if (!servicePrice || parseFloat(servicePrice) <= 0) {
-        setError('Please enter a valid service price.');
+        setError('Bitte geben Sie einen gültigen Preis ein.');
         return;
       }
       
@@ -218,7 +218,7 @@ export default function AppointmentDetailPage() {
         notes: notes
       });
       
-      setSuccess('Appointment completed successfully!');
+      setSuccess('Der Termin wurde erfolgreich abgeschlossen!');
       
       // Redirect to the new invoice page with appointment data
       setTimeout(() => {
@@ -242,7 +242,7 @@ export default function AppointmentDetailPage() {
       }, 1000);
     } catch (err) {
       console.error('Error completing appointment:', err);
-      setError('Failed to complete appointment. Please try again.');
+      setError('Fehler beim Abschließen des Termins. Bitte versuchen Sie es erneut.');
     } finally {
       setProcessingAction(null);
       setShowCompleteModal(false);
@@ -267,7 +267,7 @@ export default function AppointmentDetailPage() {
         <Header />
         <main className="flex-grow container mx-auto px-4 py-8">
           <div className="bg-dark-lighter rounded-xl shadow-xl p-6 mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">Appointment Not Found</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">Termin nicht gefunden</h1>
             {error && (
               <div className="bg-red-900/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6">
                 <p>{error}</p>
@@ -280,7 +280,7 @@ export default function AppointmentDetailPage() {
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
               </svg>
-              Back to Appointments
+              Zurück zu den Terminen
             </a>
           </div>
         </main>
@@ -306,14 +306,14 @@ export default function AppointmentDetailPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                   </svg>
                 </a>
-                <h1 className="text-2xl md:text-3xl font-bold text-white">{appointment.title || 'Appointment Details'}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-white">{appointment.title || 'Termin Details'}</h1>
               </div>
               <div className="flex items-center">
                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(appointment.status, appointment.approval_status)}`}>
-                  {appointment.status === 'completed' ? 'Completed' : 
-                   appointment.approval_status === 'pending' ? 'Pending Approval' :
-                   appointment.approval_status === 'rejected' ? 'Rejected' :
-                   'Scheduled'}
+                  {appointment.status === 'completed' ? 'Abgeschlossen' : 
+                   appointment.approval_status === 'pending' ? 'Genehmigung ausstehend' :
+                   appointment.approval_status === 'rejected' ? 'Abgelehnt' :
+                   'Geplant'}
                 </span>
               </div>
             </div>
@@ -328,7 +328,7 @@ export default function AppointmentDetailPage() {
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    Complete & Generate Invoice
+                    Termin abschließen und Rechnung erstellen
                   </div>
                 </button>
                 <button
@@ -339,7 +339,7 @@ export default function AppointmentDetailPage() {
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-1.073-5.73-6.568 6.569-4.725-4.725-1.073-1.073 5.768-5.768 4.725 4.725z"></path>
                     </svg>
-                    Edit Appointment
+                    Termin bearbeiten
                   </div>
                 </button>
               </div>
@@ -360,45 +360,45 @@ export default function AppointmentDetailPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <div className="bg-dark rounded-xl shadow-xl p-6">
-              <h2 className="text-xl font-semibold text-white mb-4">Appointment Details</h2>
+              <h2 className="text-xl font-semibold text-white mb-4">Termin Details</h2>
               
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-white/70">Date & Time:</span>
+                  <span className="text-white/70">Datum & Uhrzeit:</span>
                   <span className="text-white">{formatDate(appointment.start_time)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/70">Duration:</span>
-                  <span className="text-white">{appointment.duration} minutes</span>
+                  <span className="text-white/70">Dauer:</span>
+                  <span className="text-white">{appointment.duration} Minuten</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/70">Location:</span>
-                  <span className="text-white">{appointment.location || 'Not specified'}</span>
+                  <span className="text-white/70">Ort:</span>
+                  <span className="text-white">{appointment.location || 'Nicht angegeben'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/70">Service Type:</span>
-                  <span className="text-white">{appointment.service_type || 'Not specified'}</span>
+                  <span className="text-white/70">Service-Typ:</span>
+                  <span className="text-white">{appointment.service_type || 'Nicht angegeben'}</span>
                 </div>
                 {appointment.price && (
                   <div className="flex justify-between">
-                    <span className="text-white/70">Price:</span>
+                    <span className="text-white/70">Preis:</span>
                     <span className="text-white">{formatCurrency(appointment.price)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
                   <span className="text-white/70">Status:</span>
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(appointment.status, appointment.approval_status)}`}>
-                    {appointment.status === 'completed' ? 'Completed' : 
-                     appointment.approval_status === 'pending' ? 'Pending Approval' :
-                     appointment.approval_status === 'rejected' ? 'Rejected' :
-                     'Scheduled'}
+                    {appointment.status === 'completed' ? 'Abgeschlossen' : 
+                     appointment.approval_status === 'pending' ? 'Genehmigung ausstehend' :
+                     appointment.approval_status === 'rejected' ? 'Abgelehnt' :
+                     'Geplant'}
                   </span>
                 </div>
               </div>
               
               {appointment.notes && (
                 <div className="mt-6">
-                  <h3 className="text-white font-medium mb-2">Notes:</h3>
+                  <h3 className="text-white font-medium mb-2">Notizen:</h3>
                   <p className="text-white/80 bg-dark p-3 rounded-lg whitespace-pre-line">
                     {appointment.notes}
                   </p>
@@ -408,7 +408,7 @@ export default function AppointmentDetailPage() {
             
             {customer && (
               <div className="bg-dark rounded-xl shadow-xl p-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Customer Information</h2>
+                <h2 className="text-xl font-semibold text-white mb-4">Kundeninformationen</h2>
                 
                 <div className="space-y-3">
                   <div className="flex justify-between">
@@ -417,19 +417,19 @@ export default function AppointmentDetailPage() {
                   </div>
                   {customer.email && (
                     <div className="flex justify-between">
-                      <span className="text-white/70">Email:</span>
+                      <span className="text-white/70">E-Mail:</span>
                       <span className="text-white">{customer.email}</span>
                     </div>
                   )}
                   {customer.phone && (
                     <div className="flex justify-between">
-                      <span className="text-white/70">Phone:</span>
+                      <span className="text-white/70">Telefon:</span>
                       <span className="text-white">{customer.phone}</span>
                     </div>
                   )}
                   {customer.address && (
                     <div className="flex justify-between">
-                      <span className="text-white/70">Address:</span>
+                      <span className="text-white/70">Adresse:</span>
                       <span className="text-white">{customer.address}</span>
                     </div>
                   )}
@@ -438,7 +438,7 @@ export default function AppointmentDetailPage() {
                       href={`/customers/${customer.id}`}
                       className="text-primary hover:text-[#e6b800] transition-colors inline-flex items-center"
                     >
-                      <span className="text-primary">View Customer Profile</span>
+                      <span className="text-primary">Kundenprofil anzeigen</span>
                       <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                       </svg>
@@ -455,7 +455,7 @@ export default function AppointmentDetailPage() {
       {showCompleteModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-dark rounded-xl shadow-2xl p-6 max-w-3xl w-full animate-scale-in overflow-y-auto max-h-[90vh]">
-            <h3 className="text-xl font-bold text-white mb-4">Complete Appointment & Generate Invoice</h3>
+            <h3 className="text-xl font-bold text-white mb-4">Termin abschließen und Rechnung erstellen</h3>
             
             {error && (
               <div className="bg-red-900/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6">
@@ -471,7 +471,7 @@ export default function AppointmentDetailPage() {
             
             <div className="mb-6">
               <label htmlFor="servicePrice" className="block text-sm font-medium text-white/80 mb-2">
-                Service Price (€)
+                Service-Preis (€)
               </label>
               <input
                 id="servicePrice"
@@ -480,20 +480,20 @@ export default function AppointmentDetailPage() {
                 step="0.01"
                 value={servicePrice}
                 onChange={(e) => setServicePrice(e.target.value)}
-                placeholder="Enter service price"
+                placeholder="Geben Sie den Service-Preis ein"
                 className="w-full p-3 border border-dark-border rounded-xl bg-dark text-white focus:ring-2 focus:ring-primary focus:border-primary transition-all"
               />
             </div>
             
             <div className="mb-6">
               <label htmlFor="notes" className="block text-sm font-medium text-white/80 mb-2">
-                Invoice Notes (optional)
+                Rechnungsnotizen (optional)
               </label>
               <textarea
                 id="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any notes for the invoice..."
+                placeholder="Fügen Sie Notizen für die Rechnung hinzu..."
                 className="w-full p-3 border border-dark-border rounded-xl bg-dark text-white focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                 rows="3"
               ></textarea>
@@ -504,7 +504,7 @@ export default function AppointmentDetailPage() {
                 onClick={closeCompleteModal}
                 className="px-4 py-2 border border-dark-border rounded-xl text-white hover:bg-white/10 transition-all duration-200"
               >
-                Cancel
+                Abbrechen
               </button>
               <button
                 onClick={handleCompleteAppointment}
@@ -517,14 +517,14 @@ export default function AppointmentDetailPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Processing...
+                    Verarbeitung...
                   </>
                 ) : (
                   <>
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    Complete & Generate Invoice
+                    Termin abschließen und Rechnung erstellen
                   </>
                 )}
               </button>
@@ -537,7 +537,7 @@ export default function AppointmentDetailPage() {
       {showEditModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-dark rounded-xl shadow-2xl p-6 max-w-3xl w-full animate-scale-in overflow-y-auto max-h-[90vh]">
-            <h3 className="text-xl font-bold text-white mb-4">Edit Appointment</h3>
+            <h3 className="text-xl font-bold text-white mb-4">Termin bearbeiten</h3>
             
             {error && (
               <div className="bg-red-900/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6">
@@ -553,7 +553,7 @@ export default function AppointmentDetailPage() {
             
             <div className="mb-6">
               <label htmlFor="scheduledAt" className="block text-sm font-medium text-white/80 mb-2">
-                Scheduled Date & Time
+                Geplantes Datum & Uhrzeit
               </label>
               <input
                 id="scheduledAt"
@@ -567,14 +567,14 @@ export default function AppointmentDetailPage() {
             
             <div className="mb-6">
               <label htmlFor="notes" className="block text-sm font-medium text-white/80 mb-2">
-                Notes
+                Notizen
               </label>
               <textarea
                 id="notes"
                 value={editForm.notes}
                 onChange={handleEditFormChange}
                 name="notes"
-                placeholder="Add any notes for the appointment..."
+                placeholder="Fügen Sie Notizen für den Termin hinzu..."
                 className="w-full p-3 border border-dark-border rounded-xl bg-dark text-white focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                 rows="3"
               ></textarea>
@@ -582,7 +582,7 @@ export default function AppointmentDetailPage() {
             
             <div className="mb-6">
               <label htmlFor="duration" className="block text-sm font-medium text-white/80 mb-2">
-                Duration (minutes)
+                Dauer (Minuten)
               </label>
               <input
                 id="duration"
@@ -597,7 +597,7 @@ export default function AppointmentDetailPage() {
             
             <div className="mb-6">
               <label htmlFor="location" className="block text-sm font-medium text-white/80 mb-2">
-                Location
+                Ort
               </label>
               <input
                 id="location"
@@ -614,7 +614,7 @@ export default function AppointmentDetailPage() {
                 onClick={closeEditModal}
                 className="px-4 py-2 border border-dark-border rounded-xl text-white hover:bg-white/10 transition-all duration-200"
               >
-                Cancel
+                Abbrechen
               </button>
               <button
                 onClick={handleSaveAppointment}
@@ -627,14 +627,14 @@ export default function AppointmentDetailPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Processing...
+                    Verarbeitung...
                   </>
                 ) : (
                   <>
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-1.073-5.73-6.568 6.569-4.725-4.725-1.073-1.073 5.768-5.768 4.725 4.725z"></path>
                     </svg>
-                    Save Changes
+                    Änderungen speichern
                   </>
                 )}
               </button>

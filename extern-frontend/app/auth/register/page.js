@@ -52,23 +52,23 @@ export default function RegisterPage() {
 
     // Validate passwords match
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Passwörter stimmen nicht überein');
       return;
     }
 
     // Validate required fields
     if (!firstName || !lastName) {
-      setError('First and last name are required');
+      setError('Vor- und Nachname sind erforderlich');
       return;
     }
 
     if (!phone) {
-      setError('Phone number is required');
+      setError('Telefonnummer ist erforderlich');
       return;
     }
 
     if (!specialty) {
-      setError('Specialty is required');
+      setError('Spezialität ist erforderlich');
       return;
     }
 
@@ -123,7 +123,7 @@ export default function RegisterPage() {
       }
     } catch (err) {
       console.error('Registration error:', err);
-      setError(err.response?.data?.error || 'Failed to register. Please try again.');
+      setError(err.response?.data?.error || 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.');
     } finally {
       setLoading(false);
     }
@@ -174,7 +174,7 @@ export default function RegisterPage() {
       localStorage.setItem('onboardingCompleted', 'true');
       localStorage.removeItem('isNewRegistration');
       
-      setSuccess('Your availability has been saved successfully!');
+      setSuccess('Ihre Verfügbarkeit wurde erfolgreich gespeichert!');
       
       // Redirect to dashboard after a short delay
       setTimeout(() => {
@@ -182,7 +182,7 @@ export default function RegisterPage() {
       }, 2000);
     } catch (err) {
       console.error('Error saving availability:', err);
-      setError('Failed to save your availability. Please try again.');
+      setError('Fehler beim Speichern Ihrer Verfügbarkeit. Bitte versuchen Sie es erneut.');
     } finally {
       setSaving(false);
     }
@@ -190,13 +190,13 @@ export default function RegisterPage() {
   
   const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   const dayLabels = {
-    monday: 'Monday',
-    tuesday: 'Tuesday',
-    wednesday: 'Wednesday',
-    thursday: 'Thursday',
-    friday: 'Friday',
-    saturday: 'Saturday',
-    sunday: 'Sunday'
+    monday: 'Montag',
+    tuesday: 'Dienstag',
+    wednesday: 'Mittwoch',
+    thursday: 'Donnerstag',
+    friday: 'Freitag',
+    saturday: 'Samstag',
+    sunday: 'Sonntag'
   };
 
   return (
@@ -214,7 +214,7 @@ export default function RegisterPage() {
             <span className="text-[#ffcb00]">ZIMMR</span>
           </h1>
           <p className="text-white text-lg font-light">
-            {currentStep === 1 ? 'Create your account' : 'Set your availability'}
+            {currentStep === 1 ? 'Konto erstellen' : 'Verfügbarkeit festlegen'}
           </p>
         </div>
         
@@ -241,7 +241,7 @@ export default function RegisterPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label htmlFor="firstName" className="block text-sm font-medium text-white mb-1">
-                      First Name <span className="text-[#00c2ff]">*</span>
+                      Vorname <span className="text-[#00c2ff]">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -250,7 +250,7 @@ export default function RegisterPage() {
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         className="block w-full p-3 pl-3 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 relative z-10"
-                        placeholder="First name"
+                        placeholder="Vorname"
                         required
                       />
                     </div>
@@ -258,7 +258,7 @@ export default function RegisterPage() {
                   
                   <div className="space-y-1">
                     <label htmlFor="lastName" className="block text-sm font-medium text-white mb-1">
-                      Last Name <span className="text-[#00c2ff]">*</span>
+                      Nachname <span className="text-[#00c2ff]">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -267,7 +267,7 @@ export default function RegisterPage() {
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         className="block w-full p-3 pl-3 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 relative z-10"
-                        placeholder="Last name"
+                        placeholder="Nachname"
                         required
                       />
                     </div>
@@ -276,7 +276,7 @@ export default function RegisterPage() {
                 
                 <div className="space-y-1">
                   <label htmlFor="email" className="block text-sm font-medium text-white mb-1">
-                    Email <span className="text-[#00c2ff]">*</span>
+                    E-Mail <span className="text-[#00c2ff]">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-[-1]">
@@ -298,7 +298,7 @@ export default function RegisterPage() {
                 
                 <div className="space-y-1">
                   <label htmlFor="phone" className="block text-sm font-medium text-white mb-1">
-                    Phone <span className="text-[#00c2ff]">*</span>
+                    Telefonnummer <span className="text-[#00c2ff]">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-[-1]">
@@ -321,12 +321,12 @@ export default function RegisterPage() {
                 {role === 'craftsman' && (
                   <div className="space-y-1">
                     <label htmlFor="specialty" className="block text-sm font-medium text-white mb-1">
-                      Specialty <span className="text-[#00c2ff]">*</span>
+                      Spezialität <span className="text-[#00c2ff]">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-[-1]">
                         <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
                       </div>
@@ -337,14 +337,14 @@ export default function RegisterPage() {
                         className="block w-full pl-12 pr-4 py-3.5 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 appearance-none relative z-10"
                         required
                       >
-                        <option value="">Select your specialty</option>
-                        <option value="Tile Setter">Tile Setter</option>
-                        <option value="Tile Installer">Tile Installer</option>
-                        <option value="Ceramic Tiler">Ceramic Tiler</option>
-                        <option value="Porcelain Tiler">Porcelain Tiler</option>
-                        <option value="Mosaic Tiler">Mosaic Tiler</option>
-                        <option value="Bathroom Tiler">Bathroom Tiler</option>
-                        <option value="Kitchen Tiler">Kitchen Tiler</option>
+                        <option value="">Wählen Sie Ihre Spezialität</option>
+                        <option value="Tile Setter">Fliesenleger</option>
+                        <option value="Tile Installer">Flieseninstallateur</option>
+                        <option value="Ceramic Tiler">Keramikfliesenleger</option>
+                        <option value="Porcelain Tiler">Porzellanfliesenleger</option>
+                        <option value="Mosaic Tiler">Mosaikfliesenleger</option>
+                        <option value="Bathroom Tiler">Badezimmerfliesenleger</option>
+                        <option value="Kitchen Tiler">Küchenfliesenleger</option>
                       </select>
                       <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                         <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -358,7 +358,7 @@ export default function RegisterPage() {
                 {role === 'customer' && (
                   <div className="space-y-1">
                     <label htmlFor="name" className="block text-sm font-medium text-white mb-1">
-                      Company Name (Optional)
+                      Firmenname (Optional)
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-[-1]">
@@ -372,7 +372,7 @@ export default function RegisterPage() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         className="block w-full pl-12 pr-4 py-3.5 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 relative z-10"
-                        placeholder="Your company (if applicable)"
+                        placeholder="Ihr Unternehmen (falls zutreffend)"
                       />
                     </div>
                   </div>
@@ -380,7 +380,7 @@ export default function RegisterPage() {
                 
                 <div className="space-y-1">
                   <label htmlFor="password" className="block text-sm font-medium text-white mb-1">
-                    Password <span className="text-[#00c2ff]">*</span>
+                    Passwort <span className="text-[#00c2ff]">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-[-1]">
@@ -402,7 +402,7 @@ export default function RegisterPage() {
                 
                 <div className="space-y-1">
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-white mb-1">
-                    Confirm Password <span className="text-[#00c2ff]">*</span>
+                    Passwort bestätigen <span className="text-[#00c2ff]">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-[-1]">
@@ -433,10 +433,10 @@ export default function RegisterPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      <span>Registering...</span>
+                      <span>Registrierung...</span>
                     </div>
                   ) : (
-                    'Create Account'
+                    'Konto erstellen'
                   )}
                 </button>
               </form>
@@ -446,8 +446,8 @@ export default function RegisterPage() {
           {currentStep === 2 && (
             <div className="p-6 md:p-8">
               <div className="space-y-4">
-                <h2 className="text-xl font-semibold text-white">Your Working Hours</h2>
-                <p className="text-white text-sm">Set your regular working hours for each day of the week.</p>
+                <h2 className="text-xl font-semibold text-white">Ihre Arbeitszeiten</h2>
+                <p className="text-white text-sm">Legen Sie Ihre regelmäßigen Arbeitszeiten für jeden Wochentag fest.</p>
                 
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                   {days.map((day) => (
@@ -462,12 +462,12 @@ export default function RegisterPage() {
                           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                           </svg>
-                          Add Time Slot
+                          Zeitraum hinzufügen
                         </button>
                       </div>
                       
                       {availabilityHours[day].length === 0 ? (
-                        <p className="text-white/50 italic text-sm">Not available</p>
+                        <p className="text-white/50 italic text-sm">Nicht verfügbar</p>
                       ) : (
                         availabilityHours[day].map((timeSlot, index) => {
                           const [start, end] = timeSlot.split('-');
@@ -490,7 +490,7 @@ export default function RegisterPage() {
                                 </div>
                               </div>
                               
-                              <span className="text-white">to</span>
+                              <span className="text-white">bis</span>
                               
                               <div className="relative flex-1">
                                 <select
@@ -513,7 +513,7 @@ export default function RegisterPage() {
                                 type="button"
                                 onClick={() => handleRemoveTimeSlot(day, index)}
                                 className="text-white/70 hover:text-red-400 p-1 rounded-full hover:bg-white/10 transition-colors"
-                                aria-label="Remove time slot"
+                                aria-label="Zeitraum entfernen"
                               >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -534,7 +534,7 @@ export default function RegisterPage() {
                   onClick={() => router.push('/dashboard')}
                   className="px-4 py-3 border border-white/20 text-white rounded-xl hover:bg-white/10 transition-all duration-200"
                 >
-                  Skip for Now
+                  Später überspringen
                 </button>
                 <button
                   type="button"
@@ -548,10 +548,10 @@ export default function RegisterPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      <span>Saving...</span>
+                      <span>Speichern...</span>
                     </div>
                   ) : (
-                    'Complete Registration'
+                    'Registrierung abschließen'
                   )}
                 </button>
               </div>
@@ -560,9 +560,9 @@ export default function RegisterPage() {
           
           <div className="px-6 md:px-8 pb-6 md:pb-8 pt-2 text-center">
             <p className="text-sm text-white">
-              Already have an account?{' '}
+              Sie haben bereits ein Konto?{' '}
               <a href="/auth/login" className="text-[#00c2ff] hover:text-white transition-colors font-medium">
-                Sign in here
+                Hier anmelden
               </a>
             </p>
           </div>

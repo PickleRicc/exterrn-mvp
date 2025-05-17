@@ -59,7 +59,7 @@ export default function Home() {
         
         {/* Trusted by row */}
         <div className="mt-8 mb-12 flex flex-col items-center">
-          <span className="uppercase text-xs tracking-widest text-[#ffcb00]/80 mb-2">Trusted by modern craftsmen</span>
+          <span className="uppercase text-xs tracking-widest text-[#ffcb00]/80 mb-2">Vertraut von modernen Handwerkern</span>
           <div className="flex flex-wrap gap-6 justify-center opacity-90">
             <span className="text-white/80 font-semibold">Meisterbetrieb Müller</span>
             <span className="text-white/80 font-semibold">Elektro Schmidt</span>
@@ -70,7 +70,7 @@ export default function Home() {
         
         {/* Features Section */}
         <div className="w-full text-center mb-12 mt-8">
-          <h2 className="text-3xl font-bold mb-4 text-[#ffcb00]">Features</h2>
+          <h2 className="text-3xl font-bold mb-4 text-[#ffcb00]">Funktionen</h2>
           <div className="w-24 h-1 bg-[#ffcb00]/30 mx-auto"></div>
         </div>
         <section className="w-full max-w-5xl mx-auto grid md:grid-cols-3 gap-6 mb-16 px-2">
@@ -78,22 +78,22 @@ export default function Home() {
             <div className="bg-[#ffcb00]/20 p-3 rounded-full mb-4">
               <svg className="w-8 h-8 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             </div>
-            <h3 className="font-bold text-lg mb-2">Easy Scheduling</h3>
-            <p className="text-white/90">Book, manage, and track appointments with just a few taps—no paperwork needed.</p>
+            <h3 className="font-bold text-lg mb-2">Einfache Terminplanung</h3>
+            <p className="text-white/90">Buche, verwalte und verfolge Termine mit wenigen Klicks – ohne Papierkram.</p>
           </div>
           <div className="bg-[#1a1a1a]/80 backdrop-blur-sm rounded-2xl p-6 flex flex-col items-center text-center shadow-lg border border-[#2a2a2a]">
             <div className="bg-[#ffcb00]/20 p-3 rounded-full mb-4">
               <svg className="w-8 h-8 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 4v4m0 4h.01"></path></svg>
             </div>
-            <h3 className="font-bold text-lg mb-2">Automated Reminders</h3>
-            <p className="text-white/90">Reduce no-shows with SMS/email reminders for your customers—sent automatically.</p>
+            <h3 className="font-bold text-lg mb-2">Automatische Erinnerungen</h3>
+            <p className="text-white/90">Reduziere Terminausfälle mit automatischen SMS/E-Mail-Erinnerungen für deine Kunden.</p>
           </div>
           <div className="bg-[#1a1a1a]/80 backdrop-blur-sm rounded-2xl p-6 flex flex-col items-center text-center shadow-lg border border-[#2a2a2a]">
             <div className="bg-[#ffcb00]/20 p-3 rounded-full mb-4">
               <svg className="w-8 h-8 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a5 5 0 00-10 0v2a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2z"></path></svg>
             </div>
             <h3 className="font-bold text-lg mb-2">All-in-One Dashboard</h3>
-            <p className="text-white/90">See customers, appointments, and tasks at a glance—optimized for mobile and desktop.</p>
+            <p className="text-white/90">Überblicke Kunden, Termine und Aufgaben auf einen Blick – optimiert für Mobilgeräte und Desktop.</p>
           </div>
         </section>
         
@@ -101,7 +101,7 @@ export default function Home() {
           <div className="flex items-center justify-center">
             <img 
               src="/images/tile-cutting.jpg" 
-              alt="Cutting tile with angle grinder" 
+              alt="Fliesen schneiden mit Winkelschleifer" 
               className="rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-full h-auto object-cover aspect-video"
               width="480"
               height="270"
@@ -114,7 +114,7 @@ export default function Home() {
           <div className="flex items-center justify-center">
             <img 
               src="/images/tilemeasuring.jpg" 
-              alt="Craftsman measuring tile for installation" 
+              alt="Handwerker vermisst Fliesen für die Installation" 
               className="rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-full h-auto object-cover aspect-video"
               width="480"
               height="270"

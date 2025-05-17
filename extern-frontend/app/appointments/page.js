@@ -38,12 +38,12 @@ export default function AppointmentsPage() {
         setCraftsmanId(tokenData.craftsmanId);
         fetchData(tokenData.craftsmanId);
       } else {
-        setError('Your account is not set up as a craftsman. Please contact support.');
+        setError('Ihr Konto ist nicht als Handwerker eingerichtet. Bitte kontaktieren Sie den Support.');
         setLoading(false);
       }
     } catch (err) {
       console.error('Error parsing token:', err);
-      setError('Session error. Please log in again.');
+      setError('Sitzungsfehler. Bitte melden Sie sich erneut an.');
       setLoading(false);
     }
   }, [router]);
@@ -65,7 +65,7 @@ export default function AppointmentsPage() {
       setLoading(false);
     } catch (err) {
       console.error('Error fetching data:', err);
-      setError('Failed to load appointments. Please try again.');
+      setError('Fehler beim Laden der Termine. Bitte versuchen Sie es erneut.');
       setLoading(false);
     }
   };
@@ -198,7 +198,7 @@ export default function AppointmentsPage() {
       console.log('Approval successful, server response:', result);
       
       // Show success message
-      setSuccess('Appointment approved successfully! An email has been sent to the customer.');
+      setSuccess('Der Termin wurde erfolgreich genehmigt! Eine E-Mail wurde an den Kunden gesendet.');
       
       // Update the appointment in the local state immediately
       setAppointments(prevAppointments => 
@@ -227,7 +227,7 @@ export default function AppointmentsPage() {
         data: err.response?.data,
         url: err.config?.url
       });
-      setError(`Failed to approve appointment: ${err.response?.data?.error || err.message}`);
+      setError(`Fehler beim Genehmigen des Termins: ${err.response?.data?.error || err.message}`);
       
       // Clear the error message after 5 seconds
       setTimeout(() => {
@@ -264,7 +264,7 @@ export default function AppointmentsPage() {
       console.log('Rejection successful:', result);
       
       // Show success message
-      setSuccess('Appointment rejected. The customer has been notified.');
+      setSuccess('Der Termin wurde abgelehnt. Der Kunde wurde per E-Mail benachrichtigt.');
       
       // Update the appointment in the local state immediately
       setAppointments(prevAppointments => 
@@ -295,7 +295,7 @@ export default function AppointmentsPage() {
         data: err.response?.data,
         url: err.config?.url
       });
-      setError(`Failed to reject appointment: ${err.response?.data?.error || err.message}`);
+      setError(`Fehler beim Ablehnen des Termins: ${err.response?.data?.error || err.message}`);
       
       // Clear the error message after 5 seconds
       setTimeout(() => {
@@ -313,7 +313,7 @@ export default function AppointmentsPage() {
       
       // Find appointment details before deletion for the success message
       const appointment = appointments.find(app => app.id === appointmentId);
-      const customerName = appointment ? (customers[appointment.customer_id]?.name || 'Customer') : 'Customer';
+      const customerName = appointment ? (customers[appointment.customer_id]?.name || 'Kunde') : 'Kunde';
       
       // Call API to delete the appointment
       await appointmentsAPI.delete(appointmentId);
@@ -322,13 +322,13 @@ export default function AppointmentsPage() {
       setAppointments(appointments.filter(app => app.id !== appointmentId));
       
       // Show success message with customer name and date
-      setSuccess(`Appointment with ${customerName} has been deleted successfully.`);
+      setSuccess(`Der Termin mit ${customerName} wurde erfolgreich gelöscht.`);
       
       // Hide success message after 5 seconds
       setTimeout(() => setSuccess(''), 5000);
     } catch (err) {
       console.error('Error deleting appointment:', err);
-      setError(err.response?.data?.error || 'Failed to delete appointment. Please try again.');
+      setError(err.response?.data?.error || 'Fehler beim Löschen des Termins. Bitte versuchen Sie es erneut.');
       
       // Hide error message after 5 seconds
       setTimeout(() => setError(''), 5000);
@@ -342,7 +342,7 @@ export default function AppointmentsPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#121212] to-[#1a1a1a]">
-      <Header title="Appointments" />
+      <Header title="Termine" />
       
       <main className="flex-grow container mx-auto px-4 py-6 sm:px-6 md:py-8">
         {loading ? (
@@ -371,7 +371,7 @@ export default function AppointmentsPage() {
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                     </svg>
-                    List View
+                    Listenansicht
                   </span>
                 </button>
                 <button
@@ -386,7 +386,7 @@ export default function AppointmentsPage() {
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    Calendar
+                    Kalender
                   </span>
                 </button>
               </div>
@@ -396,12 +396,12 @@ export default function AppointmentsPage() {
                 <select
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
-                  className="rounded-lg bg-white/5 text-white border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#ffcb00] focus:border-[#ffcb00] w-full md:w-auto"
+                  className="rounded-lg bg-white/5 text-white border border-white/10 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#ffcb00]/50 focus:border-[#ffcb00]/50 transition-all"
                 >
-                  <option value="upcoming">Upcoming</option>
-                  <option value="past">Past</option>
-                  <option value="all">All</option>
-                  <option value="pending">Pending Approval</option>
+                  <option value="upcoming">Zukünftige Termine</option>
+                  <option value="past">Vergangene Termine</option>
+                  <option value="all">Alle Termine</option>
+                  <option value="pending">Genehmigung ausstehend</option>
                 </select>
                 
                 <button
@@ -409,7 +409,7 @@ export default function AppointmentsPage() {
                   className="bg-[#ffcb00] hover:bg-[#e6b800] text-black px-3 py-2 rounded-lg shadow text-sm font-medium flex items-center whitespace-nowrap"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                  New Appointment
+                  Neuer Termin
                 </button>
               </div>
             </div>
@@ -422,7 +422,7 @@ export default function AppointmentsPage() {
                 {/* List View */}
                 <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 overflow-hidden shadow-lg transition-all duration-300 hover:bg-white/10">
                   {getFilteredAppointments().length === 0 ? (
-                    <div className="text-center py-8 text-white/70">No appointments found for this filter.</div>
+                    <div className="text-center py-8 text-white/70">Keine Termine gefunden für diesen Filter.</div>
                   ) : (
                     <div className="flex flex-col gap-4 p-4">
                       {getFilteredAppointments().map((appointment) => (
@@ -431,7 +431,7 @@ export default function AppointmentsPage() {
                             <span className="text-white/80 font-bold text-lg">{formatDate(appointment.scheduled_at)}</span>
                             <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${getStatusClass(appointment.status, appointment.approval_status)}`}>{appointment.status || 'N/A'}</span>
                           </div>
-                          <div className="text-white/80 text-base font-medium">{customers[appointment.customer_id]?.name || 'Unknown'}</div>
+                          <div className="text-white/80 text-base font-medium">{customers[appointment.customer_id]?.name || 'Unbekannt'}</div>
                           <div className="flex items-center gap-2">
                             <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${appointment.approval_status === 'approved' ? 'bg-green-500/30 text-green-200' : appointment.approval_status === 'pending' ? 'bg-yellow-500/30 text-yellow-200' : appointment.approval_status === 'rejected' ? 'bg-red-500/30 text-red-200' : 'bg-gray-500/30 text-gray-200'}`}>{appointment.approval_status || 'N/A'}</span>
                           </div>
@@ -444,7 +444,7 @@ export default function AppointmentsPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                               </svg>
-                              View
+                              Ansehen
                             </button>
                             {appointment.approval_status === 'pending' && (
                               <div className="flex flex-col md:flex-row mt-2 md:mt-0 md:ml-2 gap-2">
@@ -461,7 +461,7 @@ export default function AppointmentsPage() {
                                   ) : (
                                     <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                                   )}
-                                  Accept
+                                  Genehmigen
                                 </button>
                                 <button
                                   onClick={() => openRejectModal(appointment)}
@@ -469,7 +469,7 @@ export default function AppointmentsPage() {
                                   className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded transition-colors flex items-center justify-center"
                                 >
                                   <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                  Reject
+                                  Ablehnen
                                 </button>
                               </div>
                             )}
@@ -478,7 +478,7 @@ export default function AppointmentsPage() {
                               className="text-xs bg-red-500/20 hover:bg-red-500/30 text-red-400 px-2 py-1 rounded transition-colors flex items-center justify-center group"
                             >
                               <svg className="w-3 h-3 mr-1 text-red-400 group-hover:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                              Delete
+                              Löschen
                             </button>
                           </div>
                         </div>
@@ -496,21 +496,21 @@ export default function AppointmentsPage() {
       {showRejectModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#121212] rounded-xl shadow-2xl border border-white/10 p-6 max-w-md w-full animate-scale-in">
-            <h3 className="text-xl font-bold text-white mb-4">Reject Appointment</h3>
+            <h3 className="text-xl font-bold text-white mb-4">Termin ablehnen</h3>
             <p className="text-white/70 mb-4">
-              Are you sure you want to reject this appointment with {customers[appointmentToReject?.customer_id]?.name || 'this customer'}?
-              The customer will be notified by email.
+              Sind Sie sicher, dass Sie diesen Termin mit {customers[appointmentToReject?.customer_id]?.name || 'diesem Kunden'} ablehnen möchten?
+              Der Kunde wird per E-Mail benachrichtigt.
             </p>
             
             <div className="mb-4">
               <label htmlFor="rejectReason" className="block text-sm font-medium text-white/80 mb-2">
-                Reason for rejection (optional)
+                Grund für die Ablehnung (optional)
               </label>
               <textarea
                 id="rejectReason"
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Explain why you're rejecting this appointment..."
+                placeholder="Erklären Sie, warum Sie diesen Termin ablehnen..."
                 className="w-full p-3 border border-white/10 rounded-xl bg-white/5 text-white focus:ring-2 focus:ring-[#ffcb00]/50 focus:border-[#ffcb00]/50 transition-all"
                 rows="3"
               ></textarea>
@@ -521,7 +521,7 @@ export default function AppointmentsPage() {
                 onClick={closeRejectModal}
                 className="px-4 py-2 border border-white/20 rounded-lg text-white hover:bg-white/5 transition-all"
               >
-                Cancel
+                Abbrechen
               </button>
               <button
                 onClick={handleReject}
@@ -534,10 +534,10 @@ export default function AppointmentsPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Processing...
+                    Verarbeitung...
                   </>
                 ) : (
-                  'Confirm Rejection'
+                  'Ablehnung bestätigen'
                 )}
               </button>
             </div>

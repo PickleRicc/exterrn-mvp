@@ -40,7 +40,7 @@ function LoginContent() {
       router.push('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.response?.data?.error || 'Failed to login. Please check your credentials.');
+      setError(err.response?.data?.error || 'Anmeldung fehlgeschlagen. Bitte überprüfe deine Zugangsdaten.');
     } finally {
       setLoading(false);
     }
@@ -60,7 +60,7 @@ function LoginContent() {
           <h1 className="text-3xl md:text-4xl font-bold mb-3 font-heading">
             <span className="text-[#ffcb00]">ZIMMR</span>
           </h1>
-          <p className="text-white text-lg font-light">Sign in to your account</p>
+          <p className="text-white text-lg font-light">Melde dich in deinem Konto an</p>
         </div>
         
         {registrationSuccess && (
@@ -68,7 +68,7 @@ function LoginContent() {
             <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            <span>Registration successful! You can now log in.</span>
+            <span>Registrierung erfolgreich! Du kannst dich jetzt anmelden.</span>
           </div>
         )}
         
@@ -86,7 +86,7 @@ function LoginContent() {
             <div className="space-y-5">
               <div className="space-y-1">
                 <label htmlFor="email" className="block text-sm font-medium text-white mb-1">
-                  Email
+                  E-Mail
                 </label>
                 <div className="relative">
                   <input
@@ -108,7 +108,7 @@ function LoginContent() {
               
               <div className="space-y-1">
                 <label htmlFor="password" className="block text-sm font-medium text-white mb-1">
-                  Password
+                  Passwort
                 </label>
                 <div className="relative">
                   <input
@@ -140,19 +140,19 @@ function LoginContent() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  <span>Signing in...</span>
+                  <span>Anmeldung...</span>
                 </div>
               ) : (
-                <span>Sign in</span>
+                <span>Anmelden</span>
               )}
             </button>
           </form>
           
           <div className="px-6 md:px-8 pb-6 md:pb-8 pt-2 text-center">
             <p className="text-sm text-white">
-              Don't have an account?{' '}
+              Noch kein Konto?{' '}
               <a href="/auth/register" className="text-[#ffcb00] hover:text-white transition-colors font-medium">
-                Register here
+                Hier registrieren
               </a>
             </p>
           </div>
@@ -171,7 +171,7 @@ function LoginLoading() {
           <h1 className="text-3xl md:text-4xl font-bold mb-3 font-heading">
             <span className="text-[#ffcb00]">ZIMMR</span>
           </h1>
-          <p className="text-white/80 text-lg font-light">Loading...</p>
+          <p className="text-white/80 text-lg font-light">Wird geladen...</p>
         </div>
         <div className="flex justify-center">
           <svg className="animate-spin h-10 w-10 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

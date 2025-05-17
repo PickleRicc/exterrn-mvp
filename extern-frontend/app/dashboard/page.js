@@ -146,23 +146,23 @@ export default function Home() {
         ) : !isLoggedIn ? (
           <div className="text-center py-16 animate-fade-in">
             <h1 className="text-4xl font-bold mb-6 font-heading">
-              <span className="bg-gradient-to-r from-[#ffcb00] to-[#e6b800] bg-clip-text text-transparent">Welcome to ZIMMR</span>
+              <span className="bg-gradient-to-r from-[#ffcb00] to-[#e6b800] bg-clip-text text-transparent">Willkommen bei ZIMMR</span>
             </h1>
             <p className="text-xl text-white/80 max-w-3xl mx-auto mb-10">
-              The smart platform for tilesmen to manage appointments, customers, and materials.
+              Die intelligente Plattform für Fliesenleger, um Termine, Kunden und Materialien zu verwalten.
             </p>
             <div className="flex gap-4 justify-center">
               <Link 
                 href="/auth/login" 
                 className="px-8 py-3 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5"
               >
-                Sign In
+                Anmelden
               </Link>
               <Link 
                 href="/auth/register" 
                 className="px-8 py-3 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5"
               >
-                Register
+                Registrieren
               </Link>
             </div>
           </div>
@@ -173,11 +173,11 @@ export default function Home() {
                 <div>
                   <h1 className="text-3xl font-bold mb-2">
                     <span className="bg-gradient-to-r from-[#ffcb00] to-[#e6b800] bg-clip-text text-transparent">
-                      {craftsman ? `Welcome, ${craftsman.name}` : 'Welcome'}
+                      {craftsman ? `Willkommen, ${craftsman.name}` : 'Willkommen'}
                     </span>
                   </h1>
                   <p className="text-white/70">
-                    {craftsman ? `Tiling Professional` : 'Craftsman Dashboard'}
+                    {craftsman ? `Fliesenleger` : 'Handwerker-Dashboard'}
                   </p>
                   {/* Next Appointment Section */}
                   <div className="mt-8">
@@ -194,12 +194,12 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                       </svg>
                     </div>
-                    <h2 className="text-xl font-semibold text-white">Upcoming Appointments</h2>
+                    <h2 className="text-xl font-semibold text-white">Kommende Termine</h2>
                   </div>
                   <div className="text-3xl font-bold text-white mb-2">{upcomingAppointments.length}</div>
-                  <p className="text-white/60 mb-4">Scheduled tiling projects</p>
+                  <p className="text-white/60 mb-4">Geplante Fliesenprojekte</p>
                   <Link href="/appointments" className="text-[#ffcb00] hover:underline flex items-center text-sm">
-                    View All Appointments
+                    Alle Termine anzeigen
                     <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                     </svg>
@@ -213,12 +213,12 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                       </svg>
                     </div>
-                    <h2 className="text-xl font-semibold text-white">Customers</h2>
+                    <h2 className="text-xl font-semibold text-white">Kunden</h2>
                   </div>
                   <div className="text-3xl font-bold text-white mb-2">{customerCount}</div>
-                  <p className="text-white/60 mb-4">Active clients</p>
+                  <p className="text-white/60 mb-4">Aktive Kunden</p>
                   <Link href="/customers" className="text-[#ffcb00] hover:underline flex items-center text-sm">
-                    View All Customers
+                    Alle Kunden anzeigen
                     <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                     </svg>
@@ -234,64 +234,18 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                       </svg>
                     </div>
-                    <h2 className="text-xl font-semibold text-white">Invoices</h2>
+                    <h2 className="text-xl font-semibold text-white">Rechnungen</h2>
                   </div>
                   <div className="text-3xl font-bold text-white mb-2">{invoiceCount}</div>
-                  <p className="text-white/60 mb-4">Client invoices</p>
+                  <p className="text-white/60 mb-4">Kundenrechnungen</p>
                   <Link href="/invoices" className="text-[#ffcb00] hover:underline flex items-center text-sm">
-                    View All Invoices
+                    Alle Rechnungen anzeigen
                     <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
                     </svg>
                   </Link>
                 </div>
               </div>
-              
-              {/* {upcomingAppointments.length > 0 && (
-                <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 mb-8">
-                  <div className="flex items-center mb-6">
-                    <div className="p-2 bg-[#ffcb00]/20 rounded-full">
-                      <svg className="w-6 h-6 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                      </svg>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {upcomingAppointments.map((appointment) => (
-                      <Link 
-                        key={appointment.id}
-                        href={`/appointments/${appointment.id}`}
-                        className="block bg-white/5 hover:bg-white/10 rounded-lg p-4 transition-all duration-200"
-                      >
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                          <div>
-                            <h3 className="font-medium text-white">{appointment.customer_name || 'Customer'}</h3>
-                            <p className="text-white/70 text-sm">{formatDate(appointment.scheduled_at)}</p>
-                            {appointment.service_type && (
-                              <span className="inline-block mt-2 px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-xs">
-                                {appointment.service_type}
-                              </span>
-                            )}
-                          </div>
-                          <div className="mt-3 md:mt-0 flex items-center">
-                            <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              appointment.status === 'scheduled' ? 'bg-green-500/20 text-green-400' :
-                              appointment.status === 'completed' ? 'bg-blue-500/20 text-blue-400' :
-                              'bg-yellow-500/20 text-yellow-400'
-                            }`}>
-                              {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                            </div>
-                            <svg className="w-5 h-5 ml-2 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )} */}
               
               <div className="mb-8">
                 {/* <div className="flex items-center mb-6">
@@ -311,7 +265,7 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                       </svg>
                     </div>
-                    <span className="font-medium">Create New Tiling Project</span>
+                    <span className="font-medium">Neues Fliesenprojekt erstellen</span>
                   </Link>
                   <Link 
                     href="/customers/new" 
@@ -322,7 +276,7 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 0112 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
                       </svg>
                     </div>
-                    <span className="font-medium">Add New Customer</span>
+                    <span className="font-medium">Neuen Kunden hinzufügen</span>
                   </Link>
                   <Link 
                     href="/materials/new" 
@@ -333,7 +287,7 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4"></path>
                       </svg>
                     </div>
-                    <span className="font-medium">Add New Tiling Material</span>
+                    <span className="font-medium">Neues Fliesenmaterial hinzufügen</span>
                   </Link>
                   <Link 
                     href="/spaces/new" 
@@ -344,7 +298,7 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                       </svg>
                     </div>
-                    <span className="font-medium">Add New Customer Space</span>
+                    <span className="font-medium">Neuen Kundenraum hinzufügen</span>
                   </Link>
                   <Link 
                     href="/invoices/new" 
@@ -355,7 +309,7 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                       </svg>
                     </div>
-                    <span className="font-medium">Create New Invoice</span>
+                    <span className="font-medium">Neue Rechnung erstellen</span>
                   </Link>
                 </div>
               </div>
