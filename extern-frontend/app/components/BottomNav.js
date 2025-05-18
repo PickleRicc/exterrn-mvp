@@ -9,7 +9,7 @@ export default function BottomNav() {
   // Navigation items
   const navItems = [
     {
-      name: 'Home',
+      name: 'Start',
       path: '/',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -18,7 +18,7 @@ export default function BottomNav() {
       )
     },
     {
-      name: 'Phone',
+      name: 'Telefon',
       path: '/calls',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -27,7 +27,7 @@ export default function BottomNav() {
       )
     },
     {
-      name: 'Planning',
+      name: 'Termine',
       path: '/appointments',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -36,7 +36,7 @@ export default function BottomNav() {
       )
     },
     {
-      name: 'Profile',
+      name: 'Profil',
       path: '/profile',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

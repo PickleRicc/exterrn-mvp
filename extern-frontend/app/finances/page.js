@@ -5,15 +5,15 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 const PERIODS = [
-  { label: 'Month', value: 'month' },
-  { label: 'Year', value: 'year' },
-  { label: 'All', value: 'all' },
+  { label: 'Monat', value: 'month' },
+  { label: 'Jahr', value: 'year' },
+  { label: 'Alle', value: 'all' },
 ];
 
 // Helper to format month names for the chart
 const formatMonth = (dateString) => {
   const date = new Date(dateString);
-  return date.toLocaleString('en-US', { month: 'short' });
+  return date.toLocaleString('de-DE', { month: 'short' });
 };
 
 export default function FinancesPage() {
@@ -34,20 +34,20 @@ export default function FinancesPage() {
             goal: null
           });
           setGoalInput('');
-          setError('No finance goal set yet. Please add your revenue goal below.');
+          setError('Noch kein Finanzziel festgelegt. Bitte fügen Sie unten Ihr Umsatzziel hinzu.');
         } else {
           setStats(data);
           setGoalInput(data.goal.goal_amount || '');
           setError('');
         }
       })
-      .catch(() => setError('Could not load finance stats'))
+      .catch(() => setError('Finanzstatistiken konnten nicht geladen werden'))
       .finally(() => setLoading(false));
   }, [period]);
 
   const handleGoalSave = async () => {
     if (!goalInput || isNaN(goalInput)) {
-      setError('Please enter a valid number');
+      setError('Bitte geben Sie eine gültige Zahl ein');
       return;
     }
     setLoading(true);
@@ -60,7 +60,7 @@ export default function FinancesPage() {
       setStats(data);
       setGoalInput(data.goal?.goal_amount || '');
     } catch {
-      setError('Could not update goal');
+      setError('Ziel konnte nicht aktualisiert werden');
     } finally {
       setLoading(false);
     }
@@ -78,15 +78,15 @@ export default function FinancesPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#121212] to-[#1a1a1a]">
-      <Header title="Finances" />
+      <Header title="Finanzen" />
       <main className="flex-grow container mx-auto px-5 py-8">
         <div className="bg-white/5 backdrop-blur-xl rounded-2xl shadow-xl border border-white/10 p-6 md:p-8 max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold mb-2 text-white">
-                Finances
+                Finanzen
               </h1>
-              <p className="text-white/70">Track your revenue goal & earnings</p>
+              <p className="text-white/70">Verfolgen Sie Ihre Umsatzziele & Einnahmen</p>
             </div>
             <div className="flex gap-2 mt-3 md:mt-0">
               {PERIODS.map(p => (
@@ -118,7 +118,7 @@ export default function FinancesPage() {
                 <div className="flex flex-col sm:flex-row gap-2 items-start">
                   <div className="w-full">
                     <h2 className="text-lg font-medium text-white mb-2">
-                      {period.charAt(0).toUpperCase() + period.slice(1)}ly Revenue Goal
+                      {period === 'month' ? 'Monatliches' : period === 'year' ? 'Jährliches' : 'Gesamtes'} Umsatzziel
                     </h2>
                     
                     {editing ? (
@@ -133,7 +133,7 @@ export default function FinancesPage() {
                               value={goalInput}
                               onChange={(e) => setGoalInput(e.target.value)}
                               className="focus:ring-[#ffcb00] bg-white/5 border border-white/10 focus:border-[#ffcb00] block w-full pl-7 pr-3 py-2 sm:text-sm text-white rounded-md"
-                              placeholder="Enter goal amount"
+                              placeholder="Zielbetrag eingeben"
                             />
                           </div>
                         </div>
@@ -142,7 +142,7 @@ export default function FinancesPage() {
                             className="px-3 py-1.5 bg-[#ffcb00] hover:bg-[#e6b800] text-black rounded text-sm font-medium"
                             onClick={handleGoalSave}
                           >
-                            Save
+                            Speichern
                           </button>
                           <button
                             className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded text-sm font-medium"
@@ -151,14 +151,14 @@ export default function FinancesPage() {
                               setGoalInput(stats?.goal?.goal_amount || '');
                             }}
                           >
-                            Cancel
+                            Abbrechen
                           </button>
                         </div>
                       </div>
                     ) : (
                       <>
                         <div className="text-2xl font-bold text-white">
-                          {stats?.goal ? `€${Number(stats.goal.goal_amount).toLocaleString('en-US')}` : 'No goal set'}
+                          {stats?.goal ? `€${Number(stats.goal.goal_amount).toLocaleString('de-DE')}` : 'Kein Ziel festgelegt'}
                         </div>
                         <button 
                           className="ml-3 text-[#ffcb00] hover:text-[#e6b800] text-sm flex items-center" 
@@ -167,7 +167,7 @@ export default function FinancesPage() {
                           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                           </svg>
-                          Edit
+                          Bearbeiten
                         </button>
                       </>
                     )}
@@ -182,20 +182,20 @@ export default function FinancesPage() {
                   )}
                   {stats?.goal && (
                     <div className="mt-2 text-sm text-white/80">
-                      <span className="font-medium text-white">{progress}%</span> reached (
-                      €{Number(stats.totalRevenue).toLocaleString('en-US')} of €{Number(stats.goal.goal_amount).toLocaleString('en-US')}
+                      <span className="font-medium text-white">{progress}%</span> erreicht (
+                      €{Number(stats.totalRevenue).toLocaleString('de-DE')} von €{Number(stats.goal.goal_amount).toLocaleString('de-DE')}
                       )
                     </div>
                   )}
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 mt-6">
                   <div className="flex-1 bg-white/5 rounded-lg p-4 text-center">
-                    <div className="text-xs text-white/70 mb-1 uppercase tracking-wider">Revenue (paid)</div>
-                    <div className="text-xl font-bold text-[#ffcb00]">€{stats ? Number(stats.totalRevenue).toLocaleString('en-US') : '0'}</div>
+                    <div className="text-xs text-white/70 mb-1 uppercase tracking-wider">Umsatz (bezahlt)</div>
+                    <div className="text-xl font-bold text-[#ffcb00]">€{stats ? Number(stats.totalRevenue).toLocaleString('de-DE') : '0'}</div>
                   </div>
                   <div className="flex-1 bg-white/5 rounded-lg p-4 text-center">
-                    <div className="text-xs text-white/70 mb-1 uppercase tracking-wider">Outstanding (unpaid)</div>
-                    <div className="text-xl font-bold text-[#ffcb00]">€{stats && stats.totalOpen ? Number(stats.totalOpen).toLocaleString('en-US') : '0'}</div>
+                    <div className="text-xs text-white/70 mb-1 uppercase tracking-wider">Ausstehend (unbezahlt)</div>
+                    <div className="text-xl font-bold text-[#ffcb00]">€{stats && stats.totalOpen ? Number(stats.totalOpen).toLocaleString('de-DE') : '0'}</div>
                   </div>
                 </div>
               </div>
@@ -203,7 +203,7 @@ export default function FinancesPage() {
               {/* Monthly breakdown chart (only show for yearly view) */}
               {period === 'year' && stats?.monthlyRevenueData && stats.monthlyRevenueData.length > 0 && (
                 <div className="bg-white/5 rounded-xl p-5 shadow-md">
-                  <h2 className="text-lg font-semibold text-white mb-4">Monthly Revenue Breakdown</h2>
+                  <h2 className="text-lg font-semibold text-white mb-4">Monatliche Umsatzaufschlüsselung</h2>
                   <div className="h-60 flex items-end justify-between gap-1">
                     {stats.monthlyRevenueData.map((item, index) => {
                       // Calculate height percentage (max 95%)
@@ -219,7 +219,7 @@ export default function FinancesPage() {
                             style={{ height: `${heightPercent}%` }}
                           ></div>
                           <div className="text-xs text-white mt-2">{formatMonth(item.month)}</div>
-                          <div className="text-xs text-white/70">€{Number(item.revenue).toLocaleString('en-US')}</div>
+                          <div className="text-xs text-white/70">€{Number(item.revenue).toLocaleString('de-DE')}</div>
                         </div>
                       );
                     })}

@@ -4,28 +4,28 @@ import { usePathname } from 'next/navigation';
 
 const navItems = [
   {
-    label: 'Home',
+    label: 'Start',
     href: '/dashboard',
     icon: (
       <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 11.5L12 4l9 7.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7.5Z"/><path d="M9 22V12h6v10"/></svg>
     ),
   },
   {
-    label: 'Phone',
+    label: 'Telefon',
     href: '/phone',
     icon: (
       <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M22 16.92V21a1 1 0 0 1-1.09 1A19 19 0 0 1 3 5.09 1 1 0 0 1 4 4h4.09a1 1 0 0 1 1 .75l1.13 4.52a1 1 0 0 1-.29 1L8.91 12.09a16 16 0 0 0 7 7l1.82-1.82a1 1 0 0 1 1-.29l4.52 1.13a1 1 0 0 1 .75 1V21a1 1 0 0 1-1 1z"/></svg>
     ),
   },
   {
-    label: 'Planning',
+    label: 'Termine',
     href: '/appointments',
     icon: (
       <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
     ),
   },
   {
-    label: 'Profile',
+    label: 'Profil',
     href: '/profile',
     icon: (
       <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
@@ -67,7 +67,7 @@ export default function MobileNavbar() {
         }}
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1"></path></svg>
-        Log out
+        Abmelden
       </button>
     </nav>
   );
