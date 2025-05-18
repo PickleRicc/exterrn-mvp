@@ -12,7 +12,7 @@ import { generateInvoicePdf } from '../../../lib/utils/pdfGenerator';
 export default function NewQuotePage() {
   // Format date for better readability in the dropdown
   const formatAppointmentDate = (dateString) => {
-    if (!dateString) return 'No date';
+    if (!dateString) return 'Kein Datum';
     
     try {
       const date = new Date(dateString);
@@ -27,7 +27,7 @@ export default function NewQuotePage() {
         minute: '2-digit'
       });
     } catch (error) {
-      console.error('Error formatting date:', error);
+      console.error('Fehler beim Formatieren des Datums:', error);
       return dateString; // Return original if any error occurs
     }
   };
@@ -65,7 +65,7 @@ export default function NewQuotePage() {
     if (token) {
       try {
         const tokenData = JSON.parse(atob(token.split('.')[1]));
-        console.log('Token data:', tokenData);
+        console.log('Token-Daten:', tokenData);
         
         // Check for craftsmanId in different possible formats
         let extractedCraftsmanId = null;
@@ -79,7 +79,7 @@ export default function NewQuotePage() {
           extractedCraftsmanId = tokenData.user.craftsman_id;
         }
         
-        console.log('Extracted craftsman ID:', extractedCraftsmanId);
+        console.log('Extrahierte Handwerker-ID:', extractedCraftsmanId);
         
         if (extractedCraftsmanId) {
           setFormData(prev => ({ ...prev, craftsman_id: String(extractedCraftsmanId) }));
@@ -91,7 +91,7 @@ export default function NewQuotePage() {
             const urlParams = new URLSearchParams(window.location.search);
             
             if (urlParams.get('from_appointment') === 'true') {
-              console.log('Pre-populating quote from appointment data');
+              console.log('Vorausfüllen des Angebots mit Termin-Daten');
               
               // Get appointment data from URL parameters
               const appointmentId = urlParams.get('appointment_id');
@@ -137,16 +137,16 @@ export default function NewQuotePage() {
             }
           }
         } else {
-          console.error('No craftsman ID found in token:', tokenData);
-          setError('No craftsman ID found in your account. Please contact support.');
+          console.error('Keine Handwerker-ID in Ihrem Konto gefunden. Bitte wenden Sie sich an den Support.');
+          setError('Keine Handwerker-ID in Ihrem Konto gefunden. Bitte wenden Sie sich an den Support.');
         }
       } catch (err) {
-        console.error('Error parsing token:', err);
-        setError('Error authenticating your account. Please try logging in again.');
+        console.error('Fehler beim Parsen des Tokens:', err);
+        setError('Fehler bei der Authentifizierung Ihres Kontos. Bitte versuchen Sie es erneut.');
       }
     } else {
-      console.error('No token found in localStorage');
-      setError('You are not logged in. Please log in to create quotes.');
+      console.error('Kein Token in localStorage gefunden');
+      setError('Sie sind nicht angemeldet. Bitte melden Sie sich an, um Angebote zu erstellen.');
       router.push('/auth/login');
     }
   }, [router]);
@@ -155,11 +155,11 @@ export default function NewQuotePage() {
     try {
       setLoading(true);
       const data = await customersAPI.getAll({ craftsman_id: craftsmanId });
-      console.log('Fetched customers:', data);
+      console.log('Kunden geladen:', data);
       setCustomers(data);
     } catch (err) {
-      console.error('Error fetching customers:', err);
-      setError('Failed to load customers. Please try again later.');
+      console.error('Fehler beim Laden der Kunden:', err);
+      setError('Kunden konnten nicht geladen werden. Bitte versuchen Sie es später erneut.');
     } finally {
       setLoading(false);
     }
@@ -172,10 +172,10 @@ export default function NewQuotePage() {
       const data = await appointmentsAPI.getAll({ 
         craftsman_id: craftsmanId
       });
-      console.log('Fetched appointments:', data);
+      console.log('Termine geladen:', data);
       setAppointments(data);
     } catch (err) {
-      console.error('Error fetching appointments:', err);
+      console.error('Fehler beim Laden der Termine:', err);
       // Non-critical error, don't set error state to avoid blocking quote creation
     } finally {
       setLoadingAppointments(false);
@@ -261,7 +261,7 @@ export default function NewQuotePage() {
         total_amount: totalAmount,
         service_date: appointment.date || prev.service_date,
         location: appointment.location || prev.location,
-        notes: `For service on ${appointment.date}: ${appointment.service_type || 'Service'}${prev.notes ? `\n\n${prev.notes}` : ''}`
+        notes: `Für Leistung am ${appointment.date}: ${appointment.service_type || 'Service'}${prev.notes ? `\n\n${prev.notes}` : ''}`
       }));
     }
   };
@@ -277,18 +277,24 @@ export default function NewQuotePage() {
       const requiredFields = ['craftsman_id', 'customer_id', 'amount', 'total_amount'];
       for (const field of requiredFields) {
         if (!formData[field]) {
-          setError(`${field.replace('_', ' ')} is required`);
+          const fieldNames = {
+            'craftsman_id': 'Handwerker-ID',
+            'customer_id': 'Kunde',
+            'amount': 'Betrag',
+            'total_amount': 'Gesamtbetrag'
+          };
+          setError(`${fieldNames[field]} ist erforderlich`);
           setSubmitting(false);
           return;
         }
       }
       
-      console.log('Submitting quote data:', formData);
+      console.log('Angebotsdaten werden übermittelt:', formData);
       
       // Create the quote
       const quote = await quotesAPI.create(formData);
       
-      console.log('Quote created successfully:', quote);
+      console.log('Angebot erfolgreich erstellt:', quote);
       setCreatedQuote(quote);
       setSuccess(true);
       
@@ -313,8 +319,8 @@ export default function NewQuotePage() {
         router.push('/quotes');
       }, 2000);
     } catch (err) {
-      console.error('Error creating quote:', err);
-      setError('Failed to create quote. Please try again later.');
+      console.error('Fehler beim Erstellen des Angebots:', err);
+      setError('Angebot konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.');
     } finally {
       setSubmitting(false);
     }
@@ -329,10 +335,10 @@ export default function NewQuotePage() {
       // Generate PDF for created quote
       await quotesAPI.generatePdf(createdQuote);
       
-      console.log('PDF generated successfully');
+      console.log('PDF erfolgreich erstellt');
     } catch (err) {
-      console.error('Error generating PDF:', err);
-      setError('Failed to generate PDF. Please try again later.');
+      console.error('Fehler beim Erstellen des PDFs:', err);
+      setError('PDF konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.');
     } finally {
       setPdfLoading(false);
     }
@@ -350,22 +356,22 @@ export default function NewQuotePage() {
           {/* Page Title and Back Link */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold">Create New Quote</h1>
-              <p className="text-gray-400">Fill out the form to create a new quote</p>
+              <h1 className="text-2xl font-bold">Neues Angebot erstellen</h1>
+              <p className="text-gray-400">Füllen Sie das Formular aus, um ein neues Angebot zu erstellen</p>
             </div>
             <Link 
               href="/quotes" 
               className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors"
             >
-              Back to Quotes
+              Zurück zu den Angeboten
             </Link>
           </div>
 
           {/* Success Message */}
           {success && createdQuote && (
             <div className="bg-green-900/50 border border-green-500 text-white p-4 rounded-xl mb-6">
-              <h2 className="font-bold text-lg mb-2">Quote Created Successfully!</h2>
-              <p className="mb-4">Your quote has been created and saved to the system.</p>
+              <h2 className="font-bold text-lg mb-2">Angebot erfolgreich erstellt!</h2>
+              <p className="mb-4">Ihr Angebot wurde erfolgreich erstellt und im System gespeichert.</p>
               <div className="flex flex-wrap gap-3">
                 <button
                   onClick={handleGeneratePdf}
@@ -375,17 +381,17 @@ export default function NewQuotePage() {
                   {pdfLoading ? (
                     <>
                       <span className="mr-2 h-4 w-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-                      Generating PDF...
+                      PDF wird erstellt...
                     </>
                   ) : (
-                    'Generate PDF'
+                    'PDF erstellen'
                   )}
                 </button>
                 <button
                   onClick={handleRedirectToQuotes}
                   className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors"
                 >
-                  View All Quotes
+                  Alle Angebote anzeigen
                 </button>
               </div>
             </div>
@@ -394,7 +400,7 @@ export default function NewQuotePage() {
           {/* Error Message */}
           {error && (
             <div className="bg-red-900/50 border border-red-500 text-white p-4 rounded-xl mb-6">
-              <h2 className="font-bold text-lg mb-2">Error</h2>
+              <h2 className="font-bold text-lg mb-2">Fehler</h2>
               <p>{error}</p>
             </div>
           )}
@@ -406,7 +412,7 @@ export default function NewQuotePage() {
                 {/* Appointment Selection */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-1">
-                    Select Appointment (Optional)
+                    Termin auswählen (Optional)
                   </label>
                   <div className="relative">
                     <select
@@ -416,10 +422,10 @@ export default function NewQuotePage() {
                       className="w-full bg-[#1e3a5f] border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#ffcb00] appearance-none"
                       disabled={loadingAppointments || success}
                     >
-                      <option value="">-- Select an appointment --</option>
+                      <option value="">-- Termin auswählen --</option>
                       {appointments.map(appointment => (
                         <option key={appointment.id} value={appointment.id}>
-                          {formatAppointmentDate(appointment.date)} - {appointment.customer_name || 'No customer name'}
+                          {formatAppointmentDate(appointment.date)} - {appointment.customer_name || 'Kein Kundenname'}
                         </option>
                       ))}
                     </select>
@@ -432,7 +438,7 @@ export default function NewQuotePage() {
                   {loadingAppointments && (
                     <p className="text-sm text-gray-400 mt-1 flex items-center">
                       <span className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
-                      Loading appointments...
+                      Termine werden geladen...
                     </p>
                   )}
                 </div>
@@ -440,23 +446,23 @@ export default function NewQuotePage() {
                 {/* Selected Appointment Card */}
                 {selectedAppointment && (
                   <div className="mb-6 p-4 bg-[#1e3a5f]/50 rounded-xl border border-white/10">
-                    <h3 className="font-medium mb-2">Selected Appointment</h3>
+                    <h3 className="font-medium mb-2">Ausgewählter Termin</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="text-gray-400">Date:</span> {formatAppointmentDate(selectedAppointment.date)}
+                        <span className="text-gray-400">Datum:</span> {formatAppointmentDate(selectedAppointment.date)}
                       </div>
                       <div>
-                        <span className="text-gray-400">Customer:</span> {selectedAppointment.customer_name || 'N/A'}
+                        <span className="text-gray-400">Kunde:</span> {selectedAppointment.customer_name || 'Nicht angegeben'}
                       </div>
                       <div>
-                        <span className="text-gray-400">Location:</span> {selectedAppointment.location || 'N/A'}
+                        <span className="text-gray-400">Ort:</span> {selectedAppointment.location || 'Nicht angegeben'}
                       </div>
                       <div>
-                        <span className="text-gray-400">Status:</span> {selectedAppointment.status || 'N/A'}
+                        <span className="text-gray-400">Status:</span> {selectedAppointment.status || 'Nicht angegeben'}
                       </div>
                       {selectedAppointment.notes && (
                         <div className="col-span-1 md:col-span-2">
-                          <span className="text-gray-400">Notes:</span> {selectedAppointment.notes}
+                          <span className="text-gray-400">Notizen:</span> {selectedAppointment.notes}
                         </div>
                       )}
                     </div>
@@ -468,7 +474,7 @@ export default function NewQuotePage() {
                   {/* Customer Selection */}
                   <div className="col-span-1 md:col-span-2">
                     <label className="block text-sm font-medium mb-1">
-                      Customer *
+                      Kunde *
                     </label>
                     <div className="relative">
                       <select
@@ -479,7 +485,7 @@ export default function NewQuotePage() {
                         required
                         disabled={loading || success}
                       >
-                        <option value="">-- Select a customer --</option>
+                        <option value="">-- Kunde auswählen --</option>
                         {customers.map(customer => (
                           <option key={customer.id} value={customer.id}>
                             {customer.name} {customer.email ? `(${customer.email})` : ''}
@@ -495,7 +501,7 @@ export default function NewQuotePage() {
                     {loading && (
                       <p className="text-sm text-gray-400 mt-1 flex items-center">
                         <span className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
-                        Loading customers...
+                        Kunden werden geladen...
                       </p>
                     )}
                   </div>
@@ -503,7 +509,7 @@ export default function NewQuotePage() {
                   {/* Service Date */}
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Service Date
+                      Leistungsdatum
                     </label>
                     <input
                       type="date"
@@ -518,7 +524,7 @@ export default function NewQuotePage() {
                   {/* Location */}
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Location
+                      Ort
                     </label>
                     <input
                       type="text"
@@ -543,7 +549,7 @@ export default function NewQuotePage() {
                         disabled={success}
                       />
                       <label htmlFor="vat_exempt" className="ml-2 block text-sm">
-                        VAT exempt (no tax will be calculated)
+                        MwSt. befreit (keine Steuer wird berechnet)
                       </label>
                     </div>
                   </div>
@@ -551,7 +557,7 @@ export default function NewQuotePage() {
                   {/* Amount (Net) */}
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Amount (Net) *
+                      Betrag (Netto) *
                     </label>
                     <div className="relative">
                       <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
@@ -575,7 +581,7 @@ export default function NewQuotePage() {
                   {!formData.vat_exempt && (
                     <div>
                       <label className="block text-sm font-medium mb-1">
-                        Tax Amount (19% VAT)
+                        Steuerbetrag (19% MwSt.)
                       </label>
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
@@ -593,7 +599,7 @@ export default function NewQuotePage() {
                         />
                       </div>
                       <p className="text-xs text-gray-400 mt-1">
-                        Automatically calculated as 19% of the amount
+                        Automatisch berechnet als 19% des Betrags
                       </p>
                     </div>
                   )}
@@ -601,7 +607,7 @@ export default function NewQuotePage() {
                   {/* Total Amount (calculated) */}
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Total Amount (Gross) *
+                      Gesamtbetrag (Brutto) *
                     </label>
                     <div className="relative">
                       <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
@@ -621,14 +627,14 @@ export default function NewQuotePage() {
                       />
                     </div>
                     <p className="text-xs text-gray-400 mt-1">
-                      Automatically calculated from amount + tax
+                      Automatisch berechnet aus Betrag + Steuer
                     </p>
                   </div>
                   
                   {/* Due Date */}
                   <div>
                     <label className="block text-sm font-medium mb-1">
-                      Valid Until
+                      Gültig bis
                     </label>
                     <input
                       type="date"
@@ -643,7 +649,7 @@ export default function NewQuotePage() {
                   {/* Notes */}
                   <div className="col-span-1 md:col-span-2">
                     <label className="block text-sm font-medium mb-1">
-                      Notes
+                      Notizen
                     </label>
                     <textarea
                       name="notes"
@@ -667,10 +673,10 @@ export default function NewQuotePage() {
                     {submitting ? (
                       <>
                         <span className="mr-2 h-4 w-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-                        Creating...
+                        Angebot wird erstellt...
                       </>
                     ) : (
-                      'Create Quote'
+                      'Angebot erstellen'
                     )}
                   </button>
                 </div>

@@ -16,7 +16,9 @@ export default function Header({ minimal = false }) {
     setIsLoggedIn(!!token);
     if (token) {
       try {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userStr = localStorage.getItem('user');
+        const user = userStr ? JSON.parse(userStr) : {};
+        
         setUserName(user.username || '');
         if (user.name) {
           const nameParts = user.name.split(' ');
@@ -35,6 +37,8 @@ export default function Header({ minimal = false }) {
         }
       } catch (err) {
         console.error('Error parsing user data:', err);
+        setUserName('');
+        setUserInitials('');
       }
     }
   }, []);

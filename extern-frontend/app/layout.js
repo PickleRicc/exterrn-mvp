@@ -9,7 +9,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   // MobileNavbar hides itself on /auth routes, so always render here
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

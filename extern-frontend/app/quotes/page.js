@@ -57,15 +57,15 @@ export default function QuotesPage() {
           setCraftsmanId(craftsmanIdStr);
         } else {
           console.error('No craftsman ID found in token:', tokenData);
-          setError('No craftsman ID found in your account. Please contact support.');
+          setError('Keine Handwerker-ID in Ihrem Konto gefunden. Bitte wenden Sie sich an den Support.');
         }
       } catch (err) {
         console.error('Error parsing token:', err);
-        setError('Error authenticating your account. Please try logging in again.');
+        setError('Fehler bei der Authentifizierung Ihres Kontos. Bitte versuchen Sie es erneut.');
       }
     } else {
       console.error('No token found in localStorage');
-      setError('You are not logged in. Please log in to view quotes.');
+      setError('Sie sind nicht angemeldet. Bitte melden Sie sich an, um Angebote anzuzeigen.');
       router.push('/auth/login');
     }
   }, [router]);
@@ -133,7 +133,7 @@ export default function QuotesPage() {
       setError(null);
     } catch (err) {
       console.error('Error fetching quotes:', err);
-      setError('Failed to load quotes. Please try again later.');
+      setError('Fehler beim Laden von Angeboten. Bitte versuchen Sie es später erneut.');
     } finally {
       setLoading(false);
     }
@@ -146,7 +146,7 @@ export default function QuotesPage() {
 
       // Get craftsman data from localStorage if available
       const craftsmanData = {
-        name: localStorage.getItem('userName') || 'Craftsman',
+        name: localStorage.getItem('userName') || 'Handwerker',
         email: localStorage.getItem('userEmail') || '',
         phone: '',
         address: ''
@@ -157,7 +157,7 @@ export default function QuotesPage() {
 
     } catch (err) {
       console.error('Error generating PDF:', err);
-      setError('Failed to generate PDF. Please try again later.');
+      setError('Fehler beim Erstellen des PDFs. Bitte versuchen Sie es später erneut.');
 
       // Clear error after 3 seconds
       setTimeout(() => {
@@ -183,7 +183,7 @@ export default function QuotesPage() {
       // Refresh quotes data
       fetchQuotes();
 
-      setSuccess(`Quote status updated to ${newStatus} successfully`);
+      setSuccess(`Angebotsstatus erfolgreich auf ${newStatus} aktualisiert`);
 
       // Clear success message after 3 seconds
       setTimeout(() => {
@@ -191,7 +191,7 @@ export default function QuotesPage() {
       }, 3000);
     } catch (err) {
       console.error('Error updating quote status:', err);
-      setError('Failed to update quote status. Please try again later.');
+      setError('Fehler beim Aktualisieren des Angebotsstatus. Bitte versuchen Sie es später erneut.');
 
       // Clear error message after 3 seconds
       setTimeout(() => {
@@ -207,7 +207,7 @@ export default function QuotesPage() {
     e.preventDefault();
 
     // Confirm before deleting
-    if (!window.confirm('Are you sure you want to delete this quote? This action cannot be undone.')) {
+    if (!window.confirm('Sind Sie sicher, dass Sie dieses Angebot löschen möchten? Dieser Vorgang kann nicht rückgängig gemacht werden.')) {
       return;
     }
 
@@ -222,7 +222,7 @@ export default function QuotesPage() {
       // Remove the deleted quote from state
       setQuotes(prevQuotes => prevQuotes.filter(quote => quote.id !== id));
 
-      setSuccess('Quote deleted successfully');
+      setSuccess('Angebot erfolgreich gelöscht');
 
       // Clear success message after 3 seconds
       setTimeout(() => {
@@ -230,7 +230,7 @@ export default function QuotesPage() {
       }, 3000);
     } catch (err) {
       console.error('Error deleting quote:', err);
-      setError('Failed to delete quote. Please try again later.');
+      setError('Fehler beim Löschen des Angebots. Bitte versuchen Sie es später erneut.');
 
       // Clear error message after 3 seconds
       setTimeout(() => {
@@ -249,10 +249,10 @@ export default function QuotesPage() {
       // Convert quote to invoice using the dedicated API method
       const response = await quotesAPI.convertToInvoice(quoteId, craftsmanId);
 
-      console.log('Quote converted to invoice:', response);
+      console.log('Angebot erfolgreich in Rechnung umgewandelt:', response);
 
       // Show success message
-      setSuccess('Quote successfully converted to invoice');
+      setSuccess('Angebot erfolgreich in Rechnung umgewandelt');
 
       // Refresh quotes data to remove the converted quote
       fetchQuotes();
@@ -268,7 +268,7 @@ export default function QuotesPage() {
       }
     } catch (err) {
       console.error('Error converting quote to invoice:', err);
-      setError('Failed to convert quote to invoice. Please try again later.');
+      setError('Fehler beim Umwandeln des Angebots in eine Rechnung. Bitte versuchen Sie es später erneut.');
 
       // Clear error message after 3 seconds
       setTimeout(() => {
@@ -302,13 +302,13 @@ export default function QuotesPage() {
 
   return (
     <>
-      <Header title="Quotes" />
+      <Header title="Angebote" />
       <div className="min-h-screen bg-gradient-to-b from-[#121212] to-[#1a1a1a] text-white">
         <main className="container mx-auto px-4 py-8">
           <div className="bg-white/5 rounded-lg border border-white/10 p-6 mb-8">
             {/* Header with title and new quote button */}
             <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-              <h1 className="text-2xl font-bold text-white">Quotes</h1>
+              <h1 className="text-2xl font-bold text-white">Angebote</h1>
               <Link 
                 href="/quotes/new" 
                 className="bg-[#ffcb00] hover:bg-[#e6b800] text-black px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center"
@@ -316,7 +316,7 @@ export default function QuotesPage() {
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                New Quote
+                Neues Angebot
               </Link>
             </div>
 
@@ -337,7 +337,7 @@ export default function QuotesPage() {
               <div className="relative flex-grow">
                 <input
                   type="text"
-                  placeholder="Search quotes..."
+                  placeholder="Angebote suchen..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 pl-10 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/30 focus:border-[#ffcb00]/30"
@@ -359,17 +359,17 @@ export default function QuotesPage() {
               <div className="text-center py-12">
                 {searchTerm ? (
                   <div>
-                    <p className="text-white/70 text-lg mb-3">No quotes match your search criteria</p>
+                    <p className="text-white/70 text-lg mb-3">Keine Angebote entsprechen Ihren Suchkriterien</p>
                     <button
                       onClick={() => setSearchTerm('')}
                       className="text-[#ffcb00] hover:underline"
                     >
-                      Clear search
+                      Suche zurücksetzen
                     </button>
                   </div>
                 ) : (
                   <div>
-                    <p className="text-white/70 text-lg mb-4">You don't have any quotes yet</p>
+                    <p className="text-white/70 text-lg mb-4">Sie haben noch keine Angebote</p>
                     <Link
                       href="/quotes/new"
                       className="bg-[#ffcb00] hover:bg-[#e6b800] text-black px-4 py-2 rounded-lg shadow text-sm font-medium inline-flex items-center"
@@ -377,7 +377,7 @@ export default function QuotesPage() {
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                       </svg>
-                      Create Your First Quote
+                      Erstes Angebot erstellen
                     </Link>
                   </div>
                 )}
@@ -390,20 +390,24 @@ export default function QuotesPage() {
                       <div className="flex justify-between mb-2">
                         <div>
                           <h3 className="font-medium text-lg text-white">
-                            {quote.customer_name || 'No Customer Name'}{' '}
-                            <span className="text-sm text-white/60">(Quote #{quote.id || 'N/A'})</span>
+                            {quote.customer_name || 'Kein Kundenname'}{' '}
+                            <span className="text-sm text-white/60">(Angebot #{quote.id || 'N/A'})</span>
                           </h3>
                         </div>
                         
                         <div>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(quote.status)}`}>
-                            {quote.status ? quote.status.charAt(0).toUpperCase() + quote.status.slice(1) : 'Unknown'}
+                            {quote.status === 'pending' ? 'Ausstehend' : 
+                             quote.status === 'accepted' ? 'Akzeptiert' : 
+                             quote.status === 'rejected' ? 'Abgelehnt' : 
+                             quote.status === 'expired' ? 'Abgelaufen' : 
+                             quote.status ? quote.status.charAt(0).toUpperCase() + quote.status.slice(1) : 'Unbekannt'}
                           </span>
                         </div>
                       </div>
                       
                       <div className="text-sm text-white/70 mb-3">
-                        {quote.description || 'No description available'}
+                        {quote.description || 'Keine Beschreibung verfügbar'}
                       </div>
                       
                       <div className="font-medium text-xl text-[#ffcb00] mb-4">
@@ -413,11 +417,11 @@ export default function QuotesPage() {
                       
                       <div className="grid grid-cols-2 gap-x-4 text-sm mb-4">
                         <div>
-                          <span className="text-white/40">Created:</span>
+                          <span className="text-white/40">Erstellt:</span>
                           <div className="text-white/70">{formatDate(quote.created_at)}</div>
                         </div>
                         <div>
-                          <span className="text-white/40">Valid Until:</span>
+                          <span className="text-white/40">Gültig bis:</span>
                           <div className="text-white/70">{formatDate(quote.due_date)}</div>
                         </div>
                       </div>
@@ -432,7 +436,7 @@ export default function QuotesPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                         </svg>
-                        View Details
+                        Details anzeigen
                       </Link>
                       <div className="flex flex-wrap gap-2">
                         <Link
@@ -442,7 +446,7 @@ export default function QuotesPage() {
                           <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                           </svg>
-                          Create Invoice
+                          Rechnung erstellen
                         </Link>
                         
                         <button
@@ -453,14 +457,14 @@ export default function QuotesPage() {
                           {pdfLoading && processingQuoteId === quote.id ? (
                             <>
                               <span className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
-                              Processing...
+                              Verarbeitung...
                             </>
                           ) : (
                             <>
                               <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                               </svg>
-                              Download PDF
+                              PDF herunterladen
                             </>
                           )}
                         </button>
@@ -473,14 +477,14 @@ export default function QuotesPage() {
                           {deletingId === quote.id ? (
                             <>
                               <span className="mr-2 h-4 w-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></span>
-                              Deleting...
+                              Löschen...
                             </>
                           ) : (
                             <>
                               <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                               </svg>
-                              Delete
+                              Löschen
                             </>
                           )}
                         </button>
