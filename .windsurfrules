@@ -4,6 +4,8 @@
 
 Extern is a platform designed for **craftsmen in Germany** (e.g. plumbers, electricians, etc.) to **easily speak with their customers, schedule appointments**, and **automate backend tasks** using AI voice calls and background agents.
 
+Always ask for confirmation or approval before making any changes to the codebase. If you are unsure about something, ask for clarification. ALWAYS ask for confirmation or approval before making any changes to the codebase.
+
 The goal is to:
 - Replace tedious admin work (calls, scheduling, reminders)
 - Centralize customer and appointment data

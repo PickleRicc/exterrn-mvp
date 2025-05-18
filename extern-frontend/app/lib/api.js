@@ -26,9 +26,32 @@ api.interceptors.request.use(
         // Add a debug log to help diagnose token issues
         console.debug('Request with auth header:', config.url);
         
-        // For debugging token issues
+        // For debugging token issues - with improved error handling
         try {
-          const tokenData = JSON.parse(atob(token.split('.')[1]));
+          // Check if token has the correct JWT format (header.payload.signature)
+          const parts = token.split('.');
+          if (parts.length !== 3) {
+            console.error('Invalid token format (not a valid JWT)');
+            return config;
+          }
+          
+          // Make sure we have a non-empty payload before decoding
+          if (!parts[1]) {
+            console.error('Token has empty payload');
+            return config;
+          }
+          
+          // Base64Url decode and parse the payload
+          const base64Url = parts[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(
+            atob(base64)
+              .split('')
+              .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+              .join('')
+          );
+          
+          const tokenData = JSON.parse(jsonPayload);
           console.debug('Token data for request:', {
             userId: tokenData.userId,
             role: tokenData.role,
@@ -36,6 +59,14 @@ api.interceptors.request.use(
           });
         } catch (err) {
           console.error('Error parsing token for debug:', err);
+          // If token parsing fails, we should consider removing the invalid token
+          if (err.message && err.message.includes('atob')) {
+            console.warn('Removing invalid token from localStorage');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            // Don't redirect here to avoid interrupting the current request
+            // The 401 handler will redirect if needed
+          }
         }
       } else {
         console.debug('No token found for request:', config.url);

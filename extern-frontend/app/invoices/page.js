@@ -54,15 +54,15 @@ export default function InvoicesPage() {
           setCraftsmanId(craftsmanIdStr);
         } else {
           console.error('No craftsman ID found in token:', tokenData);
-          setError('No craftsman ID found in your account. Please contact support.');
+          setError('Keine Handwerker-ID in Ihrem Konto gefunden. Bitte wenden Sie sich an den Support.');
         }
       } catch (err) {
         console.error('Error parsing token:', err);
-        setError('Error authenticating your account. Please try logging in again.');
+        setError('Fehler bei der Authentifizierung Ihres Kontos. Bitte versuchen Sie es erneut.');
       }
     } else {
       console.error('No token found in localStorage');
-      setError('You are not logged in. Please log in to view invoices.');
+      setError('Sie sind nicht angemeldet. Bitte melden Sie sich an, um Rechnungen anzuzeigen.');
       router.push('/auth/login');
     }
   }, [router]);
@@ -123,7 +123,7 @@ export default function InvoicesPage() {
       
       if (!currentCraftsmanId) {
         console.error('Cannot fetch invoices: No craftsman ID available');
-        setError('Authentication error: Please log in again');
+        setError('Authentifizierungsfehler: Bitte melden Sie sich erneut an');
         return;
       }
       
@@ -136,7 +136,7 @@ export default function InvoicesPage() {
       setError(null);
     } catch (err) {
       console.error('Error fetching invoices:', err);
-      setError('Failed to load invoices. Please try again later.');
+      setError('Fehler beim Laden von Rechnungen. Bitte versuchen Sie es erneut.');
     } finally {
       setLoading(false);
     }
@@ -168,7 +168,7 @@ export default function InvoicesPage() {
       
     } catch (err) {
       console.error('Error generating German PDF:', err);
-      alert('Failed to generate PDF. Please try again later.');
+      alert('Fehler beim Erstellen des PDFs. Bitte versuchen Sie es erneut.');
     } finally {
       setPdfLoading(false);
       setProcessingInvoiceId(null);
@@ -198,7 +198,7 @@ export default function InvoicesPage() {
       
     } catch (err) {
       console.error('Error updating invoice status:', err);
-      alert('Failed to update invoice status. Please try again.');
+      alert('Fehler beim Aktualisieren des Rechnungsstatus. Bitte versuchen Sie es erneut.');
     } finally {
       setUpdatingStatus(false);
       setStatusUpdateId(null);
@@ -212,7 +212,7 @@ export default function InvoicesPage() {
       e.stopPropagation();
     }
     
-    if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
+    if (!confirm('Sind Sie sicher, dass Sie diese Rechnung löschen möchten? Dieser Vorgang kann nicht rückgängig gemacht werden.')) {
       return;
     }
     
@@ -232,20 +232,20 @@ export default function InvoicesPage() {
             }
           } catch (err) {
             console.error('Error extracting craftsman ID from token for deletion:', err);
-            throw new Error('Authentication error: Could not identify your account');
+            throw new Error('Authentifizierungsfehler: Bitte melden Sie sich erneut an');
           }
         } else {
-          throw new Error('Authentication error: You must be logged in');
+          throw new Error('Authentifizierungsfehler: Bitte melden Sie sich erneut an');
         }
       }
       
       if (!currentCraftsmanId) {
-        throw new Error('Authentication error: Could not identify your craftsman account');
+        throw new Error('Authentifizierungsfehler: Bitte melden Sie sich erneut an');
       }
       
       // Get invoice details before deletion for the success message
       const invoice = invoices.find(inv => inv.id === id);
-      const customerName = invoice?.customer_name || 'Customer';
+      const customerName = invoice?.customer_name || 'Kunde';
       
       console.log(`Attempting to delete invoice ${id} for customer ${customerName} (craftsman ${currentCraftsmanId})`);
       
@@ -266,7 +266,7 @@ export default function InvoicesPage() {
       const refreshPromise = fetchInvoices();
       
       // Show success message right away
-      setSuccess(`Invoice for ${customerName} has been deleted successfully`);
+      setSuccess(`Rechnung für ${customerName} erfolgreich gelöscht`);
       
       // Wait for refresh to complete
       await refreshPromise;
@@ -280,7 +280,7 @@ export default function InvoicesPage() {
         status: err.response?.status,
         data: err.response?.data
       });
-      setError(err.response?.data?.error || `Failed to delete invoice: ${err.message}`);
+      setError(err.response?.data?.error || `Fehler beim Löschen der Rechnung: ${err.message}`);
       
       // Clear error message after 5 seconds
       setTimeout(() => setError(null), 5000);
@@ -335,7 +335,7 @@ export default function InvoicesPage() {
 
   return (
     <>
-      <Header title="Invoices" />
+      <Header title="Rechnungen" />
       <div className="min-h-screen bg-gradient-to-b from-[#121212] to-[#1a1a1a] text-white">
         <main className="container mx-auto px-4 py-8">
           {error && (
@@ -352,7 +352,7 @@ export default function InvoicesPage() {
           
           <div className="bg-white/5 rounded-xl p-6 border border-white/10 mb-8">
             <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-              <h1 className="text-2xl font-bold text-white">Invoices</h1>
+              <h1 className="text-2xl font-bold text-white">Rechnungen</h1>
               <Link 
                 href="/invoices/new" 
                 className="bg-[#ffcb00] hover:bg-[#e6b800] text-black px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center"
@@ -360,7 +360,7 @@ export default function InvoicesPage() {
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                New Invoice
+                Neue Rechnung
               </Link>
             </div>
             
@@ -369,7 +369,7 @@ export default function InvoicesPage() {
               <div className="relative flex-grow">
                 <input
                   type="text"
-                  placeholder="Search invoices..."
+                  placeholder="Rechnungen suchen..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 pl-10 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/30 focus:border-[#ffcb00]/30"
@@ -386,11 +386,11 @@ export default function InvoicesPage() {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/30 focus:border-[#ffcb00]/30 w-full sm:w-auto"
               >
-                <option value="all">All Statuses</option>
-                <option value="pending">Pending</option>
-                <option value="paid">Paid</option>
-                <option value="overdue">Overdue</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="all">Alle Status</option>
+                <option value="pending">Ausstehend</option>
+                <option value="paid">Bezahlt</option>
+                <option value="overdue">Überfällig</option>
+                <option value="cancelled">Storniert</option>
               </select>
             </div>
             
@@ -402,17 +402,17 @@ export default function InvoicesPage() {
               <div className="text-center py-12">
                 {searchTerm || statusFilter !== 'all' ? (
                   <div>
-                    <p className="text-white/70 text-lg mb-3">No invoices match your search criteria</p>
+                    <p className="text-white/70 text-lg mb-3">Keine Rechnungen entsprechen Ihren Suchkriterien</p>
                     <button
                       onClick={() => {setSearchTerm(''); setStatusFilter('all');}}
                       className="text-[#ffcb00] hover:underline"
                     >
-                      Clear filters
+                      Filter zurücksetzen
                     </button>
                   </div>
                 ) : (
                   <div>
-                    <p className="text-white/70 text-lg mb-4">You don't have any invoices yet</p>
+                    <p className="text-white/70 text-lg mb-4">Sie haben noch keine Rechnungen</p>
                     <Link
                       href="/invoices/new"
                       className="bg-[#ffcb00] hover:bg-[#e6b800] text-black px-4 py-2 rounded-lg shadow text-sm font-medium inline-flex items-center"
@@ -420,7 +420,7 @@ export default function InvoicesPage() {
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                       </svg>
-                      Create Your First Invoice
+                      Erste Rechnung erstellen
                     </Link>
                   </div>
                 )}
@@ -433,25 +433,25 @@ export default function InvoicesPage() {
                       <div>
                         <div className="flex items-center">
                           <span className={`inline-block w-2 h-2 rounded-full mr-2 ${getStatusBadgeClass(invoice.status)}`}></span>
-                          <h3 className="text-white font-medium text-lg">{invoice.invoice_number || `Invoice #${invoice.id}`}</h3>
+                          <h3 className="text-white font-medium text-lg">{invoice.invoice_number || `Rechnung #${invoice.id}`}</h3>
                         </div>
-                        <p className="text-white/60 mt-1">{invoice.customer_name || 'Unknown Customer'}</p>
+                        <p className="text-white/60 mt-1">{invoice.customer_name || 'Unbekannter Kunde'}</p>
                       </div>
                       <div className="text-right">
                         <div className="text-white text-xl font-semibold">€{parseFloat(invoice.total_amount).toFixed(2)}</div>
                         <span className={`text-sm px-2 py-0.5 rounded ${getStatusBadgeClass(invoice.status)}`}>
-                          {invoice.status?.charAt(0).toUpperCase() + invoice.status?.slice(1) || 'Pending'}
+                          {invoice.status?.charAt(0).toUpperCase() + invoice.status?.slice(1) || 'Ausstehend'}
                         </span>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-2 mb-4 text-sm">
                       <div className="text-white/60">
-                        <span className="text-white/40">Issue Date:</span>
+                        <span className="text-white/40">Ausstellungsdatum:</span>
                         <div>{formatDate(invoice.issue_date || invoice.created_at)}</div>
                       </div>
                       <div className="text-white/60">
-                        <span className="text-white/40">Due Date:</span>
+                        <span className="text-white/40">Fälligkeitsdatum:</span>
                         <div>{formatDate(invoice.due_date)}</div>
                       </div>
                     </div>
@@ -465,7 +465,7 @@ export default function InvoicesPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                         </svg>
-                        View Details
+                        Details anzeigen
                       </Link>
                       <div className="flex flex-wrap gap-2">
                         <div className="relative flex-grow">
@@ -474,12 +474,12 @@ export default function InvoicesPage() {
                             onChange={(e) => handleStatusUpdate(invoice.id, e.target.value)}
                             disabled={updatingStatus && statusUpdateId === invoice.id}
                             className="w-full px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer appearance-none pr-8"
-                            aria-label="Update invoice status"
+                            aria-label="Rechnungsstatus aktualisieren"
                           >
-                            <option value="pending" className="bg-[#121212]">Status: Pending</option>
-                            <option value="paid" className="bg-[#121212]">Status: Paid</option>
-                            <option value="overdue" className="bg-[#121212]">Status: Overdue</option>
-                            <option value="cancelled" className="bg-[#121212]">Status: Cancelled</option>
+                            <option value="pending" className="bg-[#121212]">Status: Ausstehend</option>
+                            <option value="paid" className="bg-[#121212]">Status: Bezahlt</option>
+                            <option value="overdue" className="bg-[#121212]">Status: Überfällig</option>
+                            <option value="cancelled" className="bg-[#121212]">Status: Storniert</option>
                           </select>
                           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-white">
                             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -500,14 +500,14 @@ export default function InvoicesPage() {
                           {pdfLoading && processingInvoiceId === invoice.id ? (
                             <>
                               <span className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
-                              Processing...
+                              Verarbeitung...
                             </>
                           ) : (
                             <>
                               <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                               </svg>
-                              Download PDF
+                              PDF herunterladen
                             </>
                           )}
                         </button>
@@ -519,14 +519,14 @@ export default function InvoicesPage() {
                           {deletingId === invoice.id ? (
                             <>
                               <span className="mr-2 h-4 w-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></span>
-                              Deleting...
+                              Löschen...
                             </>
                           ) : (
                             <>
                               <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                               </svg>
-                              Delete
+                              Löschen
                             </>
                           )}
                         </button>

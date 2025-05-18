@@ -61,7 +61,7 @@ function InvoicePageContent() {
           amount: quote.amount?.toString() || '', // Ensure string for input value
           tax_amount: quote.tax_amount?.toString() || '', // Ensure string for input value
           total_amount: quote.total_amount?.toString() || '', // Ensure string for input value
-          notes: `Based on Quote #${quoteId}\n\n${quote.notes || ''}`,
+          notes: `Basierend auf Angebot #${quoteId}\n\n${quote.notes || ''}`,
           due_date: formattedDueDate,
           service_date: quote.service_date || '',
           location: quote.location || '',
@@ -74,7 +74,7 @@ function InvoicePageContent() {
       }
     } catch (err) {
       console.error(`Error fetching quote ${quoteId}:`, err);
-      setError(`Failed to load quote data. Please try again later.`);
+      setError(`Fehler beim Laden der Angebotsdaten. Bitte versuchen Sie es später erneut.`);
     } finally {
       setLoading(false);
     }
@@ -166,15 +166,15 @@ function InvoicePageContent() {
           }
         } else {
           console.error('No craftsman ID found in token:', tokenData);
-          setError('No craftsman ID found in your account. Please contact support.');
+          setError('Keine Handwerker-ID in Ihrem Konto gefunden. Bitte wenden Sie sich an den Support.');
         }
       } catch (err) {
         console.error('Error parsing token:', err);
-        setError('Error authenticating your account. Please try logging in again.');
+        setError('Fehler bei der Authentifizierung Ihres Kontos. Bitte versuchen Sie es erneut.');
       }
     } else {
       console.error('No token found in localStorage');
-      setError('You are not logged in. Please log in to create invoices.');
+      setError('Sie sind nicht angemeldet. Bitte melden Sie sich an, um Rechnungen zu erstellen.');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quoteId]); // Depend on quoteId to refetch if it changes
@@ -188,7 +188,7 @@ function InvoicePageContent() {
       setCustomers(data || []); // Ensure customers is always an array
     } catch (err) {
       console.error('Error fetching customers:', err);
-      setError('Failed to load customers. Please try again later.');
+      setError('Fehler beim Laden der Kunden. Bitte versuchen Sie es später erneut.');
       setCustomers([]); // Set to empty array on error
     } finally {
       setLoading(false);
@@ -335,12 +335,12 @@ function InvoicePageContent() {
 
     // Basic validation
     if (!formData.customer_id) {
-      setError('Please select a customer');
+      setError('Bitte wählen Sie einen Kunden');
       return;
     }
 
     if (!formData.amount || parseFloat(formData.amount) <= 0) {
-      setError('Please enter a valid amount (greater than 0)');
+      setError('Bitte geben Sie einen gültigen Betrag ein (größer als 0)');
       return;
     }
 
@@ -395,7 +395,7 @@ function InvoicePageContent() {
 
     } catch (err) {
       console.error(`Error creating ${formData.type}:`, err);
-      const errorMsg = err.response?.data?.error || `Failed to create ${formData.type}. Please try again.`;
+      const errorMsg = err.response?.data?.error || `Fehler beim Erstellen: ${err.message}`;
       setError(errorMsg);
       setSuccess(false); // Ensure success is false on error
     } finally {
@@ -405,7 +405,7 @@ function InvoicePageContent() {
 
  const handleGeneratePdf = async () => {
     if (!createdInvoice || !createdInvoice.id) {
-        alert('Cannot generate PDF. Invoice/Quote data is missing.');
+        alert('PDF kann nicht generiert werden. Rechnungs-/Angebotsdaten fehlen.');
         return;
     }
 
@@ -465,7 +465,7 @@ function InvoicePageContent() {
 
     } catch (err) {
         console.error('Error generating German PDF:', err);
-        const errorMsg = err.response?.data?.error || 'Failed to generate PDF. Please try again later.';
+        const errorMsg = err.response?.data?.error || 'Fehler beim Generieren des PDFs. Bitte versuchen Sie es später erneut.';
         setError(errorMsg); // Show error near the button
         alert(errorMsg); // Also show alert
     } finally {
@@ -480,15 +480,15 @@ function InvoicePageContent() {
 
   const getDocumentTypeName = () => {
       switch (formData.type) {
-          case 'quote': return 'Quote';
-          case 'draft': return 'Draft Invoice';
-          default: return 'Invoice';
+          case 'quote': return 'Angebot';
+          case 'draft': return 'Rechnungsentwurf';
+          default: return 'Rechnung';
       }
   }
   const getDocumentListName = () => {
        switch (formData.type) {
-          case 'quote': return 'Quotes';
-          default: return 'Invoices'; // Drafts usually listed with invoices
+          case 'quote': return 'Angebote';
+          default: return 'Rechnungen'; // Drafts usually listed with invoices
       }
   }
 
@@ -502,31 +502,31 @@ function InvoicePageContent() {
           {/* Header Section */}
           <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 transition-all duration-300 mb-6">
             <div className="mb-6">
-              <h2 className="text-2xl md:text-3xl font-bold mb-2 text-primary font-heading">Create New {getDocumentTypeName()}</h2>
-              <p className="text-gray-400">Fill in the details below or select a completed appointment to pre-fill information.</p>
+              <h2 className="text-2xl md:text-3xl font-bold mb-2 text-primary font-heading">Neue {getDocumentTypeName()} erstellen</h2>
+              <p className="text-gray-400">Füllen Sie die Details unten aus oder wählen Sie einen abgeschlossenen Termin, um Informationen automatisch einzutragen.</p>
             </div>
             <Link
-              href={getDocumentListName() === 'Quotes' ? "/quotes" : "/invoices"} // Link back to appropriate list
+              href={getDocumentListName() === 'Angebote' ? "/quotes" : "/invoices"} // Link back to appropriate list
               className="text-[#ffcb00] hover:text-[#e6b800] transition-colors flex items-center text-sm"
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
               </svg>
-              Back to {getDocumentListName()}
+              Zurück zu {getDocumentListName()}
             </Link>
           </div>
 
           {/* Error Message */}
           {error && (
             <div className="bg-red-900/50 border border-red-700 text-red-300 p-4 rounded-lg mb-6">
-              <p>Error: {error}</p>
+              <p>Fehler: {error}</p>
             </div>
           )}
 
           {/* Success Message & Actions */}
           {success && createdInvoice && (
             <div className="bg-green-900/50 border border-green-700 text-green-300 p-4 rounded-lg mb-6">
-              <p className="mb-4 font-semibold">{getDocumentTypeName()} #{createdInvoice.id} created successfully!</p>
+              <p className="mb-4 font-semibold">{getDocumentTypeName()} #{createdInvoice.id} erfolgreich erstellt!</p>
               <div className="flex flex-wrap gap-3">
                 <button
                   onClick={handleGeneratePdf}
@@ -537,10 +537,10 @@ function InvoicePageContent() {
                   {pdfLoading ? (
                     <>
                       <span className="mr-2 h-4 w-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-                      Generating PDF...
+                      PDF wird generiert...
                     </>
                   ) : (
-                    `Download ${getDocumentTypeName()} PDF`
+                    `${getDocumentTypeName()} als PDF herunterladen`
                   )}
                 </button>
                 <button
@@ -548,12 +548,12 @@ function InvoicePageContent() {
                   disabled={pdfLoading || submitting}
                   className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors"
                 >
-                  View All {getDocumentListName()}
+                  Alle {getDocumentListName()} anzeigen
                 </button>
               </div>
                {/* Display PDF generation error specifically here if needed */}
                {error && pdfLoading === false && ( // Show error only if it occurred during PDF generation attempt
-                  <p className="text-red-400 mt-3 text-sm">PDF Generation Failed: {error}</p>
+                 <p className="text-red-400 mt-3 text-sm">PDF-Generierung fehlgeschlagen: {error}</p>
                )}
             </div>
           )}
@@ -563,7 +563,7 @@ function InvoicePageContent() {
              <div className={`bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 transition-all duration-300 ${submitting || loading ? 'opacity-70 pointer-events-none' : ''}`}>
               <form onSubmit={handleSubmit}>
                 {/* Form Loading Indicator */}
-                 {loading && <p className="text-center text-gray-400 mb-4">Loading initial data...</p>}
+                 {loading && <p className="text-center text-gray-400 mb-4">Lade Daten...</p>}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
 
@@ -573,7 +573,7 @@ function InvoicePageContent() {
                   {/* Appointment Selection */}
                   <div className="col-span-1 md:col-span-2">
                     <label htmlFor="appointment_id" className="block text-sm font-medium mb-1 text-gray-300">
-                      Create from Completed Appointment (Optional)
+                      Erstelle aus abgeschlossenem Termin (Optional)
                     </label>
                     <select
                       id="appointment_id"
@@ -583,11 +583,11 @@ function InvoicePageContent() {
                       className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/50 focus:border-[#ffcb00]/50 text-white disabled:opacity-50"
                       disabled={submitting || loadingAppointments || loading} // Disable while loading/submitting
                     >
-                      <option value="">-- Select a completed appointment --</option>
+                      <option value="">-- Wählen Sie einen abgeschlossenen Termin --</option>
                       {loadingAppointments ? (
                         <option disabled>Loading appointments...</option>
                       ) : appointments.length === 0 ? (
-                        <option disabled>No eligible completed appointments found</option>
+                        <option disabled>Keine geeigneten abgeschlossenen Termine gefunden</option>
                       ) : (
                         appointments.map((appointment) => (
                           <option key={appointment.id} value={appointment.id}>
@@ -597,7 +597,7 @@ function InvoicePageContent() {
                       )}
                     </select>
                     <p className="text-xs text-gray-400 mt-1">
-                      Selecting an appointment will auto-fill customer and service details.
+                      Die Auswahl eines Termins füllt automatisch Kunden- und Service-Daten aus.
                     </p>
                   </div>
 
@@ -605,18 +605,18 @@ function InvoicePageContent() {
                   {selectedAppointment && (
                     <div className="col-span-1 md:col-span-2 bg-gray-800/50 border border-gray-700 rounded-xl p-4 my-4">
                       <h3 className="text-md font-semibold mb-2 text-[#ffcb00]">
-                        Selected Appointment Details:
+                        Ausgewählte Termin-Details:
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-300">
-                        <div><span className="font-medium text-gray-400">Customer:</span> {selectedAppointment.customer_name}</div>
-                        <div><span className="font-medium text-gray-400">Date:</span> {new Date(selectedAppointment.scheduled_at).toLocaleDateString()}</div>
-                        <div><span className="font-medium text-gray-400">Time:</span> {new Date(selectedAppointment.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        <div><span className="font-medium text-gray-400">Kunde:</span> {selectedAppointment.customer_name}</div>
+                        <div><span className="font-medium text-gray-400">Datum:</span> {new Date(selectedAppointment.scheduled_at).toLocaleDateString()}</div>
+                        <div><span className="font-medium text-gray-400">Uhrzeit:</span> {new Date(selectedAppointment.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                         <div><span className="font-medium text-gray-400">Service:</span> {selectedAppointment.service_type || 'General Service'}</div>
                         {selectedAppointment.location && (
-                          <div className="col-span-1 sm:col-span-2"><span className="font-medium text-gray-400">Location:</span> {selectedAppointment.location}</div>
+                          <div className="col-span-1 sm:col-span-2"><span className="font-medium text-gray-400">Ort:</span> {selectedAppointment.location}</div>
                         )}
                         {selectedAppointment.notes && (
-                          <div className="col-span-1 sm:col-span-2"><span className="font-medium text-gray-400">Notes:</span> {selectedAppointment.notes}</div>
+                          <div className="col-span-1 sm:col-span-2"><span className="font-medium text-gray-400">Notizen:</span> {selectedAppointment.notes}</div>
                         )}
                       </div>
                     </div>
@@ -626,7 +626,7 @@ function InvoicePageContent() {
                   {/* Customer Selection */}
                   <div className="col-span-1 md:col-span-2">
                     <label htmlFor="customer_id" className="block text-sm font-medium mb-1 text-gray-300">
-                      Customer *
+                      Kunde *
                     </label>
                     <select
                       id="customer_id"
@@ -637,7 +637,7 @@ function InvoicePageContent() {
                       required
                       disabled={submitting || loading || customers.length === 0} // Disable if loading customers or submitting
                     >
-                      <option value="">-- Select a customer --</option>
+                      <option value="">-- Wählen Sie einen Kunden --</option>
                       {customers.map(customer => (
                         <option key={customer.id} value={customer.id}>
                           {customer.name} {customer.email ? `(${customer.email})` : ''}
@@ -645,14 +645,14 @@ function InvoicePageContent() {
                       ))}
                     </select>
                      {customers.length === 0 && !loading && (
-                         <p className="text-xs text-yellow-400 mt-1">No customers found. <Link href="/customers/new" className="underline hover:text-yellow-300">Add a customer first?</Link></p>
+                         <p className="text-xs text-yellow-400 mt-1">Keine Kunden gefunden. <Link href="/customers/new" className="underline hover:text-yellow-300">Fügen Sie einen Kunden hinzu?</Link></p>
                      )}
                   </div>
 
                   {/* Document Type */}
                   <div>
                     <label htmlFor="type" className="block text-sm font-medium mb-1 text-gray-300">
-                      Document Type *
+                      Dokumenttyp *
                     </label>
                     <select
                       id="type"
@@ -663,9 +663,9 @@ function InvoicePageContent() {
                       required
                       disabled={submitting}
                     >
-                      <option value="invoice">Invoice</option>
-                      <option value="quote">Quote</option>
-                      <option value="draft">Draft Invoice</option>
+                      <option value="invoice">Rechnung</option>
+                      <option value="quote">Angebot</option>
+                      <option value="draft">Rechnungsentwurf</option>
                     </select>
                   </div>
 
@@ -673,7 +673,7 @@ function InvoicePageContent() {
                    {formData.type !== 'quote' && (
                         <div>
                            <label htmlFor="due_date" className="block text-sm font-medium mb-1 text-gray-300">
-                             Due Date
+                             Fälligkeitsdatum
                            </label>
                            <input
                              id="due_date"
@@ -684,7 +684,9 @@ function InvoicePageContent() {
                              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/50 focus:border-[#ffcb00]/50 text-white disabled:opacity-50"
                              disabled={submitting}
                            />
-                           <p className="text-xs text-gray-400 mt-1">Default is 14 days from creation.</p>
+                           <p className="text-xs text-gray-400 mt-1">
+                             Standardmäßig 14 Tage nach Erstellung.
+                           </p>
                          </div>
                    )}
                     {/* Spacer if Due Date is hidden to maintain layout */}
@@ -694,7 +696,7 @@ function InvoicePageContent() {
                   {/* Service Date */}
                   <div>
                     <label htmlFor="service_date" className="block text-sm font-medium mb-1 text-gray-300">
-                      Service Date
+                      Service-Datum
                     </label>
                     <input
                       id="service_date"
@@ -710,7 +712,7 @@ function InvoicePageContent() {
                   {/* Service Location */}
                   <div>
                     <label htmlFor="location" className="block text-sm font-medium mb-1 text-gray-300">
-                      Service Location
+                      Service-Ort
                     </label>
                     <input
                       id="location"
@@ -720,14 +722,14 @@ function InvoicePageContent() {
                       onChange={handleChange}
                       className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/50 focus:border-[#ffcb00]/50 text-white disabled:opacity-50"
                       disabled={submitting}
-                      placeholder="e.g., Customer Address, Site Name"
+                      placeholder="z.B. Kundenadresse, Standortname"
                     />
                   </div>
 
                   {/* Amount (Net) */}
                   <div>
                     <label htmlFor="amount" className="block text-sm font-medium mb-1 text-gray-300">
-                      Amount (Net) *
+                      Betrag (Netto) *
                     </label>
                     <input
                       id="amount"
@@ -743,14 +745,14 @@ function InvoicePageContent() {
                       placeholder="0.00"
                     />
                     <p className="text-xs text-gray-400 mt-1">
-                      Amount before tax.
+                      Betrag vor Steuern.
                     </p>
                   </div>
 
                   {/* VAT Exempt Toggle */}
                     <div>
                         <label htmlFor="vat_exempt" className="block text-sm font-medium mb-1 text-gray-300">
-                          Tax Option
+                          Steueroption
                         </label>
                         <label className="flex items-center space-x-2 cursor-pointer mt-2 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 h-[42px]">
                           <input
@@ -762,10 +764,10 @@ function InvoicePageContent() {
                             className="w-4 h-4 accent-[#ffcb00] disabled:opacity-50"
                             disabled={submitting}
                           />
-                          <span className="text-sm font-medium text-gray-300">VAT Exempt</span>
+                          <span className="text-sm font-medium text-gray-300">Steuerfrei</span>
                         </label>
                          <p className="text-xs text-gray-400 mt-1">
-                             Check if VAT does not apply (e.g., §19 UStG).
+                             Aktivieren Sie dies, wenn die Steuer nicht anwendbar ist (z.B. §19 UStG).
                         </p>
                     </div>
 
@@ -773,7 +775,7 @@ function InvoicePageContent() {
                   {/* Tax Amount (Calculated or 0) */}
                    <div>
                       <label htmlFor="tax_amount" className="block text-sm font-medium mb-1 text-gray-300">
-                        Tax Amount {formData.vat_exempt ? '(VAT Exempt)' : '(19% VAT)'}
+                        Steuerbetrag {formData.vat_exempt ? '(Steuerfrei)' : '(19% USt)'}
                       </label>
                        <input
                            id="tax_amount"
@@ -788,7 +790,7 @@ function InvoicePageContent() {
                            readOnly={!formData.vat_exempt} // ReadOnly if standard VAT to encourage relying on calculation, but allow override if needed
                        />
                        <p className="text-xs text-gray-400 mt-1">
-                           {formData.vat_exempt ? 'Set to 0.00' : 'Auto-calculated (19% default).'}
+                           {formData.vat_exempt ? 'Auf 0.00 gesetzt' : 'Automatisch berechnet (19% Standard).'}
                        </p>
                    </div>
 
@@ -796,7 +798,7 @@ function InvoicePageContent() {
                   {/* Total Amount (Calculated) */}
                   <div>
                     <label htmlFor="total_amount" className="block text-sm font-medium mb-1 text-gray-300">
-                      Total Amount (Gross) *
+                      Gesamtbetrag (Brutto) *
                     </label>
                     <input
                       id="total_amount"
@@ -812,14 +814,14 @@ function InvoicePageContent() {
                       placeholder="0.00"
                     />
                     <p className="text-xs text-gray-400 mt-1">
-                      Automatically calculated (Amount + Tax).
+                      Automatisch berechnet (Betrag + Steuer).
                     </p>
                   </div>
 
                   {/* Notes */}
                   <div className="col-span-1 md:col-span-2">
                     <label htmlFor="notes" className="block text-sm font-medium mb-1 text-gray-300">
-                      Notes / Service Description
+                      Notizen / Service-Beschreibung
                     </label>
                     <textarea
                       id="notes"
@@ -829,7 +831,7 @@ function InvoicePageContent() {
                       rows="4"
                       className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/50 focus:border-[#ffcb00]/50 text-white disabled:opacity-50"
                       disabled={submitting}
-                      placeholder="Add any additional details, terms, or description of services..."
+                      placeholder="Fügen Sie weitere Details, Bedingungen oder eine Beschreibung der Dienstleistungen hinzu..."
                     />
                     {/* Closing textarea tag added */}
                   </div>
@@ -847,10 +849,10 @@ function InvoicePageContent() {
                      {submitting ? (
                        <>
                          <span className="mr-2 h-4 w-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-                         Creating...
+                         Erstelle...
                        </>
                      ) : (
-                       `Create ${getDocumentTypeName()}`
+                       `Erstelle ${getDocumentTypeName()}`
                      )}
                    </button>
                  </div>

@@ -61,14 +61,14 @@ export default function InvoiceDetailPage({ params }) {
           setCraftsmanId(extractedCraftsmanId);
           setFormData(prev => ({ ...prev, craftsman_id: extractedCraftsmanId }));
         } else {
-          setError('No craftsman ID found in your account. Please contact support.');
+          setError('Keine Handwerker-ID in Ihrem Konto gefunden. Bitte wenden Sie sich an den Support.');
         }
       } catch (err) {
         console.error('Error parsing token:', err);
-        setError('Error authenticating your account. Please try logging in again.');
+        setError('Fehler bei der Authentifizierung Ihres Kontos. Bitte versuchen Sie es erneut.');
       }
     } else {
-      setError('You are not logged in. Please log in to view invoice details.');
+      setError('Sie sind nicht angemeldet. Bitte melden Sie sich an, um Rechnungsdetails anzuzeigen.');
     }
   }, []);
 
@@ -111,7 +111,7 @@ export default function InvoiceDetailPage({ params }) {
       setError(null);
     } catch (err) {
       console.error('Error fetching invoice:', err);
-      setError('Failed to load invoice. Please try again later.');
+      setError('Fehler beim Laden der Rechnung. Bitte versuchen Sie es später erneut.');
     } finally {
       setLoading(false);
     }
@@ -161,12 +161,12 @@ export default function InvoiceDetailPage({ params }) {
     
     // Basic validation
     if (!formData.customer_id) {
-      setError('Please select a customer');
+      setError('Bitte wählen Sie einen Kunden aus');
       return;
     }
     
     if (!formData.amount || parseFloat(formData.amount) <= 0) {
-      setError('Please enter a valid amount');
+      setError('Bitte geben Sie einen gültigen Betrag ein');
       return;
     }
     
@@ -198,7 +198,7 @@ export default function InvoiceDetailPage({ params }) {
       
     } catch (err) {
       console.error('Error updating invoice:', err);
-      setError(err.response?.data?.error || 'Failed to update invoice. Please try again.');
+      setError(err.response?.data?.error || 'Fehler beim Aktualisieren der Rechnung. Bitte versuchen Sie es erneut.');
     } finally {
       setSubmitting(false);
     }
@@ -265,7 +265,7 @@ export default function InvoiceDetailPage({ params }) {
               href="/invoices" 
               className="text-[#ffcb00] hover:text-[#e6b800] transition-colors"
             >
-              &larr; Back to Invoices
+              &larr; Zurück zu Rechnungen
             </Link>
           </div>
           
@@ -277,7 +277,7 @@ export default function InvoiceDetailPage({ params }) {
           
           {success && (
             <div className="bg-[#2a2a2a]/70 backdrop-blur-md rounded-2xl shadow-xl border border-[#2a2a2a] overflow-hidden">
-              Invoice updated successfully!
+              Rechnung erfolgreich aktualisiert!
             </div>
           )}
           
@@ -294,7 +294,7 @@ export default function InvoiceDetailPage({ params }) {
                       {/* Customer Selection */}
                       <div className="col-span-1 md:col-span-2">
                         <label className="block text-sm font-medium mb-1">
-                          Customer *
+                          Kunde *
                         </label>
                         <select
                           name="customer_id"
@@ -303,7 +303,7 @@ export default function InvoiceDetailPage({ params }) {
                           className="w-full bg-[#2a2a2a]/50 border border-[#2a2a2a] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200"
                           required
                         >
-                          <option value="">Select a customer</option>
+                          <option value="">Kunde auswählen</option>
                           {customers.map(customer => (
                             <option key={customer.id} value={customer.id}>
                               {customer.name} {customer.email ? `(${customer.email})` : ''}
@@ -315,7 +315,7 @@ export default function InvoiceDetailPage({ params }) {
                       {/* Amount */}
                       <div>
                         <label className="block text-sm font-medium mb-1">
-                          Amount (€) *
+                          Betrag (€) *
                         </label>
                         <input
                           type="number"
@@ -332,7 +332,7 @@ export default function InvoiceDetailPage({ params }) {
                       {/* Tax Amount */}
                       <div>
                         <label className="block text-sm font-medium mb-1">
-                          Tax Amount (€)
+                          MwSt. Betrag (€)
                         </label>
                         <input
                           type="number"
@@ -348,7 +348,7 @@ export default function InvoiceDetailPage({ params }) {
                       {/* Total Amount (calculated) */}
                       <div>
                         <label className="block text-sm font-medium mb-1">
-                          Total Amount (€) *
+                          Gesamtbetrag (€) *
                         </label>
                         <input
                           type="number"
@@ -362,14 +362,14 @@ export default function InvoiceDetailPage({ params }) {
                           readOnly
                         />
                         <p className="text-xs text-gray-400 mt-1">
-                          Automatically calculated from amount + tax
+                          Automatisch berechnet aus Betrag + MwSt.
                         </p>
                       </div>
                       
                       {/* Due Date */}
                       <div>
                         <label className="block text-sm font-medium mb-1">
-                          Due Date
+                          Fälligkeitsdatum
                         </label>
                         <input
                           type="date"
@@ -391,16 +391,16 @@ export default function InvoiceDetailPage({ params }) {
                           onChange={handleChange}
                           className="w-full bg-[#2a2a2a]/50 border border-[#2a2a2a] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200"
                         >
-                          <option value="pending">Pending</option>
-                          <option value="paid">Paid</option>
-                          <option value="overdue">Overdue</option>
+                          <option value="pending">Ausstehend</option>
+                          <option value="paid">Bezahlt</option>
+                          <option value="overdue">Überfällig</option>
                         </select>
                       </div>
                       
                       {/* Notes */}
                       <div className="col-span-1 md:col-span-2">
                         <label className="block text-sm font-medium mb-1">
-                          Notes
+                          Notizen
                         </label>
                         <textarea
                           name="notes"
@@ -418,14 +418,14 @@ export default function InvoiceDetailPage({ params }) {
                         onClick={() => setEditing(false)}
                         className="px-5 py-2.5 border border-white/20 rounded-xl text-white hover:bg-white/5 transition-colors"
                       >
-                        Cancel
+                        Abbrechen
                       </button>
                       <button
                         type="submit"
                         disabled={submitting}
                         className="px-5 py-2.5 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:transform-none"
                       >
-                        {submitting ? 'Saving...' : 'Save Changes'}
+                        {submitting ? 'Speichern...' : 'Änderungen speichern'}
                       </button>
                     </div>
                   </form>
@@ -434,9 +434,12 @@ export default function InvoiceDetailPage({ params }) {
                 <div className="bg-[#2a2a2a]/70 backdrop-blur-md rounded-2xl shadow-xl border border-[#2a2a2a] overflow-hidden">
                   <div className="p-6">
                     <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-xl font-semibold text-[#ffcb00]">Invoice #{invoice.invoice_number || invoice.id}</h2>
+                      <h2 className="text-xl font-semibold text-[#ffcb00]">Rechnung #{invoice.invoice_number || invoice.id}</h2>
                       <span className={`px-3 py-1 rounded-xl text-sm font-medium ${getStatusBadgeClass(invoice.status)}`}>
-                        {invoice.status === 'overdue' ? 'OVERDUE' : invoice.status?.charAt(0).toUpperCase() + invoice.status?.slice(1) || 'Pending'}
+                        {invoice.status === 'overdue' ? 'ÜBERFÄLLIG' : 
+                         invoice.status === 'paid' ? 'BEZAHLT' : 
+                         invoice.status === 'pending' ? 'AUSSTEHEND' : 
+                         invoice.status?.charAt(0).toUpperCase() + invoice.status?.slice(1) || 'Ausstehend'}
                       </span>
                     </div>
                     
@@ -446,51 +449,51 @@ export default function InvoiceDetailPage({ params }) {
                           <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                         </svg>
                         <span className="text-[#ffcb00]">
-                          This invoice is past due. The payment was due on {formatDate(invoice.due_date)}.
+                          Diese Rechnung ist überfällig. Die Zahlung war am {formatDate(invoice.due_date)} fällig.
                         </span>
                       </div>
                     )}
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                       <div className="p-2">
-                        <h3 className="text-sm font-medium text-white/60 mb-2">Customer</h3>
+                        <h3 className="text-sm font-medium text-white/60 mb-2">Kunde</h3>
                         <p className="text-white">{invoice.customer_name || 'N/A'}</p>
                       </div>
                       
                       <div className="p-2">
-                        <h3 className="text-sm font-medium text-white/60 mb-2">Invoice Date</h3>
+                        <h3 className="text-sm font-medium text-white/60 mb-2">Rechnungsdatum</h3>
                         <p className="text-white">{formatDate(invoice.created_at)}</p>
                       </div>
                       
                       <div className="p-2">
-                        <h3 className="text-sm font-medium text-white/60 mb-2">Due Date</h3>
+                        <h3 className="text-sm font-medium text-white/60 mb-2">Fälligkeitsdatum</h3>
                         <p className="text-white">{formatDate(invoice.due_date)}</p>
                       </div>
                       
                       <div className="p-2">
-                        <h3 className="text-sm font-medium text-white/60 mb-2">Service Date</h3>
+                        <h3 className="text-sm font-medium text-white/60 mb-2">Leistungsdatum</h3>
                         <p className="text-white">{formatDate(invoice.service_date)}</p>
                       </div>
                       
                       <div className="p-2">
-                        <h3 className="text-sm font-medium text-white/60 mb-2">Amount</h3>
+                        <h3 className="text-sm font-medium text-white/60 mb-2">Betrag</h3>
                         <p className="text-white">€{parseFloat(invoice.amount).toFixed(2)}</p>
                       </div>
                       
                       <div className="p-2">
-                        <h3 className="text-sm font-medium text-white/60 mb-2">Tax</h3>
+                        <h3 className="text-sm font-medium text-white/60 mb-2">MwSt.</h3>
                         <p className="text-white">€{parseFloat(invoice.tax_amount || 0).toFixed(2)}</p>
                       </div>
                       
                       <div className="p-2">
-                        <h3 className="text-sm font-medium text-white/60 mb-2">Total</h3>
+                        <h3 className="text-sm font-medium text-white/60 mb-2">Gesamtbetrag</h3>
                         <p className="text-white font-medium">€{parseFloat(invoice.total_amount).toFixed(2)}</p>
                       </div>
                     </div>
                     
                     {invoice.notes && (
                       <div className="mt-6">
-                        <h3 className="text-sm font-medium text-white/60 mb-2">Notes</h3>
+                        <h3 className="text-sm font-medium text-white/60 mb-2">Notizen</h3>
                         <p className="text-white whitespace-pre-line bg-[#2a2a2a]/50 p-4 rounded-xl border border-[#2a2a2a]">{invoice.notes}</p>
                       </div>
                     )}
@@ -501,16 +504,16 @@ export default function InvoiceDetailPage({ params }) {
                           <svg className="w-4 h-4 mr-2 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                           </svg>
-                          Linked Appointment
+                          Verknüpfter Termin
                         </h3>
                         <div className="bg-[#2a2a2a]/50 rounded-xl p-4 border border-[#2a2a2a]">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="p-2">
-                              <span className="text-white/60 text-sm">Date:</span>{' '}
+                              <span className="text-white/60 text-sm">Datum:</span>{' '}
                               <span className="text-white">{formatDate(appointment.scheduled_at)}</span>
                             </div>
                             <div className="p-2">
-                              <span className="text-white/60 text-sm">Time:</span>{' '}
+                              <span className="text-white/60 text-sm">Uhrzeit:</span>{' '}
                               <span className="text-white">{new Date(appointment.scheduled_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                             </div>
                             <div className="p-2">
@@ -531,7 +534,7 @@ export default function InvoiceDetailPage({ params }) {
                             )}
                             {appointment.location && (
                               <div className="p-2 col-span-1 md:col-span-2">
-                                <span className="text-white/60 text-sm">Location:</span>{' '}
+                                <span className="text-white/60 text-sm">Ort:</span>{' '}
                                 <span className="text-white">{appointment.location}</span>
                               </div>
                             )}
@@ -540,7 +543,7 @@ export default function InvoiceDetailPage({ params }) {
                                 href={`/appointments/${appointment.id}`}
                                 className="text-sm text-[#ffcb00] hover:text-[#e6b800] transition-colors flex items-center w-fit"
                               >
-                                <span>View Appointment Details</span>
+                                <span>TerminDetails anzeigen</span>
                                 <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                                 </svg>
@@ -557,7 +560,7 @@ export default function InvoiceDetailPage({ params }) {
                         onClick={() => setEditing(true)}
                         className="px-5 py-2.5 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5"
                       >
-                        Edit Invoice
+                        Rechnung bearbeiten
                       </button>
                       
                       <button
@@ -566,7 +569,7 @@ export default function InvoiceDetailPage({ params }) {
                         disabled={pdfLoading}
                         className="px-5 py-2.5 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:transform-none"
                       >
-                        {pdfLoading ? 'Generating PDF...' : 'Generate PDF'}
+                        {pdfLoading ? 'PDF wird erstellt...' : 'PDF erstellen'}
                       </button>
                       
                       <button
@@ -574,7 +577,7 @@ export default function InvoiceDetailPage({ params }) {
                         onClick={() => router.back()}
                         className="px-5 py-2.5 border border-white/20 rounded-xl text-white hover:bg-white/5 transition-all duration-300"
                       >
-                        Back
+                        Zurück
                       </button>
                     </div>
                   </div>
@@ -583,12 +586,12 @@ export default function InvoiceDetailPage({ params }) {
             </>
           ) : (
             <div className="bg-[#132f4c] rounded-xl p-6 text-center">
-              <p className="text-lg mb-4">Invoice not found</p>
+              <p className="text-lg mb-4">Rechnung nicht gefunden</p>
               <Link 
                 href="/invoices" 
                 className="px-4 py-2 bg-[#e91e63] hover:bg-[#d81b60] text-white font-medium rounded-xl transition-colors"
               >
-                View All Invoices
+                Alle Rechnungen anzeigen
               </Link>
             </div>
           )}
