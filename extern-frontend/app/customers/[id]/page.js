@@ -57,7 +57,7 @@ export default function CustomerDetailsPage() {
         service_type: customerData.service_type || ''
       });
     } catch (err) {
-      setError('Failed to load customer data');
+      setError('Fehler beim Laden der Kundendaten');
       console.error('Error fetching customer data:', err);
     } finally {
       setLoading(false);
@@ -80,11 +80,11 @@ export default function CustomerDetailsPage() {
     
     try {
       await customersAPI.update(customerId, formData);
-      setSuccess('Customer updated successfully!');
+      setSuccess('Kunde erfolgreich aktualisiert!');
       setEditMode(false);
       fetchCustomerData();
     } catch (err) {
-      setError('Failed to update customer');
+      setError('Fehler beim Aktualisieren des Kunden');
       console.error('Error updating customer:', err);
     } finally {
       setLoading(false);
@@ -105,11 +105,11 @@ export default function CustomerDetailsPage() {
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
-                Back to Customers
+                Zurück zu Kunden
               </Link>
               <h1 className="text-[#e6b800] font-bold mb-2">
                 <span className="bg-gradient-to-r from-[#e6b800] to-[#e6b800] bg-clip-text text-transparent">
-                  {editMode ? 'Edit Customer' : (customer?.name || 'Customer Details')}
+                  {editMode ? 'Kunde bearbeiten' : (customer?.name || 'Kundendetails')}
                 </span>
               </h1>
             </div>
@@ -122,7 +122,7 @@ export default function CustomerDetailsPage() {
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                   </svg>
-                  Edit Customer
+                  Kunde bearbeiten
                 </button>
               </div>
             )}
@@ -156,14 +156,14 @@ export default function CustomerDetailsPage() {
                       <svg className="w-5 h-5 mr-2 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                       </svg>
-                      Customer Information
+                      Kundeninformationen
                     </h2>
                     
                     {editMode ? (
                       <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                           <label htmlFor="name" className="block text-sm font-medium text-white/80 mb-1">
-                            Full Name
+                            Vollständiger Name
                           </label>
                           <input
                             id="name"
@@ -178,7 +178,7 @@ export default function CustomerDetailsPage() {
                         
                         <div>
                           <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-1">
-                            Email Address
+                            E-Mail-Adresse
                           </label>
                           <input
                             id="email"
@@ -192,7 +192,7 @@ export default function CustomerDetailsPage() {
                         
                         <div>
                           <label htmlFor="phone" className="block text-sm font-medium text-white/80 mb-1">
-                            Phone Number
+                            Telefonnummer
                           </label>
                           <input
                             id="phone"
@@ -207,7 +207,7 @@ export default function CustomerDetailsPage() {
                         
                         <div>
                           <label htmlFor="address" className="block text-sm font-medium text-white/80 mb-1">
-                            Address
+                            Adresse
                           </label>
                           <textarea
                             id="address"
@@ -221,7 +221,7 @@ export default function CustomerDetailsPage() {
                         
                         <div>
                           <label htmlFor="service_type" className="block text-sm font-medium text-white/80 mb-1">
-                            Service Type
+                            Serviceart
                           </label>
                           <select
                             id="service_type"
@@ -230,16 +230,16 @@ export default function CustomerDetailsPage() {
                             onChange={handleInputChange}
                             className="appearance-none relative block w-full px-3 py-2.5 border border-white/10 rounded-xl bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/50 focus:border-transparent sm:text-sm"
                           >
-                            <option value="">Select service type</option>
-                            <option value="Bathroom Tiling">Bathroom Tiling</option>
-                            <option value="Kitchen Tiling">Kitchen Tiling</option>
-                            <option value="Floor Tiling">Floor Tiling</option>
-                            <option value="Wall Tiling">Wall Tiling</option>
-                            <option value="Mosaic Tiling">Mosaic Tiling</option>
-                            <option value="Complete Renovation">Complete Renovation</option>
-                            <option value="Repair">Repair</option>
-                            <option value="Consultation">Consultation</option>
-                            <option value="Other">Other</option>
+                            <option value="">Serviceart auswählen</option>
+                            <option value="Badezimmerfliesen">Badezimmerfliesen</option>
+                            <option value="Küchenfliesen">Küchenfliesen</option>
+                            <option value="Bodenfliesen">Bodenfliesen</option>
+                            <option value="Wandfliesen">Wandfliesen</option>
+                            <option value="Mosaikfliesen">Mosaikfliesen</option>
+                            <option value="Komplette Renovierung">Komplette Renovierung</option>
+                            <option value="Reparatur">Reparatur</option>
+                            <option value="Beratung">Beratung</option>
+                            <option value="Sonstiges">Sonstiges</option>
                           </select>
                         </div>
                         
@@ -249,14 +249,14 @@ export default function CustomerDetailsPage() {
                             onClick={() => setEditMode(false)}
                             className="px-5 py-2.5 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300 transform hover:-translate-y-0.5"
                           >
-                            Cancel
+                            Abbrechen
                           </button>
                           <button
                             type="submit"
                             className="px-4 py-2.5 bg-[#ffcb00] hover:bg-[#e6b800] text-black font-medium rounded-xl shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300"
                             disabled={loading}
                           >
-                            {loading ? 'Saving...' : 'Save Changes'}
+                            {loading ? 'Speichern...' : 'Änderungen speichern'}
                           </button>
                         </div>
                       </form>
@@ -264,27 +264,27 @@ export default function CustomerDetailsPage() {
                       <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <h3 className="text-sm font-medium text-white/60">Full Name</h3>
+                            <h3 className="text-sm font-medium text-white/60">Vollständiger Name</h3>
                             <p className="text-white">{customer?.name || 'N/A'}</p>
                           </div>
                           <div>
-                            <h3 className="text-sm font-medium text-white/60">Phone Number</h3>
+                            <h3 className="text-sm font-medium text-white/60">Telefonnummer</h3>
                             <p className="text-white">{customer?.phone || 'N/A'}</p>
                           </div>
                         </div>
                         
                         <div>
-                          <h3 className="text-sm font-medium text-white/60">Email Address</h3>
+                          <h3 className="text-sm font-medium text-white/60">E-Mail-Adresse</h3>
                           <p className="text-white">{customer?.email || 'N/A'}</p>
                         </div>
                         
                         <div>
-                          <h3 className="text-sm font-medium text-white/60">Address</h3>
+                          <h3 className="text-sm font-medium text-white/60">Adresse</h3>
                           <p className="text-white whitespace-pre-line">{customer?.address || 'N/A'}</p>
                         </div>
                         
                         <div>
-                          <h3 className="text-sm font-medium text-white/60">Service Type</h3>
+                          <h3 className="text-sm font-medium text-white/60">Serviceart</h3>
                           <p className="text-white">{customer?.service_type || 'N/A'}</p>
                         </div>
                       </div>
@@ -300,7 +300,7 @@ export default function CustomerDetailsPage() {
                       <svg className="w-5 h-5 mr-2 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                       </svg>
-                      Quick Actions
+                      Schnellaktionen
                     </h2>
                     
                     <div className="space-y-3">
@@ -311,7 +311,7 @@ export default function CustomerDetailsPage() {
                         <svg className="w-5 h-5 mr-2 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                         </svg>
-                        Add New Space
+                        Neuen Raum hinzufügen
                       </Link>
                       
                       <Link
@@ -321,7 +321,7 @@ export default function CustomerDetailsPage() {
                         <svg className="w-5 h-5 mr-2 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
-                        Schedule Appointment
+                        Termin vereinbaren
                       </Link>
                       
                       <Link
@@ -331,7 +331,7 @@ export default function CustomerDetailsPage() {
                         <svg className="w-5 h-5 mr-2 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                         </svg>
-                        All Customers
+                        Alle Kunden
                       </Link>
                     </div>
                   </div>

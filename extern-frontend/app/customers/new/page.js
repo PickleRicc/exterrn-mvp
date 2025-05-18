@@ -47,11 +47,11 @@ export default function NewCustomerPage() {
       if (tokenData.craftsmanId) {
         setCraftsmanId(tokenData.craftsmanId);
       } else {
-        setError('Your account is not set up as a craftsman. Please contact support.');
+        setError('Ihr Konto ist nicht als Handwerker eingerichtet. Bitte kontaktieren Sie den Support.');
       }
     } catch (err) {
       console.error('Error parsing token:', err);
-      setError('Session error. Please log in again.');
+      setError('Sitzungsfehler. Bitte melden Sie sich erneut an.');
     }
   }, [router]);
 
@@ -98,13 +98,13 @@ export default function NewCustomerPage() {
 
     // Validate required fields
     if (!name) {
-      setError('Customer name is required');
+      setError('Kundenname ist erforderlich');
       setSaving(false);
       return;
     }
 
     if (!phone) {
-      setError('Phone number is required');
+      setError('Telefonnummer ist erforderlich');
       setSaving(false);
       return;
     }
@@ -126,7 +126,7 @@ export default function NewCustomerPage() {
       }
       
       if (!craftsmanId) {
-        setError('Unable to determine your craftsman ID. Please log out and log in again.');
+        setError('Es konnte nicht ermittelt werden, dass Sie ein Handwerker sind. Bitte melden Sie sich ab und wieder an.');
         setSaving(false);
         return;
       }
@@ -142,7 +142,7 @@ export default function NewCustomerPage() {
       };
 
       await customersAPI.create(customerData);
-      setSuccess('Customer added successfully!');
+      setSuccess('Kunde erfolgreich hinzugefügt!');
       
       // Clear form
       setName('');
@@ -166,7 +166,7 @@ export default function NewCustomerPage() {
       }, 2000);
     } catch (err) {
       console.error('Error creating customer:', err);
-      setError(err.response?.data?.error || 'Failed to add customer. Please try again.');
+      setError(err.response?.data?.error || 'Fehler beim Hinzufügen des Kunden. Bitte versuchen Sie es erneut.');
     } finally {
       setSaving(false);
     }
@@ -180,9 +180,9 @@ export default function NewCustomerPage() {
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold mb-2 text-primary font-heading">
-                Add New Customer
+                Neuen Kunden hinzufügen
               </h1>
-              <p className="text-gray-400">Create a new customer profile</p>
+              <p className="text-gray-400">Erstellen Sie ein neues Kundenprofil</p>
             </div>
             <button
               type="button"
@@ -192,7 +192,7 @@ export default function NewCustomerPage() {
               <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
               </svg>
-              Back
+              Zurück
             </button>
           </div>
           
@@ -212,7 +212,7 @@ export default function NewCustomerPage() {
             <div className="space-y-5">
               {/* Customer Type Toggle */}
               <div className="flex items-center mb-4">
-                <span className="text-sm font-medium text-white mr-4">Customer Type:</span>
+                <span className="text-sm font-medium text-white mr-4">Kundentyp:</span>
                 <div className="flex items-center space-x-4">
                   <label className="inline-flex items-center">
                     <input
@@ -222,7 +222,7 @@ export default function NewCustomerPage() {
                       checked={!isCompany}
                       onChange={() => setIsCompany(false)}
                     />
-                    <span className="ml-2 text-white">Individual</span>
+                    <span className="ml-2 text-white">Privatperson</span>
                   </label>
                   <label className="inline-flex items-center">
                     <input
@@ -232,7 +232,7 @@ export default function NewCustomerPage() {
                       checked={isCompany}
                       onChange={() => setIsCompany(true)}
                     />
-                    <span className="ml-2 text-white">Company</span>
+                    <span className="ml-2 text-white">Unternehmen</span>
                   </label>
                 </div>
               </div>
@@ -242,7 +242,7 @@ export default function NewCustomerPage() {
                 {!isCompany && (
                   <div className="relative">
                     <label htmlFor="title" className="block mb-2 text-sm font-medium text-gray-300">
-                      Title/Salutation
+                      Anrede
                     </label>
                     <div className="relative">
                       <select
@@ -251,12 +251,11 @@ export default function NewCustomerPage() {
                         onChange={(e) => setTitle(e.target.value)}
                         className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all"
                       >
-                        <option value="">Select...</option>
-                        <option value="Mr">Mr</option>
-                        <option value="Mrs">Mrs</option>
-                        <option value="Ms">Ms</option>
-                        <option value="Mx">Mx</option>
+                        <option value="">Auswählen...</option>
+                        <option value="Herr">Herr</option>
+                        <option value="Frau">Frau</option>
                         <option value="Dr">Dr</option>
+                        <option value="Prof">Prof</option>
                       </select>
                     </div>
                   </div>
@@ -264,7 +263,7 @@ export default function NewCustomerPage() {
                 
                 <div className={`relative ${isCompany ? 'md:col-span-3' : 'md:col-span-2'}`}>
                   <label htmlFor="firstName" className="block mb-2 text-sm font-medium text-gray-300">
-                    {isCompany ? 'Company Name' : 'First Name'} {!isCompany && <span className="text-[#FFD200]">*</span>}
+                    {isCompany ? 'Firmenname' : 'Vorname'} {!isCompany && <span className="text-[#FFD200]">*</span>}
                   </label>
                   <div className="relative">
                     <div className="absolute top-3 left-3 flex items-center pointer-events-none z-[-1]">
@@ -282,7 +281,7 @@ export default function NewCustomerPage() {
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       className="w-full pl-12 p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all relative z-10"
-                      placeholder={isCompany ? "Company name" : "First name"}
+                      placeholder={isCompany ? "Firmenname" : "Vorname"}
                       required
                     />
                   </div>
@@ -291,7 +290,7 @@ export default function NewCustomerPage() {
                 {!isCompany && (
                   <div className="relative">
                     <label htmlFor="lastName" className="block mb-2 text-sm font-medium text-gray-300">
-                      Last Name <span className="text-[#FFD200]">*</span>
+                      Nachname <span className="text-[#FFD200]">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -300,7 +299,7 @@ export default function NewCustomerPage() {
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all"
-                        placeholder="Last name"
+                        placeholder="Nachname"
                         required
                       />
                     </div>
@@ -310,7 +309,7 @@ export default function NewCustomerPage() {
               
               <div className="relative">
                 <label htmlFor="phone" className="block mb-2 text-sm font-medium text-gray-300">
-                  Phone Number <span className="text-[#FFD200]">*</span>
+                  Telefonnummer <span className="text-[#FFD200]">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute top-3 left-3 flex items-center pointer-events-none z-[-1]">
@@ -332,7 +331,7 @@ export default function NewCustomerPage() {
               
               <div className="relative">
                 <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-300">
-                  Email Address
+                  E-Mail-Adresse
                 </label>
                 <div className="relative">
                   <div className="absolute top-3 left-3 flex items-center pointer-events-none z-[-1]">
@@ -353,12 +352,12 @@ export default function NewCustomerPage() {
               
               {/* Address Section */}
               <div className="pt-4 border-t border-white/10">
-                <h3 className="text-lg font-medium text-white mb-4">Address Information</h3>
+                <h3 className="text-lg font-medium text-white mb-4">Adressinformationen</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div className="relative">
                     <label htmlFor="street" className="block mb-2 text-sm font-medium text-gray-300">
-                      Street
+                      Straße
                     </label>
                     <div className="relative">
                       <div className="absolute top-3 left-3 flex items-center pointer-events-none z-[-1]">
@@ -372,14 +371,14 @@ export default function NewCustomerPage() {
                         value={street}
                         onChange={(e) => setStreet(e.target.value)}
                         className="w-full pl-12 p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all relative z-10"
-                        placeholder="Street name"
+                        placeholder="Straßenname"
                       />
                     </div>
                   </div>
                   
                   <div className="relative">
                     <label htmlFor="houseNumber" className="block mb-2 text-sm font-medium text-gray-300">
-                      House Number
+                      Hausnummer
                     </label>
                     <input
                       id="houseNumber"
@@ -394,7 +393,7 @@ export default function NewCustomerPage() {
                 
                 <div className="relative mb-4">
                   <label htmlFor="addressLine2" className="block mb-2 text-sm font-medium text-gray-300">
-                    Additional Address Information
+                    Zusätzliche Adressinformationen
                   </label>
                   <input
                     id="addressLine2"
@@ -402,14 +401,14 @@ export default function NewCustomerPage() {
                     value={addressLine2}
                     onChange={(e) => setAddressLine2(e.target.value)}
                     className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all"
-                    placeholder="Apartment, floor, c/o, etc."
+                    placeholder="Wohnung, Etage, c/o, usw."
                   />
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="relative">
                     <label htmlFor="postalCode" className="block mb-2 text-sm font-medium text-gray-300">
-                      Postal Code
+                      Postleitzahl
                     </label>
                     <input
                       id="postalCode"
@@ -423,7 +422,7 @@ export default function NewCustomerPage() {
                   
                   <div className="relative">
                     <label htmlFor="city" className="block mb-2 text-sm font-medium text-gray-300">
-                      City
+                      Stadt
                     </label>
                     <input
                       id="city"
@@ -431,7 +430,7 @@ export default function NewCustomerPage() {
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
                       className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all"
-                      placeholder="City"
+                      placeholder="Stadt"
                     />
                   </div>
                 </div>
@@ -439,7 +438,7 @@ export default function NewCustomerPage() {
               
               <div className="relative">
                 <label htmlFor="notes" className="block mb-2 text-sm font-medium text-gray-300">
-                  Notes
+                  Notizen
                 </label>
                 <div className="relative">
                   <div className="absolute top-3 left-3 flex items-start pointer-events-none z-[-1]">
@@ -453,7 +452,7 @@ export default function NewCustomerPage() {
                     onChange={(e) => setNotes(e.target.value)}
                     className="w-full pl-12 p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-[#FFD200]/50 focus:border-[#FFD200]/50 transition-all relative z-10"
                     rows="3"
-                    placeholder="Additional notes about the customer..."
+                    placeholder="Zusätzliche Notizen zum Kunden..."
                   ></textarea>
                 </div>
               </div>
@@ -465,7 +464,7 @@ export default function NewCustomerPage() {
                 onClick={() => router.back()}
                 className="px-5 py-2.5 border border-white/20 rounded-xl text-white hover:bg-white/5 transition-all duration-300"
               >
-                Cancel
+                Abbrechen
               </button>
               <button
                 type="submit"
@@ -478,10 +477,10 @@ export default function NewCustomerPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span>Adding Customer...</span>
+                    <span>Kunde wird hinzugefügt...</span>
                   </div>
                 ) : (
-                  'Add Customer'
+                  'Kunde hinzufügen'
                 )}
               </button>
             </div>

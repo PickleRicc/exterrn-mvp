@@ -104,7 +104,7 @@ export default function CustomersPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#121212] to-[#1a1a1a]">
-      <Header title="Customers" />
+      <Header title="Kunden" />
       <main className="flex-grow container mx-auto px-4 py-6 sm:px-6 md:py-8">
         {error && (
           <div className="bg-red-100/10 border border-red-200/20 text-red-400 p-4 rounded-lg mb-6">
@@ -121,14 +121,14 @@ export default function CustomersPage() {
         <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10 transition-all duration-300 hover:bg-white/10">
           <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
             <h1 className="text-2xl font-bold text-white">
-              Customers
+              Kunden
             </h1>
             
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               <div className="relative flex-grow">
                 <input
                   type="text"
-                  placeholder="Search customers..."
+                  placeholder="Kunden suchen..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#ffcb00]/30 focus:border-[#ffcb00]/30"
@@ -147,7 +147,7 @@ export default function CustomersPage() {
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                New Customer
+                Neuer Kunde
               </a>
             </div>
           </div>
@@ -160,17 +160,17 @@ export default function CustomersPage() {
             <div className="text-center py-12">
               {searchTerm ? (
                 <div>
-                  <p className="text-white/70 text-lg mb-2">No customers found matching "{searchTerm}"</p>
+                  <p className="text-white/70 text-lg mb-2">Keine Kunden gefunden für "{searchTerm}"</p>
                   <button
                     onClick={() => setSearchTerm('')}
                     className="text-[#ffcb00] hover:underline"
                   >
-                    Clear search
+                    Suche löschen
                   </button>
                 </div>
               ) : (
                 <div>
-                  <p className="text-white/70 text-lg mb-4">You don't have any customers yet</p>
+                  <p className="text-white/70 text-lg mb-4">Sie haben noch keine Kunden</p>
                   <a
                     href="/customers/new"
                     className="bg-[#ffcb00] hover:bg-[#e6b800] text-black px-4 py-2 rounded-lg shadow text-sm font-medium inline-flex items-center"
@@ -178,7 +178,7 @@ export default function CustomersPage() {
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
-                    Add Your First Customer
+                    Ersten Kunden hinzufügen
                   </a>
                 </div>
               )}
@@ -202,7 +202,7 @@ export default function CustomersPage() {
                       {customer.email && (
                         <p className="text-white/60 flex items-center">
                           <svg className="w-4 h-4 mr-2 text-[#ffcb00]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                           </svg>
                           {customer.email}
                         </p>
@@ -227,7 +227,7 @@ export default function CustomersPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                       </svg>
-                      View Details
+                      Details anzeigen
                     </a>
                     <a 
                       href={`/appointments/new?customer=${customer.id}`}
@@ -236,7 +236,7 @@ export default function CustomersPage() {
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                       </svg>
-                      Schedule Appointment
+                      Termin vereinbaren
                     </a>
                     <button 
                       onClick={() => handleDelete(customer.id, customer.name)}
@@ -246,7 +246,7 @@ export default function CustomersPage() {
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                       </svg>
-                      {processingCustomer === customer.id ? 'Deleting...' : 'Delete'}
+                      {processingCustomer === customer.id ? 'Löschen...' : 'Löschen'}
                     </button>
                   </div>
                 </div>
