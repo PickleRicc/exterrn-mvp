@@ -99,11 +99,20 @@ export default function TimeTrackingPage() {
       
       // Fetch time entries - with separate try/catch for better error reporting
       try {
-        const timeEntriesResponse = await fetch(`${apiUrl}/time-entries?craftsmanId=${craftsmanId}`, {
+        // The API route expects /time-entries without query params, we'll filter in the frontend
+        console.log(`Attempting to fetch time entries from: ${apiUrl}/time-entries`);
+        console.log(`Using token: ${localStorage.getItem('token')?.substring(0, 10)}...`);
+        
+        const timeEntriesResponse = await fetch(`${apiUrl}/time-entries`, {
+          method: 'GET',
           headers: {
+            'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
+        
+        console.log(`Fetch response status: ${timeEntriesResponse.status}`);
+        console.log(`Fetch response headers:`, Object.fromEntries([...timeEntriesResponse.headers]));
         
         // Read the response text regardless of status for debugging
         let responseText = '';
@@ -128,6 +137,17 @@ export default function TimeTrackingPage() {
             // Otherwise, get JSON directly
             timeEntriesData = await timeEntriesResponse.json();
           }
+          
+          // Now filter the entries for the current craftsman on the client side
+          if (Array.isArray(timeEntriesData)) {
+            const filteredEntries = timeEntriesData.filter(entry => {
+              return entry.craftsman_id === craftsmanId || 
+                     entry.craftsman_id === parseInt(craftsmanId) ||
+                     entry.craftsmanId === craftsmanId;
+            });
+            console.log(`Filtered from ${timeEntriesData.length} to ${filteredEntries.length} entries for craftsman ${craftsmanId}`);
+            timeEntriesData = filteredEntries;
+          }
         } catch (parseErr) {
           console.error('Failed to parse time entries response:', parseErr);
           throw new Error('Ungültige Daten vom Server erhalten');
@@ -136,8 +156,22 @@ export default function TimeTrackingPage() {
         console.log(`Received ${timeEntriesData?.length || 0} time entries`);
         setTimeEntries(Array.isArray(timeEntriesData) ? timeEntriesData : []);
       } catch (timeEntriesErr) {
+        // Detailed error reporting
         console.error('Error fetching time entries:', timeEntriesErr);
-        setError(`Fehler beim Laden der Zeiteinträge: ${timeEntriesErr.message}`);
+        console.error('Error name:', timeEntriesErr.name);
+        console.error('Error message:', timeEntriesErr.message);
+        console.error('Error stack:', timeEntriesErr.stack);
+        
+        // For network errors, provide more context
+        if (timeEntriesErr instanceof TypeError && timeEntriesErr.message.includes('fetch')) {
+          console.error('Network error details:', {
+            apiUrl,
+            craftsmanId,
+            hasToken: !!localStorage.getItem('token')
+          });
+        }
+        
+        setError(`Fehler beim Laden der Zeiteinträge: ${timeEntriesErr.message || 'Netzwerkfehler'}`);
         // Continue with appointments fetch anyway
       }
       
