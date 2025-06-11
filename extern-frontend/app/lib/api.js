@@ -31,37 +31,86 @@ api.interceptors.request.use(
           // Check if token has the correct JWT format (header.payload.signature)
           const parts = token.split('.');
           if (parts.length !== 3) {
-            console.error('Invalid token format (not a valid JWT)');
+            // Silently handle this - many pages will load with an invalid token before redirecting
+            console.debug('Skipping token validation - incorrect format');
             return config;
           }
           
           // Make sure we have a non-empty payload before decoding
           if (!parts[1]) {
-            console.error('Token has empty payload');
+            console.debug('Skipping token validation - empty payload');
             return config;
           }
           
-          // Base64Url decode and parse the payload
-          const base64Url = parts[1];
-          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-          const jsonPayload = decodeURIComponent(
-            atob(base64)
-              .split('')
-              .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-              .join('')
-          );
-          
-          const tokenData = JSON.parse(jsonPayload);
-          console.debug('Token data for request:', {
-            userId: tokenData.userId,
-            role: tokenData.role,
-            craftsmanId: tokenData.craftsmanId
-          });
+          // Safely decode the token payload
+          try {
+            // Base64Url decode and parse the payload
+            const base64Url = parts[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            
+            // Add padding if needed
+            const pad = base64.length % 4;
+            const paddedBase64 = pad ? base64 + '='.repeat(4 - pad) : base64;
+            
+            // Attempt to decode
+            try {
+              const jsonPayload = atob(paddedBase64);
+              const tokenData = JSON.parse(jsonPayload);
+              
+              // Only log token data if in development environment
+              if (process.env.NODE_ENV === 'development') {
+                console.debug('Token data for request:', {
+                  userId: tokenData.userId,
+                  role: tokenData.role,
+                  craftsmanId: tokenData.craftsmanId
+                });
+              }
+              
+              // Check token expiration
+              if (tokenData.exp && tokenData.exp * 1000 < Date.now()) {
+                console.debug('Token expired, removing from storage');
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                return config;
+              }
+            } catch (decodeError) {
+              // If atob fails, try the more complex decoding method
+              try {
+                const jsonPayload = decodeURIComponent(
+                  atob(paddedBase64)
+                    .split('')
+                    .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                    .join('')
+                );
+                
+                const tokenData = JSON.parse(jsonPayload);
+                
+                // Only log token data if in development environment
+                if (process.env.NODE_ENV === 'development') {
+                  console.debug('Token data for request (alt method):', {
+                    userId: tokenData.userId,
+                    role: tokenData.role,
+                    craftsmanId: tokenData.craftsmanId
+                  });
+                }
+              } catch (complexDecodeError) {
+                // Both methods failed but we'll continue with the request
+                console.debug('Could not decode token payload, continuing with request');
+              }
+            }
+          } catch (err) {
+            // Silently continue if token parsing fails
+            console.debug('Non-critical token parsing error, continuing with request');
+          }
         } catch (err) {
-          console.error('Error parsing token for debug:', err);
-          // If token parsing fails, we should consider removing the invalid token
-          if (err.message && err.message.includes('atob')) {
-            console.warn('Removing invalid token from localStorage');
+          // Log only in development, not in production to avoid console pollution
+          if (process.env.NODE_ENV === 'development') {
+            console.debug('Error during token validation, continuing with request');
+          }
+          
+          // Only remove token if it's clearly invalid
+          if (err.message && (err.message.includes('atob') || err.message.includes('JSON'))) {
+            console.debug('Removing potentially corrupted token');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             // Don't redirect here to avoid interrupting the current request

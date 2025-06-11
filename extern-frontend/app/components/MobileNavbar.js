@@ -11,17 +11,24 @@ const navItems = [
     ),
   },
   {
-    label: 'Telefon',
-    href: '/phone',
-    icon: (
-      <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M22 16.92V21a1 1 0 0 1-1.09 1A19 19 0 0 1 3 5.09 1 1 0 0 1 4 4h4.09a1 1 0 0 1 1 .75l1.13 4.52a1 1 0 0 1-.29 1L8.91 12.09a16 16 0 0 0 7 7l1.82-1.82a1 1 0 0 1 1-.29l4.52 1.13a1 1 0 0 1 .75 1V21a1 1 0 0 1-1 1z"/></svg>
-    ),
-  },
-  {
     label: 'Termine',
     href: '/appointments',
     icon: (
       <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    ),
+  },
+  {
+    label: 'Zeit',
+    href: '/time-tracking',
+    icon: (
+      <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    ),
+  },
+  {
+    label: 'Telefon',
+    href: '/phone',
+    icon: (
+      <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M22 16.92V21a1 1 0 0 1-1.09 1A19 19 0 0 1 3 5.09 1 1 0 0 1 4 4h4.09a1 1 0 0 1 1 .75l1.13 4.52a1 1 0 0 1-.29 1L8.91 12.09a16 16 0 0 0 7 7l1.82-1.82a1 1 0 0 1 1-.29l4.52 1.13a1 1 0 0 1 .75 1V21a1 1 0 0 1-1 1z"/></svg>
     ),
   },
   {

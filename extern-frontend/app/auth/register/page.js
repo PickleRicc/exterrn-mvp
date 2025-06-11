@@ -40,10 +40,10 @@ export default function RegisterPage() {
   
   // Time slots for availability selection
   const timeSlots = [
-    '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-    '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
-    '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
-    '20:00'
+    '06:00', '06:30', '07:00', '07:30', '08:00', '08:30', '09:00', '09:30', 
+    '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', 
+    '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', 
+    '18:00', '18:30', '19:00', '19:30', '20:00'
   ];
 
   const handleSubmit = async (e) => {
@@ -68,7 +68,7 @@ export default function RegisterPage() {
     }
 
     if (!specialty) {
-      setError('Spezialität ist erforderlich');
+      setError('Berufstitel ist erforderlich');
       return;
     }
 
@@ -133,7 +133,7 @@ export default function RegisterPage() {
   const handleAddTimeSlot = (day) => {
     setAvailabilityHours(prev => ({
       ...prev,
-      [day]: [...prev[day], '09:00-17:00']
+      [day]: [...prev[day], '06:00-20:00']
     }));
   };
 
@@ -321,7 +321,7 @@ export default function RegisterPage() {
                 {role === 'craftsman' && (
                   <div className="space-y-1">
                     <label htmlFor="specialty" className="block text-sm font-medium text-white mb-1">
-                      Spezialität <span className="text-[#00c2ff]">*</span>
+                      Berufstitel <span className="text-[#00c2ff]">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-[-1]">
@@ -330,27 +330,15 @@ export default function RegisterPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
                       </div>
-                      <select
+                      <input
                         id="specialty"
+                        type="text"
                         value={specialty}
                         onChange={(e) => setSpecialty(e.target.value)}
-                        className="block w-full pl-12 pr-4 py-3.5 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 appearance-none relative z-10"
+                        className="block w-full pl-12 pr-4 py-3.5 bg-[#2a2a2a]/50 border border-[#2a2a2a] text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ffcb00] focus:border-transparent transition-all duration-200 relative z-10"
+                        placeholder="Ihr Berufstitel (z.B. Fliesenleger, Elektriker)"
                         required
-                      >
-                        <option value="">Wählen Sie Ihre Spezialität</option>
-                        <option value="Tile Setter">Fliesenleger</option>
-                        <option value="Tile Installer">Flieseninstallateur</option>
-                        <option value="Ceramic Tiler">Keramikfliesenleger</option>
-                        <option value="Porcelain Tiler">Porzellanfliesenleger</option>
-                        <option value="Mosaic Tiler">Mosaikfliesenleger</option>
-                        <option value="Bathroom Tiler">Badezimmerfliesenleger</option>
-                        <option value="Kitchen Tiler">Küchenfliesenleger</option>
-                      </select>
-                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <svg className="h-5 w-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                      </div>
+                      />
                     </div>
                   </div>
                 )}

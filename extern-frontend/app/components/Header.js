@@ -12,34 +12,67 @@ export default function Header({ minimal = false }) {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-    if (token) {
-      try {
-        const userStr = localStorage.getItem('user');
-        const user = userStr ? JSON.parse(userStr) : {};
-        
-        setUserName(user.username || '');
-        if (user.name) {
-          const nameParts = user.name.split(' ');
-          if (nameParts.length > 1) {
-            setUserInitials(`${nameParts[0][0]}${nameParts[1][0]}`);
-          } else {
-            setUserInitials(user.name.substring(0, 2).toUpperCase());
+    try {
+      const token = localStorage.getItem('token');
+      setIsLoggedIn(!!token);
+      if (token) {
+        try {
+          const userStr = localStorage.getItem('user');
+          if (!userStr) {
+            // No user data found but we have a token, set defaults
+            console.debug('No user data found in localStorage');
+            setUserName('');
+            setUserInitials('?');
+            return;
           }
-        } else if (user.username) {
-          const usernameParts = user.username.split('.');
-          if (usernameParts.length > 1) {
-            setUserInitials(`${usernameParts[0][0]}${usernameParts[1][0]}`);
+          
+          // Try to parse the user data
+          const user = JSON.parse(userStr);
+          
+          // Use nullish coalescing to handle empty values more gracefully
+          setUserName(user?.username || '');
+          
+          // Set user initials with better null checks
+          if (user?.name) {
+            const nameParts = user.name.split(' ');
+            if (nameParts.length > 1 && nameParts[0][0] && nameParts[1][0]) {
+              setUserInitials(`${nameParts[0][0]}${nameParts[1][0]}`);
+            } else if (user.name.length > 0) {
+              setUserInitials(user.name.substring(0, 2).toUpperCase());
+            } else {
+              setUserInitials('?');
+            }
+          } else if (user?.username) {
+            const usernameParts = user.username.split('.');
+            if (usernameParts.length > 1 && usernameParts[0][0] && usernameParts[1][0]) {
+              setUserInitials(`${usernameParts[0][0]}${usernameParts[1][0]}`);
+            } else if (user.username.length > 0) {
+              setUserInitials(user.username.substring(0, 2).toUpperCase());
+            } else {
+              setUserInitials('?'); 
+            }
           } else {
-            setUserInitials(user.username.substring(0, 2).toUpperCase());
+            setUserInitials('?');
+          }
+        } catch (err) {
+          // Downgrade to debug to prevent console pollution
+          console.debug('Error parsing user data from localStorage:', err);
+          setUserName('');
+          setUserInitials('?');
+          
+          // If user data is corrupted, clear it to prevent future errors
+          if (err instanceof SyntaxError) {
+            console.debug('Clearing corrupted user data from localStorage');
+            localStorage.removeItem('user');
           }
         }
-      } catch (err) {
-        console.error('Error parsing user data:', err);
-        setUserName('');
-        setUserInitials('');
       }
+    } catch (err) {
+      // Handle the case where localStorage is not available (e.g., in an iframe with restricted permissions)
+      console.debug('Error accessing localStorage:', err);
+      setIsLoggedIn(false);
+      setUserName('');
+      setUserInitials('?');
     }
   }, []);
 
@@ -64,7 +97,7 @@ export default function Header({ minimal = false }) {
       <header className="bg-gradient-to-r from-[#121212] to-[#1a1a1a] text-white shadow-lg backdrop-blur-lg sticky top-0 z-50 transition-all duration-300 ease-in-out">
         <div className="container mx-auto px-4 flex justify-between items-center py-4">
           <div className="flex items-center space-x-3">
-            <a href="/">
+            <div>
               <img
                 src="/images/ZIMMR_Logo_transparent.png"
                 alt="ZIMMR Logo"
@@ -73,7 +106,7 @@ export default function Header({ minimal = false }) {
                 loading="eager"
                 decoding="async"
               />
-            </a>
+            </div>
           </div>
           <div className="flex gap-2">
             <a href="/auth/login" className="px-4 py-2 rounded-full text-white/90 hover:text-white hover:bg-[#ffcb00]/10 transition-all duration-200 font-medium">Anmelden</a>
@@ -90,7 +123,7 @@ export default function Header({ minimal = false }) {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center space-x-3">
-            <a href="/">
+            <div>
               <img
                 src="/images/ZIMMR_Logo_transparent.png"
                 alt="ZIMMR Logo"
@@ -99,7 +132,7 @@ export default function Header({ minimal = false }) {
                 loading="eager"
                 decoding="async"
               />
-            </a>
+            </div>
           </div>
           <button 
             className="md:hidden flex items-center justify-center w-10 h-10 rounded-full bg-[#2a2a2a]/40 backdrop-blur-md text-white hover:bg-[#2a2a2a]/80 transition-all duration-300"
@@ -272,7 +305,7 @@ export default function Header({ minimal = false }) {
                   className="flex items-center px-4 py-2.5 rounded-xl text-white/90 hover:text-white hover:bg-white/10 transition-all"
                 >
                   <svg className="w-5 h-5 mr-3 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 012-2h-5l-5 5v-5z"></path>
                   </svg>
                   Termine
                 </a>

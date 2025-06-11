@@ -24,6 +24,7 @@ export default function NewAppointmentPage() {
   const [status, setStatus] = useState('scheduled');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showCustomLocation, setShowCustomLocation] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false); // Private appointment toggle
   
   const router = useRouter();
 
@@ -152,18 +153,19 @@ export default function NewAppointmentPage() {
     }
 
     try {
-      // Combine date and time
-      const dateTime = new Date(`${scheduledAt}T${scheduledTime}`);
+      // Convert ISO string to JS Date object for backend
+      const scheduledDateTime = `${scheduledAt}T${scheduledTime}`;
       
-      // Create appointment
-      await appointmentsAPI.create({
-        customer_id: parseInt(customerId),
-        craftsman_id: craftsmanId,
-        scheduled_at: dateTime.toISOString(),
+      // Create new appointment
+      const response = await appointmentsAPI.create({
+        customer_id: isPrivate ? null : customerId, // No customer for private appointments
+        scheduled_at: scheduledDateTime,
         notes,
-        duration: parseInt(duration),
+        craftsman_id: craftsmanId,
+        duration,
         location,
-        status
+        status,
+        is_private: isPrivate // Add private flag
       });
 
       setSuccess('Termin erfolgreich erstellt!');
@@ -229,25 +231,48 @@ export default function NewAppointmentPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-5">
-                <div className="relative">
-                  <label htmlFor="customer" className="block mb-2 text-sm font-medium text-gray-300">
-                    Kunde <span className="text-[#FFD200]">*</span>
+              <div className="space-y-6 mb-6">
+                {/* Private appointment toggle */}
+                <div className="flex items-center mb-4">
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={isPrivate} 
+                      onChange={() => setIsPrivate(!isPrivate)}
+                      className="sr-only peer" 
+                    />
+                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#FFD200]/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FFD200]"></div>
+                    <span className="ml-3 text-sm font-medium text-white">Privater Termin</span>
                   </label>
-                  <select
-                    id="customer"
-                    value={customerId}
-                    onChange={handleCustomerChange}
-                    className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-                  >
-                    <option value="">Wählen Sie einen Kunden</option>
-                    {customers.map((customer) => (
-                      <option key={customer.id} value={customer.id}>
-                        {customer.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="ml-3 bg-gray-800 rounded-md p-1">
+                    <svg className="w-5 h-5 text-gray-400 cursor-help hover:text-white transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
                 </div>
+                
+                {/* Customer selection - hidden for private appointments */}
+                {!isPrivate && (
+                  <div className="relative">
+                    <label htmlFor="customerId" className="block mb-2 text-sm font-medium text-white">
+                      Kunde <span className="text-[#FFD200]">*</span>
+                    </label>
+                    <select
+                      id="customerId"
+                      value={customerId}
+                      onChange={handleCustomerChange}
+                      className="w-full p-3 border border-gray-700 rounded-xl bg-gray-800 text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                      required
+                    >
+                      <option value="">Kunde auswählen</option>
+                      {customers.map(customer => (
+                        <option key={customer.id} value={customer.id}>
+                          {customer.name} - {customer.phone}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="relative">

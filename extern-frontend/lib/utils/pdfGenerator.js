@@ -2,6 +2,29 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 /**
+ * Format currency values with thousand separators and Euro symbol
+ * @param {number|string} value - The value to format
+ * @returns {string} - Formatted currency string
+ */
+const formatCurrency = (value) => {
+  // Handle null, undefined, or NaN values
+  if (value === null || value === undefined || value === '') {
+    return '€ 0,00';
+  }
+  
+  // Ensure we're working with a number
+  const numValue = typeof value === 'string' ? parseFloat(value.replace(',', '.')) : parseFloat(value);
+  
+  // Handle NaN after conversion
+  if (isNaN(numValue)) {
+    return '€ 0,00';
+  }
+  
+  // Format with German locale (commas as decimal separators, periods as thousand separators)
+  return `€ ${numValue.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+/**
  * Generate a PDF for an invoice using jsPDF and html2canvas
  * This function renders the invoice to a hidden div, captures it as an image,
  * and then creates a downloadable PDF
@@ -74,15 +97,15 @@ export const generateInvoicePdf = async (invoice, craftsmanData = {}) => {
           </tr>
           <tr>
             <td style="padding: 10px; border: 1px solid #ddd;">${invoice.notes || 'Services rendered'}</td>
-            <td style="text-align: right; padding: 10px; border: 1px solid #ddd;">€${parseFloat(invoice.amount || 0).toFixed(2)}</td>
+            <td style="text-align: right; padding: 10px; border: 1px solid #ddd;">${formatCurrency(parseFloat(invoice.amount || 0))}</td>
           </tr>
           <tr>
             <td style="text-align: right; padding: 10px; border: 1px solid #ddd; font-weight: bold;">Tax (19%):</td>
-            <td style="text-align: right; padding: 10px; border: 1px solid #ddd;">€${parseFloat(invoice.tax_amount || 0).toFixed(2)}</td>
+            <td style="text-align: right; padding: 10px; border: 1px solid #ddd;">${formatCurrency(parseFloat(invoice.tax_amount || 0))}</td>
           </tr>
           <tr>
             <td style="text-align: right; padding: 10px; border: 1px solid #ddd; font-weight: bold;">Total:</td>
-            <td style="text-align: right; padding: 10px; border: 1px solid #ddd; font-weight: bold;">€${parseFloat(invoice.total_amount || 0).toFixed(2)}</td>
+            <td style="text-align: right; padding: 10px; border: 1px solid #ddd; font-weight: bold;">${formatCurrency(parseFloat(invoice.total_amount || 0))}</td>
           </tr>
         </table>
       </div>
@@ -184,9 +207,9 @@ export const generateSimpleInvoicePdf = (invoice, craftsmanData = {}) => {
     // Add summary
     pdf.text('Summary:', 20, 120);
     pdf.text(`Description: ${invoice.notes || 'Services rendered'}`, 20, 125);
-    pdf.text(`Amount: €${parseFloat(invoice.amount || 0).toFixed(2)}`, 20, 130);
-    pdf.text(`Tax (19%): €${parseFloat(invoice.tax_amount || 0).toFixed(2)}`, 20, 135);
-    pdf.text(`Total: €${parseFloat(invoice.total_amount || 0).toFixed(2)}`, 20, 140);
+    pdf.text(`Amount: ${formatCurrency(parseFloat(invoice.amount || 0))}`, 20, 130);
+    pdf.text(`Tax (19%): ${formatCurrency(parseFloat(invoice.tax_amount || 0))}`, 20, 135);
+    pdf.text(`Total: ${formatCurrency(parseFloat(invoice.total_amount || 0))}`, 20, 140);
     
     // Add payment terms
     pdf.text('Payment Terms: Due within 16 days of receipt', 20, 160);
@@ -279,13 +302,15 @@ export const generateGermanQuotePdf = (quote, craftsmanData = {}) => {
     pdf.text('Datum:', 60, 75);
     pdf.text(formatGermanDate(quote.created_at), 90, 75);
     
-    // Calculate validity date (30 days from creation by default)
+    // Add validity date (Gültig bis) on the second line
+    pdf.text('gültig bis:', 145, 75);
+    
+    // Calculate validity date if not provided (30 days from creation by default)
     const validUntilDate = new Date(quote.created_at);
     validUntilDate.setDate(validUntilDate.getDate() + 30);
     const validUntil = quote.valid_until ? formatGermanDate(quote.valid_until) : formatGermanDate(validUntilDate);
     
     // Add validity date (Gültig bis) on the second line
-    pdf.text('gültig bis:', 145, 75);
     pdf.text(validUntil, 170, 75);
     
     // Draw validity line
@@ -334,10 +359,10 @@ export const generateGermanQuotePdf = (quote, craftsmanData = {}) => {
         // Quantity, unit, price, total
         pdf.text(String(item.quantity || '1'), 115, yPos);
         pdf.text(String(item.unit || 'Stück'), 135, yPos);
-        pdf.text(String(parseFloat(item.price || 0).toFixed(2)), 155, yPos);
+        pdf.text(formatCurrency(item.price || 0).replace('€ ', ''), 155, yPos);
         
         const itemTotal = (parseFloat(item.price || 0) * parseFloat(item.quantity || 1)).toFixed(2);
-        pdf.text(String(itemTotal), 175, yPos);
+        pdf.text(formatCurrency(parseFloat(itemTotal)), 175, yPos);
         
         // Move Y position based on description length
         yPos += Math.max(descriptionLines.length * 5, 8);
@@ -354,8 +379,8 @@ export const generateGermanQuotePdf = (quote, craftsmanData = {}) => {
       
       pdf.text('1', 115, yPos);
       pdf.text('Pauschal', 135, yPos);
-      pdf.text(String(parseFloat(quote.amount || 0).toFixed(2)), 155, yPos);
-      pdf.text(String(parseFloat(quote.amount || 0).toFixed(2)), 175, yPos);
+      pdf.text(formatCurrency(parseFloat(quote.amount || 0)), 155, yPos);
+      pdf.text(formatCurrency(parseFloat(quote.amount || 0)), 175, yPos);
       
       yPos += Math.max(descriptionLines.length * 5, 8);
     }
@@ -368,17 +393,17 @@ export const generateGermanQuotePdf = (quote, craftsmanData = {}) => {
     yPos += 13;
     pdf.setFont('helvetica', 'bold');
     pdf.text('Zwischensumme (netto)', 130, yPos);
-    pdf.text(String(parseFloat(quote.amount || 0).toFixed(2)), 175, yPos);
+    pdf.text(formatCurrency(parseFloat(quote.amount || 0)), 175, yPos);
     
     yPos += 7;
     pdf.setFont('helvetica', 'normal');
     pdf.text('Umsatzsteuer 19 %', 130, yPos);
-    pdf.text(String(parseFloat(quote.tax_amount || 0).toFixed(2)), 175, yPos);
+    pdf.text(formatCurrency(parseFloat(quote.tax_amount || 0)), 175, yPos);
     
     yPos += 7;
     pdf.setFont('helvetica', 'bold');
     pdf.text('Gesamtbetrag', 130, yPos);
-    pdf.text(String(parseFloat(quote.total_amount || 0).toFixed(2)), 175, yPos);
+    pdf.text(formatCurrency(parseFloat(quote.total_amount || 0)), 175, yPos);
     
     // Add footer with business information
     const footerY = 270;
@@ -555,10 +580,10 @@ export const generateGermanInvoicePdf = (invoice, craftsmanData = {}) => {
         // Quantity, unit, price, total
         pdf.text(String(item.quantity || '1'), 115, yPos);
         pdf.text(String(item.unit || 'Stück'), 135, yPos);
-        pdf.text(String(parseFloat(item.price || 0).toFixed(2)), 155, yPos);
+        pdf.text(formatCurrency(item.price || 0).replace('€ ', ''), 155, yPos);
         
         const itemTotal = (parseFloat(item.price || 0) * parseFloat(item.quantity || 1)).toFixed(2);
-        pdf.text(String(itemTotal), 175, yPos);
+        pdf.text(formatCurrency(parseFloat(itemTotal)), 175, yPos);
         
         // Move Y position based on description length
         yPos += Math.max(descriptionLines.length * 5, 8);
@@ -575,8 +600,8 @@ export const generateGermanInvoicePdf = (invoice, craftsmanData = {}) => {
       
       pdf.text('1', 115, yPos);
       pdf.text('Pauschal', 135, yPos);
-      pdf.text(String(parseFloat(invoice.amount || 0).toFixed(2)), 155, yPos);
-      pdf.text(String(parseFloat(invoice.amount || 0).toFixed(2)), 175, yPos);
+      pdf.text(formatCurrency(parseFloat(invoice.amount || 0)), 155, yPos);
+      pdf.text(formatCurrency(parseFloat(invoice.amount || 0)), 175, yPos);
       
       yPos += Math.max(descriptionLines.length * 5, 8);
     }
@@ -589,17 +614,17 @@ export const generateGermanInvoicePdf = (invoice, craftsmanData = {}) => {
     yPos += 13;
     pdf.setFont('helvetica', 'bold');
     pdf.text('Zwischensumme (netto)', 130, yPos);
-    pdf.text(String(parseFloat(invoice.amount || 0).toFixed(2)), 175, yPos);
+    pdf.text(formatCurrency(parseFloat(invoice.amount || 0)), 175, yPos);
     
     yPos += 7;
     pdf.setFont('helvetica', 'normal');
     pdf.text('Umsatzsteuer 19 %', 130, yPos);
-    pdf.text(String(parseFloat(invoice.tax_amount || 0).toFixed(2)), 175, yPos);
+    pdf.text(formatCurrency(parseFloat(invoice.tax_amount || 0)), 175, yPos);
     
     yPos += 7;
     pdf.setFont('helvetica', 'bold');
     pdf.text('Gesamtbetrag', 130, yPos);
-    pdf.text(String(parseFloat(invoice.total_amount || 0).toFixed(2)), 175, yPos);
+    pdf.text(formatCurrency(parseFloat(invoice.total_amount || 0)), 175, yPos);
     
     // Add invoice-specific payment instructions
     yPos += 20;

@@ -430,10 +430,10 @@ function InvoicePageContent() {
             customer_phone: selectedCustomer?.phone || '',
             customer_address: selectedCustomer?.address || '',
             // Ensure amounts are formatted as needed by PDF generator
-            amount: createdInvoice.amount.toFixed(2),
-            tax_amount: createdInvoice.tax_amount.toFixed(2),
-            total_amount: createdInvoice.total_amount.toFixed(2),
-             // Use created_at from the API response, format if needed
+            amount: parseFloat(createdInvoice.amount || 0).toFixed(2),
+            tax_amount: parseFloat(createdInvoice.tax_amount || 0).toFixed(2),
+            total_amount: parseFloat(createdInvoice.total_amount || 0).toFixed(2),
+            // Use created_at from the API response, format if needed
             created_at_formatted: createdInvoice.created_at ? new Date(createdInvoice.created_at).toLocaleDateString() : 'N/A',
             due_date_formatted: createdInvoice.due_date ? new Date(createdInvoice.due_date).toLocaleDateString() : 'N/A',
             service_date_formatted: createdInvoice.service_date ? new Date(createdInvoice.service_date).toLocaleDateString() : 'N/A',

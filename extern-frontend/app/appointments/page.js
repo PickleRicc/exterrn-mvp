@@ -88,7 +88,12 @@ export default function AppointmentsPage() {
     }
   };
 
-  const getStatusClass = (status, approvalStatus) => {
+  const getStatusClass = (status, approvalStatus, isPrivate) => {
+    // For private appointments, use a distinct neutral color
+    if (isPrivate) {
+      return 'bg-gray-500/20 text-gray-400 border border-gray-600/50';
+    }
+    
     // First check approval status
     if (approvalStatus === 'pending') {
       return 'bg-yellow-100/80 text-yellow-800 border border-yellow-200/50';
@@ -429,12 +434,31 @@ export default function AppointmentsPage() {
                         <div key={appointment.id} className="bg-white/5 rounded-lg p-4 shadow flex flex-col gap-2">
                           <div className="flex justify-between items-center mb-1">
                             <span className="text-white/80 font-bold text-lg">{formatDate(appointment.scheduled_at)}</span>
-                            <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${getStatusClass(appointment.status, appointment.approval_status)}`}>{appointment.status || 'N/A'}</span>
+                            {/* Status badge with private indicator */}
+                            <span 
+                              className={`px-2 py-1 rounded-lg text-xs font-semibold ${getStatusClass(appointment.status, appointment.approval_status, appointment.is_private)}`}
+                            >
+                              {appointment.is_private ? 'Privat' : 
+                               appointment.status === 'scheduled' ? 'Geplant' :
+                               appointment.status === 'completed' ? 'Abgeschlossen' :
+                               appointment.status === 'cancelled' ? 'Abgesagt' : 'N/A'}
+                            </span>
                           </div>
-                          <div className="text-white/80 text-base font-medium">{customers[appointment.customer_id]?.name || 'Unbekannt'}</div>
-                          <div className="flex items-center gap-2">
-                            <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${appointment.approval_status === 'approved' ? 'bg-green-500/30 text-green-200' : appointment.approval_status === 'pending' ? 'bg-yellow-500/30 text-yellow-200' : appointment.approval_status === 'rejected' ? 'bg-red-500/30 text-red-200' : 'bg-gray-500/30 text-gray-200'}`}>{appointment.approval_status || 'N/A'}</span>
+                          {/* Show customer name only for non-private appointments */}
+                          <div className="text-white/80 text-base font-medium">
+                            {appointment.is_private ? 'Privater Termin' : (customers[appointment.customer_id]?.name || 'Unbekannt')}
                           </div>
+                          
+                          {!appointment.is_private && (
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${appointment.approval_status === 'approved' ? 'bg-green-500/30 text-green-200' : appointment.approval_status === 'pending' ? 'bg-yellow-500/30 text-yellow-200' : appointment.approval_status === 'rejected' ? 'bg-red-500/30 text-red-200' : 'bg-gray-500/30 text-gray-200'}`}>
+                                {appointment.approval_status === 'approved' ? 'Genehmigt' : 
+                                 appointment.approval_status === 'pending' ? 'Ausstehend' : 
+                                 appointment.approval_status === 'rejected' ? 'Abgelehnt' : 'N/A'}
+                              </span>
+                            </div>
+                          )}
+                          
                           <div className="flex mt-3 space-x-2">
                             <button
                               onClick={() => router.push(`/appointments/${appointment.id}`)}
@@ -446,7 +470,9 @@ export default function AppointmentsPage() {
                               </svg>
                               Ansehen
                             </button>
-                            {appointment.approval_status === 'pending' && (
+                            
+                            {/* Only show approval buttons for non-private appointments with pending status */}
+                            {!appointment.is_private && appointment.approval_status === 'pending' && (
                               <div className="flex flex-col md:flex-row mt-2 md:mt-0 md:ml-2 gap-2">
                                 <button
                                   onClick={() => handleApprove(appointment.id)}
@@ -473,6 +499,7 @@ export default function AppointmentsPage() {
                                 </button>
                               </div>
                             )}
+                            
                             <button
                               onClick={() => handleDelete(appointment.id)}
                               className="text-xs bg-red-500/20 hover:bg-red-500/30 text-red-400 px-2 py-1 rounded transition-colors flex items-center justify-center group"
