@@ -353,6 +353,44 @@ export const appointmentsAPI = {
   }
 };
 
+// Time Entries API calls
+export const timeEntriesAPI = {
+  getAll: async (filters = {}) => {
+    console.log('Fetching time entries with filters:', filters);
+    const response = await api.get('/time-entries', { params: filters });
+    return response.data;
+  },
+  getById: async (id) => {
+    const response = await api.get(`/time-entries/${id}`);
+    return response.data;
+  },
+  create: async (timeEntryData) => {
+    console.log('Creating time entry with data:', JSON.stringify(timeEntryData, null, 2));
+    const response = await api.post('/time-entries', timeEntryData);
+    return response.data;
+  },
+  update: async (id, timeEntryData) => {
+    const response = await api.put(`/time-entries/${id}`, timeEntryData);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/time-entries/${id}`);
+    return response.data;
+  },
+  getBreaks: async (timeEntryId) => {
+    const response = await api.get(`/time-entries/${timeEntryId}/breaks`);
+    return response.data;
+  },
+  addBreak: async (timeEntryId, breakData) => {
+    const response = await api.post(`/time-entries/${timeEntryId}/breaks`, breakData);
+    return response.data;
+  },
+  getStats: async (filters = {}) => {
+    const response = await api.get('/time-entries/stats', { params: filters });
+    return response.data;
+  }
+};
+
 // Invoices API calls
 export const invoicesAPI = {
   getAll: async (filters = {}) => {

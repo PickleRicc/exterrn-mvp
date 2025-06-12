@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { craftsmenAPI } from '../lib/api';
+import { craftsmenAPI, timeEntriesAPI } from '../lib/api';
 import TimeEntryList from './components/TimeEntryList';
 import TimeEntryForm from './components/TimeEntryForm';
 import TimerComponent from './components/TimerComponent';
@@ -94,82 +94,37 @@ export default function TimeTrackingPage() {
         throw new Error('Keine gültige Handwerker-ID verfügbar');
       }
       
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api/proxy';
       console.log(`Fetching time entries for craftsman ID: ${craftsmanId}`);
       
       // Fetch time entries - with separate try/catch for better error reporting
       try {
-        // The API route expects /time-entries without query params, we'll filter in the frontend
-        console.log(`Attempting to fetch time entries from: ${apiUrl}/time-entries`);
-        console.log(`Using token: ${localStorage.getItem('token')?.substring(0, 10)}...`);
+        // Use the centralized timeEntriesAPI to fetch all time entries
+        console.log('Using timeEntriesAPI.getAll() to fetch time entries');
         
-        const timeEntriesResponse = await fetch(`${apiUrl}/time-entries`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
+        // Get all time entries and filter by craftsman ID client-side
+        const timeEntriesData = await timeEntriesAPI.getAll();
         
-        console.log(`Fetch response status: ${timeEntriesResponse.status}`);
-        console.log(`Fetch response headers:`, Object.fromEntries([...timeEntriesResponse.headers]));
-        
-        // Read the response text regardless of status for debugging
-        let responseText = '';
-        try {
-          responseText = await timeEntriesResponse.text();
-          console.log('Time entries response text:', responseText);
-        } catch (textErr) {
-          console.warn('Could not read response text:', textErr);
-        }
-        
-        if (!timeEntriesResponse.ok) {
-          throw new Error(`Server returned ${timeEntriesResponse.status}: ${responseText || 'No error details'}`); 
-        }
-        
-        // Parse the JSON response
-        let timeEntriesData;
-        try {
-          // If we already read the text, parse it
-          if (responseText) {
-            timeEntriesData = JSON.parse(responseText);
-          } else {
-            // Otherwise, get JSON directly
-            timeEntriesData = await timeEntriesResponse.json();
-          }
-          
-          // Now filter the entries for the current craftsman on the client side
-          if (Array.isArray(timeEntriesData)) {
-            const filteredEntries = timeEntriesData.filter(entry => {
-              return entry.craftsman_id === craftsmanId || 
-                     entry.craftsman_id === parseInt(craftsmanId) ||
-                     entry.craftsmanId === craftsmanId;
-            });
-            console.log(`Filtered from ${timeEntriesData.length} to ${filteredEntries.length} entries for craftsman ${craftsmanId}`);
-            timeEntriesData = filteredEntries;
-          }
-        } catch (parseErr) {
-          console.error('Failed to parse time entries response:', parseErr);
-          throw new Error('Ungültige Daten vom Server erhalten');
+        // Filter for the current craftsman on the client side
+        if (Array.isArray(timeEntriesData)) {
+          const filteredEntries = timeEntriesData.filter(entry => {
+            return entry.craftsman_id === craftsmanId || 
+                   entry.craftsman_id === parseInt(craftsmanId) ||
+                   entry.craftsmanId === craftsmanId;
+          });
+          console.log(`Filtered from ${timeEntriesData.length} to ${filteredEntries.length} entries for craftsman ${craftsmanId}`);
+          setTimeEntries(filteredEntries);
+        } else {
+          console.warn('Received non-array time entries data:', timeEntriesData);
+          setTimeEntries([]);
         }
         
         console.log(`Received ${timeEntriesData?.length || 0} time entries`);
-        setTimeEntries(Array.isArray(timeEntriesData) ? timeEntriesData : []);
       } catch (timeEntriesErr) {
         // Detailed error reporting
         console.error('Error fetching time entries:', timeEntriesErr);
         console.error('Error name:', timeEntriesErr.name);
         console.error('Error message:', timeEntriesErr.message);
         console.error('Error stack:', timeEntriesErr.stack);
-        
-        // For network errors, provide more context
-        if (timeEntriesErr instanceof TypeError && timeEntriesErr.message.includes('fetch')) {
-          console.error('Network error details:', {
-            apiUrl,
-            craftsmanId,
-            hasToken: !!localStorage.getItem('token')
-          });
-        }
         
         setError(`Fehler beim Laden der Zeiteinträge: ${timeEntriesErr.message || 'Netzwerkfehler'}`);
         // Continue with appointments fetch anyway
@@ -251,9 +206,6 @@ export default function TimeTrackingPage() {
         throw new Error('Keine Handwerker-ID gefunden. Bitte erneut anmelden.');
       }
       
-      // Prepare the API endpoint
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api/proxy';
-      
       // Add craftsman ID to the entry
       const entryWithCraftsmanId = {
         ...timeEntryData,
@@ -262,40 +214,8 @@ export default function TimeTrackingPage() {
       
       console.log('Submitting time entry with data:', JSON.stringify(entryWithCraftsmanId, null, 2));
       
-      // Submit the time entry
-      const response = await fetch(`${apiUrl}/time-entries`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(entryWithCraftsmanId)
-      });
-      
-      let errorText = '';
-      try {
-        errorText = await response.text();
-      } catch (e) {
-        errorText = 'Unable to get response details';
-      }
-      
-      if (!response.ok) {
-        console.error(`Server response (${response.status}):`, errorText);
-        throw new Error(`Server returned error ${response.status}: ${errorText || 'Unknown error'}`);
-      }
-      
-      let newEntry;
-      try {
-        // Check if we got a valid JSON response
-        if (errorText && errorText.trim().startsWith('{')) {
-          newEntry = JSON.parse(errorText);
-        } else {
-          throw new Error('Invalid response format');
-        }
-      } catch (parseError) {
-        console.error('Error parsing response:', parseError);
-        throw new Error('Ungültige Antwort vom Server erhalten');
-      }
+      // Use the centralized timeEntriesAPI to create the time entry
+      const newEntry = await timeEntriesAPI.create(entryWithCraftsmanId);
       
       // Add the new entry to the list
       setTimeEntries([newEntry, ...timeEntries]);

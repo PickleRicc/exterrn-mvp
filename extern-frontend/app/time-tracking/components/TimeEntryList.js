@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { formatDistanceToNow, parseISO, format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Edit2, Trash2, Clock, Calendar, User, FileText, DollarSign } from 'react-feather';
+import { timeEntriesAPI } from '../../lib/api';
 
 export default function TimeEntryList({ timeEntries, onEdit, onDelete, filter, appointments }) {
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -94,17 +95,12 @@ export default function TimeEntryList({ timeEntries, onEdit, onDelete, filter, a
   const handleDeleteClick = async (entryId) => {
     if (confirmDelete === entryId) {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/time-entries/${entryId}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
+        console.log(`Deleting time entry with ID: ${entryId}`);
         
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${await response.text()}`);
-        }
+        // Use the centralized timeEntriesAPI to delete the entry
+        await timeEntriesAPI.delete(entryId);
         
+        console.log(`Time entry with ID: ${entryId} deleted successfully`);
         onDelete(entryId);
         setConfirmDelete(null);
       } catch (err) {

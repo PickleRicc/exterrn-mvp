@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { parseISO, format, addHours, isValid, differenceInMinutes } from 'date-fns';
 import { Calendar, Clock, Save, X, User, FileText, DollarSign } from 'react-feather';
+import { timeEntriesAPI } from '../../lib/api';
 
 export default function TimeEntryForm({ craftsmanId, entry, onSuccess, onCancel, appointments }) {
   const isEditing = !!entry;
@@ -179,25 +180,19 @@ export default function TimeEntryForm({ craftsmanId, entry, onSuccess, onCancel,
     };
     
     try {
-      const url = isEditing 
-        ? `${process.env.NEXT_PUBLIC_API_URL}/time-entries/${entry.id}` 
-        : `${process.env.NEXT_PUBLIC_API_URL}/time-entries`;
+      console.log(`${isEditing ? 'Updating' : 'Creating'} time entry with data:`, requestData);
       
-      const response = await fetch(url, {
-        method: isEditing ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(requestData)
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error ${response.status}: ${errorText}`);
+      // Use the centralized timeEntriesAPI for creating or updating the time entry
+      let data;
+      if (isEditing) {
+        // Update existing entry
+        data = await timeEntriesAPI.update(entry.id, requestData);
+      } else {
+        // Create new entry
+        data = await timeEntriesAPI.create(requestData);
       }
       
-      const data = await response.json();
+      console.log(`Time entry ${isEditing ? 'updated' : 'created'} successfully:`, data);
       onSuccess(data);
     } catch (err) {
       console.error('Error submitting time entry:', err);
