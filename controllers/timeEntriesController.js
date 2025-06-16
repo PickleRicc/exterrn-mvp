@@ -3,7 +3,7 @@ const pool = require('../db');
 // Get all time entries with filters
 const getAllTimeEntries = async (req, res) => {
   try {
-    const { craftsman_id, start_date, end_date, appointment_id, status } = req.query;
+    const { craftsman_id, start_date, end_date, appointment_id } = req.query;
     
     console.log('Request query params for time entries:', req.query);
     
@@ -45,12 +45,7 @@ const getAllTimeEntries = async (req, res) => {
       whereClauseAdded = true;
     }
     
-    // Filter by status
-    if (status) {
-      queryParams.push(status);
-      queryText += whereClauseAdded ? ` AND t.status = $${paramIndex++}` : ` WHERE t.status = $${paramIndex++}`;
-      whereClauseAdded = true;
-    }
+    // Note: status filtering removed as the column doesn't exist in AWS schema
     
     // Order by most recent start time
     queryText += ` ORDER BY t.start_time DESC`;
@@ -237,7 +232,7 @@ const deleteTimeEntry = async (req, res) => {
 // Start a new time tracking session
 const startTimeTracking = async (req, res) => {
   try {
-    const { craftsman_id, appointment_id, description } = req.body;
+    const { craftsman_id, appointment_id, description, customer_id, is_billable, hourly_rate } = req.body;
     
     // Validate required field
     if (!craftsman_id) {
@@ -245,9 +240,10 @@ const startTimeTracking = async (req, res) => {
     }
     
     // Check if there's already an active time tracking session for this craftsman
+    // Note: Removed status check since it doesn't exist in AWS schema
     const activeSessionResult = await pool.query(
-      'SELECT * FROM time_entries WHERE craftsman_id = $1 AND end_time IS NULL AND status = $2',
-      [craftsman_id, 'active']
+      'SELECT * FROM time_entries WHERE craftsman_id = $1 AND end_time IS NULL',
+      [craftsman_id]
     );
     
     if (activeSessionResult.rows.length > 0) {
@@ -256,22 +252,26 @@ const startTimeTracking = async (req, res) => {
       });
     }
     
-    // Create the new time entry
+    // Create the new time entry (adjusted for AWS schema)
     const result = await pool.query(`
       INSERT INTO time_entries (
         craftsman_id,
         appointment_id,
+        customer_id,
         start_time,
         description,
-        status
+        is_billable,
+        hourly_rate
       )
-      VALUES ($1, $2, NOW(), $3, $4)
+      VALUES ($1, $2, $3, NOW(), $4, $5, $6)
       RETURNING *
     `, [
       craftsman_id,
       appointment_id || null,
+      customer_id || null,
       description || '',
-      'active'
+      is_billable !== undefined ? is_billable : true,
+      hourly_rate || null
     ]);
     
     res.status(201).json({
@@ -288,9 +288,9 @@ const startTimeTracking = async (req, res) => {
 const stopTimeTracking = async (req, res) => {
   try {
     const { id } = req.params;
-    const { break_duration, description } = req.body;
+    const { duration_minutes, description, notes } = req.body;
     
-    // First check if the time entry exists and is active
+    // First check if the time entry exists
     const checkResult = await pool.query(
       'SELECT * FROM time_entries WHERE id = $1',
       [id]
@@ -306,19 +306,20 @@ const stopTimeTracking = async (req, res) => {
       return res.status(400).json({ error: 'Diese Zeitmessung wurde bereits beendet' });
     }
     
-    // Update the time entry with end time and change status to completed
+    // Update the time entry with end time (adapted for AWS schema)
     const result = await pool.query(`
       UPDATE time_entries
       SET end_time = NOW(),
-          break_duration = $1,
+          duration_minutes = $1,
           description = CASE WHEN $2 IS NOT NULL AND $2 != '' THEN $2 ELSE description END,
-          status = 'completed',
+          notes = CASE WHEN $3 IS NOT NULL THEN $3 ELSE notes END,
           updated_at = CURRENT_TIMESTAMP
-      WHERE id = $3
+      WHERE id = $4
       RETURNING *
     `, [
-      break_duration || 0,
+      duration_minutes || 0,
       description,
+      notes,
       id
     ]);
     
