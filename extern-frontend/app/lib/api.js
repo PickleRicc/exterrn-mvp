@@ -356,38 +356,128 @@ export const appointmentsAPI = {
 // Time Entries API calls
 export const timeEntriesAPI = {
   getAll: async (filters = {}) => {
-    console.log('Fetching time entries with filters:', filters);
-    const response = await api.get('/time-entries', { params: filters });
-    return response.data;
+    try {
+      console.log('Fetching time entries with filters:', filters);
+      // Log the actual API request configuration
+      console.log('API URL for time entries:', '/api/proxy/time-entries');
+      console.log('Base URL:', api.defaults.baseURL);
+      console.log('Constructing full URL:', `${api.defaults.baseURL}/time-entries`);
+      
+      // Log auth token presence (without exposing the actual token)
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      console.log('Auth token present:', !!token);
+      
+      const response = await api.get('/time-entries', { params: filters });
+      console.log('✅ Time entries fetch successful:', response.status, response.statusText);
+      console.log('Data items received:', Array.isArray(response.data) ? response.data.length : 'Not an array');
+      return response.data;
+    } catch (error) {
+      console.error('❌ [ERROR] Error fetching time entries:');
+      console.error('Status:', error?.response?.status);
+      console.error('Status Text:', error?.response?.statusText);
+      console.error('Error Message:', error?.message);
+      console.error('Response Data:', error?.response?.data);
+      console.error('Request URL:', error?.config?.url);
+      console.error('Request Method:', error?.config?.method);
+      
+      // Let's try to check the backend status directly
+      try {
+        console.log('Checking backend server status...');
+        // Use fetch directly since axios might have configuration issues
+        const backendCheck = await fetch(`/api/proxy`, { method: 'GET' });
+        console.log('Backend check result:', backendCheck.status, backendCheck.statusText);
+      } catch (backendError) {
+        console.error('Backend check failed:', backendError.message);
+      }
+      
+      throw error;
+    }
   },
   getById: async (id) => {
-    const response = await api.get(`/time-entries/${id}`);
-    return response.data;
+    try {
+      console.log(`Fetching time entry with ID: ${id}`);
+      console.log('Request URL:', `/time-entries/${id}`);
+      const response = await api.get(`/time-entries/${id}`);
+      console.log('✅ Get time entry by ID successful:', response.status);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error fetching time entry ID ${id}:`, error?.response?.status, error?.message);
+      throw error;
+    }
   },
   create: async (timeEntryData) => {
-    console.log('Creating time entry with data:', JSON.stringify(timeEntryData, null, 2));
-    const response = await api.post('/time-entries', timeEntryData);
-    return response.data;
+    try {
+      console.log('Creating time entry with data:', JSON.stringify(timeEntryData, null, 2));
+      console.log('Request URL:', '/time-entries');
+      const response = await api.post('/time-entries', timeEntryData);
+      console.log('✅ Time entry creation successful:', response.status);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error creating time entry:', error?.response?.status, error?.message);
+      console.error('Response data:', error?.response?.data);
+      throw error;
+    }
   },
   update: async (id, timeEntryData) => {
-    const response = await api.put(`/time-entries/${id}`, timeEntryData);
-    return response.data;
+    try {
+      console.log(`Updating time entry ID ${id} with data:`, JSON.stringify(timeEntryData, null, 2));
+      console.log('Request URL:', `/time-entries/${id}`);
+      const response = await api.put(`/time-entries/${id}`, timeEntryData);
+      console.log('✅ Time entry update successful:', response.status);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error updating time entry ID ${id}:`, error?.response?.status, error?.message);
+      console.error('Response data:', error?.response?.data);
+      throw error;
+    }
   },
   delete: async (id) => {
-    const response = await api.delete(`/time-entries/${id}`);
-    return response.data;
+    try {
+      console.log(`Deleting time entry ID: ${id}`);
+      console.log('Request URL:', `/time-entries/${id}`);
+      const response = await api.delete(`/time-entries/${id}`);
+      console.log('✅ Time entry deletion successful:', response.status);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error deleting time entry ID ${id}:`, error?.response?.status, error?.message);
+      throw error;
+    }
   },
   getBreaks: async (timeEntryId) => {
-    const response = await api.get(`/time-entries/${timeEntryId}/breaks`);
-    return response.data;
+    try {
+      console.log(`Fetching breaks for time entry ID: ${timeEntryId}`);
+      console.log('Request URL:', `/time-entries/${timeEntryId}/breaks`);
+      const response = await api.get(`/time-entries/${timeEntryId}/breaks`);
+      console.log('✅ Get breaks successful:', response.status);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error fetching breaks for time entry ID ${timeEntryId}:`, error?.response?.status, error?.message);
+      throw error;
+    }
   },
   addBreak: async (timeEntryId, breakData) => {
-    const response = await api.post(`/time-entries/${timeEntryId}/breaks`, breakData);
-    return response.data;
+    try {
+      console.log(`Adding break to time entry ID ${timeEntryId} with data:`, JSON.stringify(breakData, null, 2));
+      console.log('Request URL:', `/time-entries/${timeEntryId}/breaks`);
+      const response = await api.post(`/time-entries/${timeEntryId}/breaks`, breakData);
+      console.log('✅ Add break successful:', response.status);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error adding break to time entry ID ${timeEntryId}:`, error?.response?.status, error?.message);
+      throw error;
+    }
   },
   getStats: async (filters = {}) => {
-    const response = await api.get('/time-entries/stats', { params: filters });
-    return response.data;
+    try {
+      console.log('Fetching time entry stats with filters:', filters);
+      console.log('Request URL:', '/time-entries/stats');
+      const response = await api.get('/time-entries/stats', { params: filters });
+      console.log('✅ Get stats successful:', response.status);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error fetching time entry stats:', error?.response?.status, error?.message);
+      throw error;
+    }
   }
 };
 
