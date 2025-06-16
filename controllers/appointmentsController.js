@@ -12,7 +12,7 @@ const getAllAppointments = async (req, res) => {
     let queryText = `
       SELECT a.*, c.name as customer_name, c.phone as customer_phone, c.service_type
       FROM appointments a
-      JOIN customers c ON a.customer_id = c.id
+      LEFT JOIN customers c ON a.customer_id = c.id
     `;
     
     const queryParams = [];
@@ -76,7 +76,7 @@ const getAppointmentById = async (req, res) => {
     const result = await pool.query(`
       SELECT a.*, c.name as customer_name, c.phone as customer_phone, c.service_type
       FROM appointments a
-      JOIN customers c ON a.customer_id = c.id
+      LEFT JOIN customers c ON a.customer_id = c.id
       WHERE a.id = $1
     `, [id]);
     
@@ -94,11 +94,12 @@ const getAppointmentById = async (req, res) => {
 // Create new appointment
 const createAppointment = async (req, res) => {
   try {
-    const { customer_id, scheduled_at, notes, craftsman_id, duration, location, status, approval_status } = req.body;
+    const { customer_id, scheduled_at, notes, craftsman_id, duration, location, status, approval_status, is_private } = req.body;
     
     // Validate required fields
-    if (!customer_id) {
-      return res.status(400).json({ error: 'customer_id is required' });
+    // For private appointments, customer_id is optional
+    if (!is_private && !customer_id) {
+      return res.status(400).json({ error: 'customer_id is required for non-private appointments' });
     }
     
     if (!scheduled_at) {
@@ -122,19 +123,23 @@ const createAppointment = async (req, res) => {
         duration, 
         location, 
         status, 
-        approval_status
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        approval_status,
+        has_invoice,
+        is_private
+      ) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
       RETURNING *
     `, [
-      customer_id, 
-      scheduled_at, 
-      notes || '', 
-      craftsman_id, 
-      duration || 60, 
-      location || '', 
+      is_private ? null : customer_id, // If private, set customer_id to null
+      scheduled_at,
+      notes || '',
+      craftsman_id,
+      duration || 60, // Default to 60 minutes if not specified
+      location || '',
       status || 'scheduled',
-      appointmentApprovalStatus
+      appointmentApprovalStatus,
+      false, // Default has_invoice to false
+      is_private || false // Default is_private to false if not specified
     ]);
     
     // Get the full appointment details with customer and craftsman info for the email
@@ -348,13 +353,14 @@ const approveAppointment = async (req, res) => {
         
         console.log('Update result:', result.rows[0]);
         
-        // Send approval email to customer
-        try {
-          await emailService.sendAppointmentApprovalEmail(appointment);
-          console.log('Approval email sent successfully');
-        } catch (emailError) {
-          console.error('Error sending customer approval email:', emailError);
-          // We don't want to fail the API call if email sending fails
+        // Send approval email to customer (skip for private appointments)
+        if (!appointment.is_private && appointment.customer_email) {
+          try {
+            await emailService.sendAppointmentApprovalEmail(appointment);
+          } catch (emailError) {
+            console.error('Error sending customer approval email:', emailError);
+            // We don't want to fail the API call if email sending fails
+          }
         }
         
         res.json({
@@ -418,12 +424,14 @@ const rejectAppointment = async (req, res) => {
       RETURNING *
     `, [id, reason || 'No reason provided']);
     
-    // Send rejection email to customer
-    try {
-      await emailService.sendAppointmentRejectionEmail(appointment, reason);
-    } catch (emailError) {
-      console.error('Error sending customer rejection email:', emailError);
-      // We don't want to fail the API call if email sending fails
+    // Send rejection email to customer (skip for private appointments)
+    if (!appointment.is_private && appointment.customer_email) {
+      try {
+        await emailService.sendAppointmentRejectionEmail(appointment, reason);
+      } catch (emailError) {
+        console.error('Error sending customer rejection email:', emailError);
+        // We don't want to fail the API call if email sending fails
+      }
     }
     
     res.json({
@@ -475,12 +483,14 @@ const completeAppointment = async (req, res) => {
       RETURNING *
     `, [id, status || 'completed', notes || 'Appointment completed']);
     
-    // Send completion email to customer
-    try {
-      await emailService.sendAppointmentCompletionEmail(appointment);
-    } catch (emailError) {
-      console.error('Error sending customer completion email:', emailError);
-      // We don't want to fail the API call if email sending fails
+    // Send completion email to customer (skip for private appointments)
+    if (!appointment.is_private && appointment.customer_email) {
+      try {
+        await emailService.sendAppointmentCompletionEmail(appointment);
+      } catch (emailError) {
+        console.error('Error sending customer completion email:', emailError);
+        // We don't want to fail the API call if email sending fails
+      }
     }
     
     res.json({
