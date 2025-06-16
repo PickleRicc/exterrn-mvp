@@ -11,7 +11,7 @@ const authRoutes = require('./routes/auth');
 const craftsmenRoutes = require('./routes/craftsmen');
 const invoiceRoutes = require('./routes/invoices');
 const financesRoutes = require('./routes/finances');
-const timeEntriesRoutes = require('./routes/timeEntries');
+// Removed time entries routes during hard reset
 const { updateInvoiceStatuses } = require('./controllers/invoicesController');
 
 const app = express();
@@ -48,7 +48,7 @@ app.use('/auth', authRoutes);
 app.use('/craftsmen', craftsmenRoutes);
 app.use('/invoices', invoiceRoutes);
 app.use('/finances', financesRoutes);
-app.use('/time-entries', timeEntriesRoutes);
+// app.use('/time-entries', timeEntriesRoutes); // Removed during hard reset
 
 app.get('/', (req, res) => res.send('Extern MVP API is live '));
 
